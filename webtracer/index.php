@@ -39,7 +39,7 @@
             de quão fácil é navegar em um portal e se há algum problema que gere uma
             experiência ruim. A ferramenta é composta por três módulos principais: o
             módulo cliente, o módulo de armazenamento e o módulo de visualizacão de
-            dados, que são os responsÃ¡veis por capturar as interações dos desenvolvedores,
+            dados, que são os responsáveis por capturar as interações dos desenvolvedores,
             armazenar e disponibilizar os resultados da interação, respectivamente (SOUZA et al, 2020).</p>
         <p>Possíveis variáveis que a ferramenta pode coletar:</p>
         <ul>

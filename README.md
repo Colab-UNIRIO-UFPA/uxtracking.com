@@ -1,4 +1,4 @@
-# Essa é uma versão da aplicação web para um servidor local.
+# Arquivos do módulo WEB para deploy no servidor do LPO
 
 ```
 Port: root@192.168.0.252

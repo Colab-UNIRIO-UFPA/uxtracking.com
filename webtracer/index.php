@@ -80,7 +80,6 @@ if (isset($_POST['downloadResearch'])) {
     if (file_exists($filename)) {
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
-        header('Content-Length: ' . filesize($filename));
 
         flush();
         readfile($filename);
@@ -105,7 +104,6 @@ if (isset($_POST['downloadExtension'])) {
     if (file_exists($filename)) {
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
-        header('Content-Length: ' . filesize($filename));
 
         flush();
         readfile($filename);

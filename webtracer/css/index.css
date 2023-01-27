@@ -11,20 +11,16 @@ footer {
     color: #ffffff;
     font-size: 1.3em; 
     margin: auto;
-    z-index: 2;
 }
 
 #logo {
     text-align: center;
-    z-index: 2;
 }
 #logo img {
     width: 40%;
-    z-index: 2;
 }
 #div-botoes {
     text-align: center;
-    z-index: 2;
 }
 
 .botoes-menu {
@@ -40,7 +36,6 @@ footer {
     cursor: pointer;
     border-radius: 4px;
     font-weight: 600;
-    z-index: 2;
 }
 
 .texto {

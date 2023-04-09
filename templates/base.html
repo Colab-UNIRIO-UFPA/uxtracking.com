@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        {% if current_user %}
+        <ul>
+          <li><a href="{{ url_for('index') }}">Página Principal</a></li>
+          <li><a href="{{ url_for('logout') }}">Sair</a></li>
+        </ul>
+        {% else %}
+        <ul>
+          <li><a href="{{ url_for('index') }}">Página Principal</a></li>
+          <li><a href="{{ url_for('register') }}">Registrar</a></li>
+          <li><a href="{{ url_for('login') }}">Entrar</a></li>
+        </ul>
+        {% endif %}
+      </nav>
+    </header>
+
+    <main>
+      {% block content %}
+      {% endblock %}
+    </main>
+  </body>
+</html>

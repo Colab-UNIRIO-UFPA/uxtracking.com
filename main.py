@@ -6,12 +6,13 @@ import os
 import base64
 import re
 from functions import auth, generate_user_id, clean
+from flask import session, send_file
 
 app = Flask(__name__)
-
+app.secret_key = '9214u012jr120421jk490124'
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
+# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
 @app.route('/receiver', methods=['POST'])
 def receiver():
     metadata = request.form['metadata']
@@ -21,32 +22,37 @@ def receiver():
     data = json.loads(data)
     sample = clean(metadata['sample'])
     if not os.path.exists("Samples"):
-        os.mkdir("Samples")
+        os.makedirs("Samples", exist_ok=True)
     else:
         if not os.path.exists(f'Samples/{userid}/'+ sample):
-            os.mkdir(f'Samples/{userid}')
-            os.mkdir(f'Samples/{userid}/'+sample)
+            os.makedirs(f'Samples/{userid}', exist_ok=True)
+            os.makedirs(f'Samples/{userid}/'+sample, exist_ok=True)
         else:
-            if not os.path.exists(f'Samples/{userid}/' + sample + '/' + str(metadata['time'])):
-                os.mkdir(f'Samples/{userid}/' + sample + '/' + str(metadata['time']))
-    if data['imageData'] != "NO":
-        if not os.path.exists(f'Samples/{userid}/' + sample + '/' + str(metadata['time']) + '/' + str(data['imageName'])):
-            imageData = base64.b64decode(re.sub('^data:image/\w+;base64,', '', data['imageData']))
-            with open(f'Samples/{userid}/' + sample + '/' + str(metadata['time']) + '/' + str(data['imageName']), "wb") as fh:
-                fh.write(imageData)
+            if not os.path.exists(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime'])):
+                os.makedirs(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']), exist_ok=True)
+
+    try:
+        if data['imageData'] != "NO":
+            if not os.path.exists(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/' + str(data['imageName'])):
+                imageData = base64.b64decode(re.sub('^data:image/\w+;base64,', '', data['imageData']))
+                with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/' + str(data['imageName']), "wb") as fh:
+                    fh.write(imageData)
+    
+    except:
+        None
     # if metadata['type'] == "eye":
-    #     with open('Samples/' + sample + '/' + str(metadata['time']) + '/traceX.txt', 'a') as f:
+    #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceX.txt', 'a') as f:
     #         f.write(data['X'] + '\n')
-    #     with open('Samples/' + sample + '/' + str(metadata['time']) + '/traceY.txt', 'a') as f:
+    #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceY.txt', 'a') as f:
     #         f.write(data['Y'] + '\n')
-    #     with open('Samples/' + sample + '/' + str(metadata['time']) + '/traceTime.txt', 'a') as f:
-    #         f.write(str(metadata['time']) + '\n')
+    #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceTime.txt', 'a') as f:
+    #         f.write(str(metadata['dateTime']) + '\n')
     # else:
-    with open(f'Samples/{userid}/' + sample + '/' + str(metadata['time']) + '/trace.xml', 'a') as f:
-        txt = "<rawtrace type=\"" + str(metadata['type']) + "\" image=\"" + str(data['imageName']) + "\" time=\"" + str(metadata['time']) + "\" Class=\"" + str(data['Class']) + "\" Id=\"" + str(data['Id']) + "\" MouseClass=\"" + str(data['mouseClass']) + "\" MouseId=\"" + str(data['mouseId']) + "\" X=\"" + str(data['X']) + "\" Y=\"" + str(data['Y']) + "\" keys=\"" + str(data['Typed']) + "\" scroll=\"" + str(metadata['scroll']) + "\" height=\"" + str(metadata['height']) + "\" url=\"" + str(metadata['url']) + "\" />"
+    with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/trace.xml', 'a') as f:
+        txt = "<rawtrace type=\"" + str(metadata['type']) + "\" image=\"" + str(data['imageName']) + "\" time=\"" + str(metadata['dateTime']) + "\" Class=\"" + str(data['Class']) + "\" Id=\"" + str(data['Id']) + "\" MouseClass=\"" + str(data['mouseClass']) + "\" MouseId=\"" + str(data['mouseId']) + "\" X=\"" + str(data['X']) + "\" Y=\"" + str(data['Y']) + "\" keys=\"" + str(data['Typed']) + "\" scroll=\"" + str(metadata['scroll']) + "\" height=\"" + str(metadata['height']) + "\" url=\"" + str(metadata['url']) + "\" />"
         f.write(txt + '\n')
-    with open(f'Samples/{userid}/' + sample + '/' + str(metadata['time']) + '/lastTime.txt', 'w') as f:
-        f.write(str(metadata['time']))
+    with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
+        f.write(str(metadata['dateTime']))
     return "received"
 
 # Define a rota para o envio dos dados pela ferramenta
@@ -55,7 +61,7 @@ def receiver():
 @app.route('/sample_checker', methods=['POST'])
 def sample_checker():
     if request.method == 'POST':
-        time = request.form['time']
+        time = request.form['dateTime']
         userid = request.form['userId']
         domain = clean(request.form['domain'])
         if not os.path.exists(f'Samples/{userid}/'+ domain + '/' + time):
@@ -115,6 +121,7 @@ def login():
         for user in users:
             if user['name'] == username and user['pass'] == password:
         # Se as credenciais estiverem corretas, redireciona para a página principal
+                session['username'] = request.form['name']
                 return redirect(url_for("index"))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
@@ -127,6 +134,11 @@ def login():
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
 def index():
+    if 'username' in session:
+        return f'Logged in as {session["username"]}'
+    return render_template('index.html')
+
+    """
     if request.method == "POST":
         # Obtém o arquivo JSON enviado pelo usuário
         file = request.files["file"]
@@ -160,6 +172,12 @@ def index():
     else:
         # Se a requisição for GET, exibe a página principal
         return render_template("index.html")
+    """
+
+@app.route("/download/<filename>")
+def download(filename):
+    if filename == "UX-Tracking Extension.zip" or filename == "UX-Tracking Tools.zip":
+        return send_file({{url_for('static', filename=filename)}}, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=False)

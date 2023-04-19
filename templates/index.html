@@ -1,56 +1,12 @@
-<!doctype html>
-<html lang="pt-br">
-
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>UX-Tracking: Web and Multimodal Tool for User Experience Evaluation</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='index.css')}}" />
-</head>
-
-<body>
-    <div id="particles-js"></div>
-    <div id="logo">
-        <img src="{{url_for('static', filename='logo.png')}}">
-    </div>
-    <div id="div-botoes">
+{% extends "base.html" %}
+{% block content %}
+    <h1>Home</h1>
+    {% if session %}
         <ul class="menu">
-            <a class="botoes-menu" href="{{url_for('static', filename='UX-Tracking Tools.zip')}}">Ferramentas de Pós-processamento</a>
-            <a class="botoes-menu" href="{{url_for('static', filename='UX-Tracking Extension.zip')}}">Extensão</a>
-            <a href="https://github.com/Colab-UNIRIO-UFPA/UX-Tracking#readme">
-                <button class="botoes-menu">Manual de Uso</button>
-            </a>
-            <a href="https://github.com/Colab-UNIRIO-UFPA/UX-Tracking">
-                <button class="botoes-menu">Repositório</button>
-            </a>
+            <a href="{{url_for('static', filename='UX-Tracking Tools.zip')}}">Ferramentas de Pós-processamento</a>
+            <a href="{{url_for('static', filename='UX-Tracking Extension.zip')}}">Extensão</a>
+            <a href="https://github.com/Colab-UNIRIO-UFPA/UX-Tracking#readme">Manual de Uso</a>
+            <a href="https://github.com/Colab-UNIRIO-UFPA/UX-Tracking">Repositório</a>
         </ul>
-    </div>
-    &nbsp;
-    <div class="texto">
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            A UX-Tracking é uma ferramenta que monitora, de forma automatizada, a
-            experiência do usuário (neste caso, desenvolvedor) no ambiente Web e
-            gera artefatos visuais e indicadores para documentá-la, permitindo a
-            realização de análises e diagnósticos sobre a percepção do desenvolvedor
-            de quão fácil é navegar em um portal e se há algum problema que gere uma
-            experiência ruim. A ferramenta é composta por três módulos principais: o
-            módulo cliente, o módulo de armazenamento e o módulo de visualizacão de
-            dados, que são os responsáveis por capturar as interações dos desenvolvedores,
-            armazenar e disponibilizar os resultados da interação, respectivamente (SOUZA et al, 2020).</p>
-        <p>Possíveis variáveis que a ferramenta pode coletar:</p>
-        <ul>
-            <li>Distância total do mouse</li>
-            <li>Atraso na decisão de clicar</li>
-            <li>Número total de cliques</li>
-            <li>Tempo de fixação do olhar</li>
-        </ul>
-    </div>
-    <div class='container'>
-    </div>
-</body>
-    <script type="text/javascript" src="{{url_for('static', filename='js/particles.js')}}"></script>
-	<script type="text/javascript" src="{{url_for('static', filename='js/app.js')}}"></script>
-	<script type="text/javascript" src="{{url_for('static', filename='js/opener.js')}}"></script>
-    
-</html>
+    {% endif %}
+{% endblock %}

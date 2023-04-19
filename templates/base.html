@@ -6,16 +6,16 @@
   <body>
     <header>
       <nav>
-        {% if current_user %}
+        {% if session %}
         <ul>
-          <li><a href="{{ url_for('index') }}">Página Principal</a></li>
-          <li><a href="{{ url_for('logout') }}">Sair</a></li>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
         {% else %}
         <ul>
-          <li><a href="{{ url_for('index') }}">Página Principal</a></li>
-          <li><a href="{{ url_for('register') }}">Registrar</a></li>
-          <li><a href="{{ url_for('login') }}">Entrar</a></li>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('register') }}">Register</a></li>
+          <li><a href="{{ url_for('login') }}">Login</a></li>
         </ul>
         {% endif %}
       </nav>

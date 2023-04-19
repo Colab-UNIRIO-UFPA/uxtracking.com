@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Registrar</h1>
+  <h1>Register</h1>
   {% if error %}
   <p>{{ error }}</p>
   {% endif %}
   <form method="POST">
-    <input type="text" name="username" placeholder="Nome de usuário" required>
+    <input type="text" name="username" placeholder="Username" required>
     <input type="email" name="email" placeholder="Email" required>
-    <input type="password" name="password" placeholder="Senha" required>
-    <input type="password" name="confirm_password" placeholder="Confirmar senha" required>
-    <button type="submit">Registrar</button>
+    <input type="password" name="password" placeholder="Password" required>
+    <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+    <button type="submit">Register</button>
   </form>
 {% endblock %}

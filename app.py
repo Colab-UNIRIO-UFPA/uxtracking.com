@@ -1,3 +1,19 @@
+# Organização do patch:
+#/Samples (Diretório de samples)
+#   /ID (ID do usuário, gerado pela função generate_user_id em functions.py)
+#       /wwwsitecom (site coletado)
+#           /YYYYMMDD-HHMMSS (data da coleta)
+#               Dados (dados da coleta)
+#/static (diretório de arquivos estáticos carregáveis pelo Flask)
+#   /css (estilo das páginas HTML)
+#   /js (códigos javascript de estilo para as páginas HTML)
+#   logo
+#   UX-Tracking Extension (zipado da extensão para download)
+#   UX-Tracking Tools (ferramentas de plotagem - Será retirado)
+#/templates (páginas das rotas)
+#app.py (arquivo principal do serviço em Flask)
+#functions.py (funções chamadas no código do serviço)
+
 from flask import Flask, render_template, request, redirect, url_for
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
@@ -10,9 +26,8 @@ from flask import session, send_file
 
 app = Flask(__name__)
 app.secret_key = '9214u012jr120421jk490124'
+
 # Define a rota para o envio dos dados pela ferramenta
-# Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
 @app.route('/receiver', methods=['POST'])
 def receiver():
     metadata = request.form['metadata']
@@ -56,8 +71,6 @@ def receiver():
     return "received"
 
 # Define a rota para o envio dos dados pela ferramenta
-# Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
 @app.route('/sample_checker', methods=['POST'])
 def sample_checker():
     if request.method == 'POST':
@@ -92,10 +105,11 @@ def register():
             with open("users.json", "r") as arquivo:
                 users = json.load(arquivo)
 
-            users.append({  "name": username,
-                            "pass": password,
+            users.append({  "username": username,
+                            "password": password,
                             "email": email,
                             "id": generate_user_id(username, email)})
+            session['username'] = username
             # Abre o arquivo usuarios.json em modo de escrita
             with open("users.json", "w") as arquivo:
                 # Escreve a lista de usuários atualizada no arquivo
@@ -119,9 +133,9 @@ def login():
         with open("users.json", "r") as arquivo:
                 users = json.load(arquivo)
         for user in users:
-            if user['name'] == username and user['pass'] == password:
+            if user['username'] == username and user['password'] == password:
         # Se as credenciais estiverem corretas, redireciona para a página principal
-                session['username'] = request.form['name']
+                session['username'] = request.form['username']
                 return redirect(url_for("index"))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
@@ -131,12 +145,46 @@ def login():
         # Se a requisição for GET, exibe a página de login
         return render_template("login.html")
 
+# Define a rota para a página de login
+@app.route('/logout')
+def logout():
+    # remove the username from the session if it's there
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+@app.route('/forgot_pass', methods=["GET", "POST"])
+def forgot_pass():
+    if request.method == "POST":
+        # Obtém o usuário e email informados no formulário
+        username = request.form["username"]
+        email = request.form["email"]
+
+        with open("users.json", "r") as arquivo:
+                users = json.load(arquivo)
+        for user in users:
+            if user['username'] == username and user['email'] == email:
+                # Se as credenciais estiverem corretas, envia um email para o usuário
+                # realizar a criação de nova senha e redireciona para o login
+                email=email #IMPLEMENTAR
+                #
+                #
+                #
+                #
+                #
+                #
+                #
+                ################################
+                return redirect(url_for("login"))
+    else:
+        return render_template("forgot_pass.html")
+
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
 def index():
     if 'username' in session:
-        return f'Logged in as {session["username"]}'
-    return render_template('index.html')
+        return render_template('index.html', session=True)
+    else:
+        return render_template('index.html', session=False)
 
     """
     if request.method == "POST":
@@ -180,4 +228,4 @@ def download(filename):
         return send_file({{url_for('static', filename=filename)}}, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

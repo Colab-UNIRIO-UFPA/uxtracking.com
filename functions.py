@@ -1,6 +1,8 @@
 import hashlib
 import json
 import re
+import string
+import random
 
 def generate_user_id(name, email):
     string_to_hash = f"{name}{email}"
@@ -19,3 +21,7 @@ def auth(name, email):
 def clean(string):
     string = string.replace(' ', '-') # Substitui todos os espaços por hífens.
     return re.sub('[^A-Za-z0-9\-]+', '', string) # Remove caracteres especiais.
+
+def id_generator():
+    chars=string.ascii_uppercase + string.digits
+    return ''.join(random.choice(chars) for _ in range(8))

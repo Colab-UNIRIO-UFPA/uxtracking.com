@@ -1,14 +1,1 @@
-[
-    {
-        "username": "flavio",
-        "password": "12345678",
-        "email": "flavio.moura@itec.ufpa.br",
-        "id": "fb50a10f11b0c153e88e96d06668911f"
-    },
-    {
-        "username": "rodrigo",
-        "password": "87654321",
-        "email": "rodrigo@gmail.com",
-        "id": "60a472b6b3d541d0dd8158196b816b23"
-    }
-]
+[{"username": "flavio", "password": "jutsudolyanh", "email": "flavio.moura@itec.ufpa.br", "id": "fb50a10f11b0c153e88e96d06668911f"}]

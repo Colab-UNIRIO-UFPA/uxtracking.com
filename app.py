@@ -1,19 +1,3 @@
-# Organização do patch:
-#/Samples (Diretório de samples)
-#   /ID (ID do usuário, gerado pela função generate_user_id em functions.py)
-#       /wwwsitecom (site coletado)
-#           /YYYYMMDD-HHMMSS (data da coleta)
-#               Dados (dados da coleta)
-#/static (diretório de arquivos estáticos carregáveis pelo Flask)
-#   /css (estilo das páginas HTML)
-#   /js (códigos javascript de estilo para as páginas HTML)
-#   logo
-#   UX-Tracking Extension (zipado da extensão para download)
-#   UX-Tracking Tools (ferramentas de plotagem - Será retirado)
-#/templates (páginas das rotas)
-#app.py (arquivo principal do serviço em Flask)
-#functions.py (funções chamadas no código do serviço)
-
 from flask import Flask, render_template, request, redirect, url_for
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
@@ -21,13 +5,26 @@ import json
 import os
 import base64
 import re
-from functions import auth, generate_user_id, clean
+from functions import auth, generate_user_id, clean, id_generator
 from flask import session, send_file
+from flask_mail import Mail,  Message
+from simple_colors import *
 
 app = Flask(__name__)
 app.secret_key = '9214u012jr120421jk490124'
 
+app.config.update(
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 465,
+    MAIL_USE_SSL = True,
+    MAIL_USERNAME = 'uxtracking.service@gmail.com',
+    MAIL_PASSWORD = 'sqjndmwjedvknlex'
+)
+mail = Mail(app)
+
 # Define a rota para o envio dos dados pela ferramenta
+# Organização do patch:
+# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
 @app.route('/receiver', methods=['POST'])
 def receiver():
     metadata = request.form['metadata']
@@ -71,6 +68,8 @@ def receiver():
     return "received"
 
 # Define a rota para o envio dos dados pela ferramenta
+# Organização do patch:
+# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
 @app.route('/sample_checker', methods=['POST'])
 def sample_checker():
     if request.method == 'POST':
@@ -109,7 +108,6 @@ def register():
                             "password": password,
                             "email": email,
                             "id": generate_user_id(username, email)})
-            session['username'] = username
             # Abre o arquivo usuarios.json em modo de escrita
             with open("users.json", "w") as arquivo:
                 # Escreve a lista de usuários atualizada no arquivo
@@ -152,6 +150,7 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
 
+# Define a rota para reset de password
 @app.route('/forgot_pass', methods=["GET", "POST"])
 def forgot_pass():
     if request.method == "POST":
@@ -161,22 +160,84 @@ def forgot_pass():
 
         with open("users.json", "r") as arquivo:
                 users = json.load(arquivo)
-        for user in users:
-            if user['username'] == username and user['email'] == email:
+        for i in range(len(users)):
+            if users[i]['username'] == username and users[i]['email'] == email:
                 # Se as credenciais estiverem corretas, envia um email para o usuário
-                # realizar a criação de nova senha e redireciona para o login
-                email=email #IMPLEMENTAR
-                #
-                #
-                #
-                #
-                #
-                #
-                #
-                ################################
+                # com a nova senha criada e redireciona para o login
+
+                #Nova senha gerada
+                generatedPass = id_generator()
+
+                #Requisição por email
+                msg = Message( 
+                                'UX-Tracking password reset.', 
+                                sender = app.config.get("MAIL_USERNAME"), 
+                                recipients = [email] 
+                            ) 
+                
+                msg.body = f'''
+Dear {username}!
+We are sending you this message because you have been asked to reset your password on our platform, the new password generated for your account is below:
+
+{generatedPass}
+
+If you are not the one who made the request, only you will see this password and will be able to change it on our platform.
+________________________________________________________
+This email was generated anonymously and automatically by an unmonitored email account, so please do not reply to this email.'''
+
+                #Nova senha enviada
+                mail.send(msg)
+
+                #Senha do usuário alterada na BD
+                users[i]['password'] = generatedPass
+
+                # Abre o arquivo usuarios.json em modo de escrita
+                with open("users.json", "w") as arquivo:
+                    # Escreve a lista de usuários atualizada no arquivo
+                    json.dump(users, arquivo)
+
+                #Redirecionar para o login
                 return redirect(url_for("login"))
     else:
         return render_template("forgot_pass.html")
+
+# Define a rota para a página de alteração de senha
+@app.route("/change_pass", methods=["GET", "POST"])
+def change_pass():
+    if request.method == "POST":
+        # Obtém o usuário e a senha informados no formulário
+        username = request.form["username"]
+        password = request.form["password"]
+        newpassword = request.form["newpassword"]
+
+        # Verifica se as credenciais estão corretas
+        with open("users.json", "r") as arquivo:
+                users = json.load(arquivo)
+        for i in range(len(users)):
+            if users[i]['username'] == username and users[i]['password'] == password:
+                if newpassword == request.form["confirm_newpassword"]:
+                    #Senha do usuário alterada para a fornecida
+                    users[i]['password'] = newpassword
+
+                    # Abre o arquivo usuarios.json em modo de escrita
+                    with open("users.json", "w") as arquivo:
+                        # Escreve a lista de usuários atualizada no arquivo
+                        json.dump(users, arquivo)
+
+                    #Usuário logado
+                    session['username'] = request.form['username']
+                    return redirect(url_for("index"))
+                
+                else:
+                    error = "Make sure the new passwords match!"
+                    return render_template("change_pass.html", error=error)
+            else:
+                error = "The username or password is incorrect."
+                return render_template("change_pass.html", error=error)
+            
+    else:
+        # Se a requisição for GET, exibe a página de alteração de senha
+        return render_template("change_pass.html")
 
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])

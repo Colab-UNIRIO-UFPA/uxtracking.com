@@ -12,7 +12,7 @@ def generate_user_id(name, email):
 def auth(name, email):
     with open("users.json", "r") as arquivo:
         users = json.load(arquivo)
-    if any(user["username"] == name for user in users):
+    if any(user["name"] == name for user in users):
         return [True, "Usuário já existe."]
     if any(user["email"] == email for user in users):
         return [True, "Email já cadastrado."]

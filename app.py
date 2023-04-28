@@ -9,6 +9,8 @@ from functions import auth, generate_user_id, clean, id_generator
 from flask import session, send_file
 from flask_mail import Mail,  Message
 from simple_colors import *
+import csv
+from pathlib import Path
 
 app = Flask(__name__)
 app.secret_key = '9214u012jr120421jk490124'
@@ -31,6 +33,7 @@ def receiver():
     data = request.form['data']
     metadata = json.loads(metadata)
     userid = metadata['userId']
+    dateTime = str(metadata['dateTime'])
     data = json.loads(data)
     sample = clean(metadata['sample'])
     if not os.path.exists("Samples"):
@@ -60,11 +63,51 @@ def receiver():
     #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceTime.txt', 'a') as f:
     #         f.write(str(metadata['dateTime']) + '\n')
     # else:
-    with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/trace.xml', 'a') as f:
-        txt = "<rawtrace type=\"" + str(metadata['type']) + "\" image=\"" + str(data['imageName']) + "\" time=\"" + str(metadata['dateTime']) + "\" Class=\"" + str(data['Class']) + "\" Id=\"" + str(data['Id']) + "\" MouseClass=\"" + str(data['mouseClass']) + "\" MouseId=\"" + str(data['mouseId']) + "\" X=\"" + str(data['X']) + "\" Y=\"" + str(data['Y']) + "\" keys=\"" + str(data['Typed']) + "\" scroll=\"" + str(metadata['scroll']) + "\" height=\"" + str(metadata['height']) + "\" url=\"" + str(metadata['url']) + "\" />"
-        f.write(txt + '\n')
+    if not os.path.exists(f'Samples/{userid}/{sample}/{dateTime}/trace.csv'):
+        # se a base não existe, cria o csv
+        fields = ['type',
+                  'image',
+                  'time',
+                  'class',
+                  'id',
+                  'mouseClass',
+                  'mouseId',
+                  'x',
+                  'y',
+                  'keys',
+                  'scroll',
+                  'height',
+                  'url']
+        
+        file = Path(f'Samples/{userid}/{sample}/{dateTime}/trace.csv')
+        file.touch(exist_ok=True)
+        with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'w') as csvfile:
+            # criando um objeto csv dict writer
+            csvwriter = csv.writer(csvfile)
+            # escrever cabeçalhos (nomes de campo)
+            csvwriter.writerow(fields)
+
+    with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'a') as csvfile:
+        # criando um objeto csv dict writer
+        csvwriter = csv.writer(csvfile)
+        # escrever linha (dados)
+        csvwriter.writerow([str(metadata['type']),
+                           str(data['imageName']),
+                           str(metadata['dateTime']),
+                           str(data['Class']),
+                           str(data['Id']),
+                           str(data['mouseClass']),
+                           str(data['mouseId']),
+                           str(data['X']),
+                           str(data['Y']),
+                           str(data['Typed']),
+                           str(metadata['scroll']),
+                           str(metadata['height']),
+                           str(metadata['url'])])
+
     with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
         f.write(str(metadata['dateTime']))
+        
     return "received"
 
 # Define a rota para o envio dos dados pela ferramenta
@@ -112,9 +155,9 @@ def register():
             with open("users.json", "w") as arquivo:
                 # Escreve a lista de usuários atualizada no arquivo
                 json.dump(users, arquivo)
-        
         # Redireciona para a página de login
         return redirect(url_for("login"))
+    
     else:
         # Se a requisição for GET, exibe a página de registro
         return render_template("register.html")

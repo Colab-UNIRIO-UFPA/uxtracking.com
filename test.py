@@ -1,24 +1,15 @@
-#coding=utf-8                                                                                                                                                                              
-import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+import os
+import pandas as pd
+userid = 'fb50a10f11b0c153e88e96d06668911f'
+datadir=f'./Samples/{userid}'
 
+datamap = {}
+folders = list(filter(lambda x: os.path.isdir(os.path.join(datadir, x)), os.listdir(datadir)))
+for page in os.listdir(datadir):
+    datamap[page] = []
+    for date in os.listdir(os.path.join(datadir, page)):
+        # Lendo os traços em csv 
+        df = pd.read_csv(os.path.join(datadir, page, date, 'trace.csv'))
+        datamap[page].append({date:df.type.unique()})
 
-chrome_options = Options() 
-chrome_options.add_argument('--headless')
-chrome_options.add_argument("--window-size=1920x20800") # ANYTHING MORE THAN 3200 width my pycharm cant cope (Rendering error)
-
-options = webdriver.ChromeOptions()
-options.headless = True
-driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-
-URL = 'https://www.globo.com/'
-
-driver.get(URL)
-
-S = lambda X: driver.execute_script('return document.body.parentNode.scroll'+X)
-driver.set_window_size(S('Width'),S('Height')) # May need manual adjustment                                                                                                                
-driver.find_element_by_tag_name('body').screenshot('web_screenshot.png')
-
-driver.quit()
+print(datamap)

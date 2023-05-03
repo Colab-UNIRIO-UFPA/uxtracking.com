@@ -11,6 +11,7 @@ from flask_mail import Mail,  Message
 from simple_colors import *
 import csv
 from pathlib import Path
+import pandas as pd
 
 app = Flask(__name__)
 app.secret_key = '9214u012jr120421jk490124'
@@ -67,7 +68,6 @@ def receiver():
         # se a base não existe, cria o csv
         fields = ['type',
                   'image',
-                  'time',
                   'class',
                   'id',
                   'mouseClass',
@@ -93,7 +93,6 @@ def receiver():
         # escrever linha (dados)
         csvwriter.writerow([str(metadata['type']),
                            str(data['imageName']),
-                           str(metadata['dateTime']),
                            str(data['Class']),
                            str(data['Id']),
                            str(data['mouseClass']),
@@ -326,10 +325,89 @@ def index():
         return render_template("index.html")
     """
 
-@app.route("/download/<filename>")
-def download(filename):
-    if filename == "UX-Tracking Extension.zip" or filename == "UX-Tracking Tools.zip":
-        return send_file({{url_for('static', filename=filename)}}, as_attachment=True)
+@app.route('/profile/<username>/<metadata>', methods=["GET", "POST"])
+def profile(username, metadata):
+    if request.method == 'POST':
+        #faz a leitura da base de dados de coletas do usuário
+        with open("users.json", "r") as arquivo:
+                users = json.load(arquivo)
+        for i in range(len(users)):
+            if users[i]['username'] == username:
+                userid = users[i]['id']
+        datadir=f'./Samples/{userid}'
 
+        if metadata == 'page':
+            #adiciona as páginas à seção
+            session['pages'] = request.form['pages']
+
+            #redireciona pra seleção das datas
+            return redirect(url_for(f"profile/{username}/datetime"))
+
+        elif metadata == 'datetime':
+            #adiciona as datas à seção
+            session['dates'] = request.form['dates']
+
+            #refireciona pra seleção dos traços
+            return redirect(url_for(f"profile/{username}/trace"))
+
+        elif metadata == 'trace':
+            #adiciona os traços à seção
+            session['traces'] = request.form['traces']
+
+            ###############################################################################
+            #implementar filtragem dos dados do objeto pandas e retornar ao usuário um csv
+            ###############################################################################
+            
+    #método GET
+    else:
+        #faz a leitura da base de dados de coletas do usuário
+        with open("users.json", "r") as arquivo:
+                users = json.load(arquivo)
+        for i in range(len(users)):
+            if users[i]['username'] == username:
+                userid = users[i]['id']
+        datadir=f'./Samples/{userid}'
+        
+        if metadata == 'page':
+            pages = []
+            #exibição dos sites que foram coletados
+            for page in os.listdir(datadir):
+                pages.append(page)
+
+            return render_template("profile.html", username=username, metadata=metadata, items=pages)
+        
+        elif metadata == 'datetime':
+            pages = session['pages']
+
+            #verifica quais datas estão disponíveis
+            dates = {}
+            for page in pages:
+                dates[page] = []
+                for date in os.listdir(os.path.join(datadir, page)):
+                    dates[page].append(date)
+
+            return render_template("profile.html", username=username, metadata=metadata, items=dates)
+        
+        elif metadata == 'trace':
+            pages = session['pages']
+            dates = session['dates']
+            
+             #verifica quais traços estão disponíveis
+            traces = []
+            for page in pages:
+                dates[page] = []
+                for date in os.listdir(os.path.join(datadir, page)):
+                    # Lendo os traços em csv 
+                    df = pd.read_csv(os.path.join(datadir, page, date, 'trace.csv'))
+                    for trace in df.type.unique():
+                        if trace not in traces:
+                            traces.append(trace)
+            
+            return render_template("profile.html", username=username, metadata=metadata, items=traces)
+        
+        else:
+            error = '404\nPage not found!'
+            return render_template("profile.html", username=username, error = error)
+    
 if __name__ == "__main__":
     app.run(debug=True)

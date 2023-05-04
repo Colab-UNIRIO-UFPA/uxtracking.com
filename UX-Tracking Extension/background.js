@@ -17,7 +17,7 @@ var timeInternal = 0;
 var userId = "fb50a10f11b0c153e88e96d06668911f";
 var domain = "";
 var lastTime = 0;
-var fixtime=0;
+var timeInitial= new Date().getTime();
 
 chrome.runtime.onMessage.addListener(function (request, sender)
 {
@@ -45,6 +45,10 @@ function capture(type, data)
                 data.imageData = "NO";
                 //data.Time-=0.2;
                 Post(type, data);
+            }else if(type=="voice"){
+                data.imageData = "NO";
+                //data.Time-=0.2;
+                Post(type, data);
             }else{
 				if((type=="move" || type=="freeze") && shot<7){
 					data.imageData = "NO";
@@ -68,9 +72,7 @@ function capture(type, data)
 
 function Post(type, data){
 	data.imageName = lastTime+".jpg";
-	if(fixtime<data.Time + timeInternal){
-		fixtime=data.Time + timeInternal;
-	}
+	time = new Date().getTime()
     $.post(serverUrl+"/receiver",
                 {
                     metadata: JSON.stringify({
@@ -78,7 +80,7 @@ function Post(type, data){
                             sample: domain,
                             userId: userId,
                             type: type,
-                            time: fixtime,
+                            time: (time - timeInitial)/1000,
                             scroll: data.pageScroll,
                             height: data.pageHeight,
                             url: data.url

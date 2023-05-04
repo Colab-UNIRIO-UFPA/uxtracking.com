@@ -64,51 +64,104 @@ def receiver():
     #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceTime.txt', 'a') as f:
     #         f.write(str(metadata['dateTime']) + '\n')
     # else:
-    if not os.path.exists(f'Samples/{userid}/{sample}/{dateTime}/trace.csv'):
-        # se a base não existe, cria o csv
-        fields = ['type',
-                  'image',
-                  'class',
-                  'id',
-                  'mouseClass',
-                  'mouseId',
-                  'x',
-                  'y',
-                  'keys',
-                  'scroll',
-                  'height',
-                  'url']
-        
-        file = Path(f'Samples/{userid}/{sample}/{dateTime}/trace.csv')
-        file.touch(exist_ok=True)
-        with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'w') as csvfile:
+    
+    traceData = ['eye', 'mouse', 'keyboard', 'freeze', 'click', 'wheel', 'move']
+    if str(metadata['type']) in traceData:
+        if not os.path.exists(f'Samples/{userid}/{sample}/{dateTime}/trace.csv'):
+            # se a base não existe, cria o csv
+            fields = ['type',
+                    'time',
+                    'image',
+                    'class',
+                    'id',
+                    'mouseClass',
+                    'mouseId',
+                    'x',
+                    'y',
+                    'keys',
+                    'scroll',
+                    'height']
+            
+            file = Path(f'Samples/{userid}/{sample}/{dateTime}/trace.csv')
+            file.touch(exist_ok=True)
+            
+            with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'w') as csvfile:
+                # criando um objeto csv dict writer
+                csvwriter = csv.writer(csvfile)
+                # escrever cabeçalhos (nomes de campo)
+                csvwriter.writerow(fields)
+            
+        with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'a') as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
-            # escrever cabeçalhos (nomes de campo)
-            csvwriter.writerow(fields)
+            # escrever linha (dados)
+            csvwriter.writerow([str(metadata['type']),
+                            str(metadata['time']),
+                            str(data['imageName']),
+                            str(data['Class']),
+                            str(data['Id']),
+                            str(data['mouseClass']),
+                            str(data['mouseId']),
+                            str(data['X']),
+                            str(data['Y']),
+                            str(data['Typed']),
+                            str(metadata['scroll']),
+                            str(metadata['height'])])
 
-    with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'a') as csvfile:
-        # criando um objeto csv dict writer
-        csvwriter = csv.writer(csvfile)
-        # escrever linha (dados)
-        csvwriter.writerow([str(metadata['type']),
-                           str(data['imageName']),
-                           str(data['Class']),
-                           str(data['Id']),
-                           str(data['mouseClass']),
-                           str(data['mouseId']),
-                           str(data['X']),
-                           str(data['Y']),
-                           str(data['Typed']),
-                           str(metadata['scroll']),
-                           str(metadata['height']),
-                           str(metadata['url'])])
+        with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
+            f.write(str(metadata['dateTime']))
+            
+        return "received"
+    
+    #se for um dado de voz
+    else:
+        ##########################################################
+        #IMPLEMENTAR
+        print(metadata['type'])
+        if not os.path.exists(f'Samples/{userid}/{sample}/{dateTime}/audio.csv'):
+            # se a base não existe, cria o csv
+            fields = ['time',
+                    'text',
+                    'image',
+                    'class',
+                    'id',
+                    'mouseClass',
+                    'mouseId',
+                    'x',
+                    'y',
+                    'scroll',
+                    'height']
+            
+            file = Path(f'Samples/{userid}/{sample}/{dateTime}/audio.csv')
+            file.touch(exist_ok=True)
+            
+            with open(f'Samples/{userid}/{sample}/{dateTime}/audio.csv', 'w') as csvfile:
+                # criando um objeto csv dict writer
+                csvwriter = csv.writer(csvfile)
+                # escrever cabeçalhos (nomes de campo)
+                csvwriter.writerow(fields)
+            
+        with open(f'Samples/{userid}/{sample}/{dateTime}/audio.csv', 'a') as csvfile:
+            # criando um objeto csv dict writer
+            csvwriter = csv.writer(csvfile)
+            # escrever linha (dados)
+            csvwriter.writerow([str(metadata['time']),
+                            str(data['Spoken']),
+                            str(data['imageName']),
+                            str(data['Class']),
+                            str(data['Id']),
+                            str(data['mouseClass']),
+                            str(data['mouseId']),
+                            str(data['X']),
+                            str(data['Y']),
+                            str(metadata['scroll']),
+                            str(metadata['height'])])
 
-    with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
-        f.write(str(metadata['dateTime']))
-        
-    return "received"
-
+        with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
+            f.write(str(metadata['dateTime']))
+            
+        return "received"
+        ##########################################################
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
 # (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
@@ -325,8 +378,8 @@ def index():
         return render_template("index.html")
     """
 
-@app.route('/profile/<username>/<metadata>', methods=["GET", "POST"])
-def profile(username, metadata):
+@app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
+def datafilter(username, metadata):
     if request.method == 'POST':
         #faz a leitura da base de dados de coletas do usuário
         with open("users.json", "r") as arquivo:
@@ -341,14 +394,14 @@ def profile(username, metadata):
             session['pages'] = request.form['pages']
 
             #redireciona pra seleção das datas
-            return redirect(url_for(f"profile/{username}/datetime"))
+            return redirect(url_for(f"datafilter/{username}/datetime"))
 
         elif metadata == 'datetime':
             #adiciona as datas à seção
             session['dates'] = request.form['dates']
 
             #refireciona pra seleção dos traços
-            return redirect(url_for(f"profile/{username}/trace"))
+            return redirect(url_for(f"datafilter/{username}/trace"))
 
         elif metadata == 'trace':
             #adiciona os traços à seção
@@ -374,19 +427,20 @@ def profile(username, metadata):
             for page in os.listdir(datadir):
                 pages.append(page)
 
-            return render_template("profile.html", username=username, metadata=metadata, items=pages)
+            return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
         
         elif metadata == 'datetime':
             pages = session['pages']
 
             #verifica quais datas estão disponíveis
+            #{páginas:[data1, data2]}
             dates = {}
             for page in pages:
                 dates[page] = []
                 for date in os.listdir(os.path.join(datadir, page)):
                     dates[page].append(date)
 
-            return render_template("profile.html", username=username, metadata=metadata, items=dates)
+            return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
         
         elif metadata == 'trace':
             pages = session['pages']
@@ -403,11 +457,11 @@ def profile(username, metadata):
                         if trace not in traces:
                             traces.append(trace)
             
-            return render_template("profile.html", username=username, metadata=metadata, items=traces)
+            return render_template("datafilter.html", username=username, metadata=metadata, items=traces)
         
         else:
             error = '404\nPage not found!'
-            return render_template("profile.html", username=username, error = error)
+            return render_template("datafilter.html", username=username, error = error)
     
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

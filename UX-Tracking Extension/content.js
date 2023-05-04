@@ -10,6 +10,15 @@ var mouse = {
     Time:0
 };
 
+var voice = {
+    Id:"",
+    Class:"",
+    X: 0,
+    Y: 0,
+    Time:0,
+    Spoken: ""
+};
+
 var eye = {
 	x: 512,
 	y: 256
@@ -28,19 +37,6 @@ var keyboard = {
 var freeze = 0;
 var WebTracer_time = 0;
 var lastKeyId = "";
-
-function getRandomToken() {
-    // E.g. 8 * 32 = 256 bits token
-    var randomPool = new Uint8Array(32);
-    window.crypto.getRandomValues(randomPool);
-    var hex = '';
-    for (var i = 0; i < randomPool.length; ++i) {
-        hex += randomPool[i].toString(16);
-    }
-    // E.g. db18458e2782b2b77e36769c569e263a53885a9944dd0a861e5064eac16f1a
-    return hex;
-    //return 'db18458e2782b2b77e36769c569e263a53885a9944dd0a861e5064eac16f1a';
-}
 
 function GetScreenCordinates(obj) {
     var p = {};
@@ -211,6 +207,36 @@ function sendEye(x,y){
 		eye.y=Math.round(y);
 }
 
+// new instance of speech recognition
+var recognition = new webkitSpeechRecognition();
+// set params
+recognition.continuous = true;
+recognition.interimResults = false;
+recognition.lang = 'pt-BR';
+recognition.start();
+recognition.onresult = function (event) {
+
+  // delve into words detected results & get the latest
+  // total results detected
+  var resultsLength = event.results.length - 1;
+  // get length of latest results
+  var ArrayLength = event.results[resultsLength].length - 1;
+  // get last word detected
+  var saidWord = event.results[resultsLength][ArrayLength].transcript;
+  if (voice.Spoken != saidWord) {
+    voice.Spoken = saidWord;
+    console.log(saidWord);
+    //save_speech();
+    sendMessage("voice");
+  }
+}
+
+// speech error handling
+recognition.onerror = function (event) {
+  console.log('error?');
+  console.log(event);
+}
+
 function sendMessage(type)
 {
 		var data = {};
@@ -222,9 +248,14 @@ function sendMessage(type)
 				data.X = Math.round(mouse.X);
 				data.Y = Math.round(mouse.Y);
 			}
-		}
-		else
-		{   
+		} else if(type == "voice") {
+            data = voice;
+            if (data.X == 0 && data.Y == 0)
+			{
+				data.X = Math.round(mouse.X);
+				data.Y = Math.round(mouse.Y);
+			}
+        } else {   
 			data = {
 				Id:mouse.Id,
 				Class:mouse.Class,
@@ -246,7 +277,7 @@ function sendMessage(type)
 		data.url = document.URL;
 		data.mouseId = overId;
 		data.mouseClass = overClass;
-		data.Typed = data.Typed.replace(/(?:\r\n|\r|\n)/g, " - ");
+		//data.Typed = data.Typed.replace(/(?:\r\n|\r|\n)/g, " - ");
 		//console.log("message send "+type);
 		chrome.runtime.sendMessage({
 			type: type,

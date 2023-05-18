@@ -32,7 +32,7 @@
   
   main {
     padding: 20px;
-    text-align: center;
+    /* text-align: center; */
     color: #000000;
     background-color: #fff;
     min-height: 80vh;
@@ -41,25 +41,56 @@
     margin-left: auto;
     margin-right: auto;
     margin-top: 2%;
+    display: flex;
   }
+
   
   form {
     margin-top: 20px;
+    text-align: center;
   }
-  
+
+  /* .formLogin {
+    text-align: center;
+  } */
+
   input[type="text"],
   input[type="password"],
   input[type="file"],
   button {
-    padding: 10px;
-    margin-right: 10px;
+    padding: 3px;
+    margin-bottom: 10px;
+    background-color: #000000;
+    border-radius: 60px;
+    min-width: 250px;
+    border: none;
+    text-align: center;   
+  }
+
+  .login{
+    /* display: inline-flex; */
+    text-align: center;
+  }
+
+  div.login{
+    margin-top: 10%;
+  }
+
+  #titulo{
+    display: block;
+  }
+
+  h2 {
+    font-size: 20px;
+    text-align: center;
   }
   
   button {
-    background-color: #333;
+    background-color: #000000 ;
     color: #fff;
     border: none;
     cursor: pointer;
+    min-width: 100px;
   }
   
   #graph {

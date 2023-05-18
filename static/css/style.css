@@ -2,6 +2,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: 200;
   }
 
   body {
@@ -31,28 +33,36 @@
   }
   
   main {
-    padding: 20px;
-    /* text-align: center; */
     color: #000000;
+  }
+
+  .pagina-login{
+    padding: 20px;
     background-color: #fff;
-    min-height: 80vh;
+    min-height: 70vh;
     max-width: 80vh;
     border-radius: 50px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 2%;
     display: flex;
+  }
+
+  .logo{
+    background-image: url('../logo.png');
+    height: 100px;
+    width: 180px;
+    margin-bottom: 1%;
+    margin-top: 1%;
+    background-position: center;
+    background-size: cover;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   
   form {
     margin-top: 20px;
-    text-align: center;
-  }
-
-  /* .formLogin {
-    text-align: center;
-  } */
+  }/*formulário completo*/
 
   input[type="text"],
   input[type="password"],
@@ -66,24 +76,6 @@
     border: none;
     text-align: center;   
   }
-
-  .login{
-    /* display: inline-flex; */
-    text-align: center;
-  }
-
-  div.login{
-    margin-top: 10%;
-  }
-
-  #titulo{
-    display: block;
-  }
-
-  h2 {
-    font-size: 20px;
-    text-align: center;
-  }
   
   button {
     background-color: #000000 ;
@@ -91,6 +83,37 @@
     border: none;
     cursor: pointer;
     min-width: 100px;
+  }
+  .login{
+    text-align: center;
+  }/*titulo + form + imagem*/
+
+  div.login{
+    margin-top: 10%;
+  }/*titulo + form*/
+
+  p.login{
+    background-color:#a8a5a5;
+    min-width:50%;
+    margin-left: 5%;
+    margin-top: 10%;
+    margin-bottom: 10%;
+    padding-top: 38%;
+  }/*imagem*/
+
+  #titulo{
+    display: block;
+    font-size:35px;
+  }
+
+  h2 {
+    font-size: 17px;
+  }/*titulos do textfield*/
+  
+  #register{
+    list-style: none;
+    color: #000000;
+    text-decoration: none;
   }
   
   #graph {

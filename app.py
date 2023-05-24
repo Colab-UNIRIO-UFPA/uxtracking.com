@@ -146,16 +146,16 @@ def receiver():
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
             csvwriter.writerow([str(metadata['time']),
-                            str(data['Spoken']),
-                            str(data['imageName']),
-                            str(data['Class']),
-                            str(data['Id']),
-                            str(data['mouseClass']),
-                            str(data['mouseId']),
-                            str(data['X']),
-                            str(data['Y']),
-                            str(metadata['scroll']),
-                            str(metadata['height'])])
+                                str(data['Spoken']),
+                                str(data['imageName']),
+                                str(data['Class']),
+                                str(data['Id']),
+                                str(data['mouseClass']),
+                                str(data['mouseId']),
+                                str(data['X']),
+                                str(data['Y']),
+                                str(metadata['scroll']),
+                                str(metadata['height'])])
 
         with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
             f.write(str(metadata['dateTime']))

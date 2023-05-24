@@ -17,7 +17,7 @@ var timeInternal = 0;
 var userId = "fb50a10f11b0c153e88e96d06668911f";
 var domain = "";
 var lastTime = 0;
-var timeInitial= new Date().getTime();
+var timeInitial= Math.round(Date.now() / 1000);
 
 chrome.runtime.onMessage.addListener(function (request, sender)
 {
@@ -80,7 +80,7 @@ function Post(type, data){
                             sample: domain,
                             userId: userId,
                             type: type,
-                            time: (time - timeInitial)/1000,
+                            time: Math.round(Date.now() / 1000)-timeInitial,
                             scroll: data.pageScroll,
                             height: data.pageHeight,
                             url: data.url

@@ -61,7 +61,7 @@
 
   
   form {
-    margin-top: 20px;
+    margin-top: 40px;
   }/*formulário completo*/
 
   input[type="text"],
@@ -89,7 +89,8 @@
   }/*titulo + form + imagem*/
 
   div.login{
-    margin-top: 10%;
+    margin-top: 3%;
+    text-decoration: none;
   }/*titulo + form*/
 
   p.login{
@@ -108,12 +109,21 @@
 
   h2 {
     font-size: 17px;
+    margin-top: 20px;
   }/*titulos do textfield*/
-  
-  #register{
-    list-style: none;
-    color: #000000;
+
+  h3{
+    margin-top: 48%;
+    font-size: 18px;
+  }
+  p{
+    margin-top: 20px;
+  }
+  a{
     text-decoration: none;
+    color:#000000;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 18px;
   }
   
   #graph {

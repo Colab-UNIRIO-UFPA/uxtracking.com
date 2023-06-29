@@ -38,5 +38,5 @@ jobs:
       run: |
         pytest
     - name: Hide app key
-    with:
-      super_secret: ${{ secrets.APP_KEY }}
+      with:
+        super_secret: ${{ secrets.APP_KEY }}

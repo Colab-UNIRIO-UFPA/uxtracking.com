@@ -1,13 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Login</h1>
-  {% if error %}
-  <p>{{ error }}</p>
-  {% endif %}
-  <form method="POST">
-    <input type="text" name="username" placeholder="Username" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <button type="submit">Login</button>
-  </form>
-{% endblock %}
+<div class="pagina-login">
+<div class="login">
+  <h1 id="titulo">LOGIN</h1>
+    {% if error %}
+    <p>{{ error }}</p>
+    {% endif %}
+    <form method="POST">
+     <div class="formLogin">
+        <h2>Username</h2>
+       <input type="text" name="username" placeholder="Username" required>
+     </div>
+      <div class="formLogin">
+       <h2>Password</h2>
+     <input type="password" name="password" placeholder="Password" required>
+    </div>
+     <div>
+       <button type="submit">LOGIN</button>
+      </div>
+    </form>
+    <h3>Forgot your password?</h3>
+    <p>
+    <a href="{{ url_for('register') }}">Don't you have an account?</a>
+   </p>
+    </div>
+  <p class="login">animação</p>
+  </div>
+  {% endblock %}

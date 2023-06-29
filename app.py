@@ -14,14 +14,14 @@ from pathlib import Path
 import pandas as pd
 
 app = Flask(__name__)
-app.secret_key = '9214u012jr120421jk490124'
+app.secret_key = os.environ['SECRET_KEY']
 
 app.config.update(
     MAIL_SERVER = 'smtp.gmail.com',
     MAIL_PORT = 465,
     MAIL_USE_SSL = True,
-    MAIL_USERNAME = 'uxtracking.service@gmail.com',
-    MAIL_PASSWORD = 'sqjndmwjedvknlex'
+    MAIL_USERNAME = os.environ['MAIL_NAME'],
+    MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
 )
 mail = Mail(app)
 

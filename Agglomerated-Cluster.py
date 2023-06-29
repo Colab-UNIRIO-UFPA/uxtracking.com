@@ -1,4 +1,3 @@
-import csv
 from sklearn.cluster import AgglomerativeClustering
 import pandas as pd
 

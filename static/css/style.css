@@ -1,0 +1,131 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: 200;
+  }
+
+  body {
+    background-color: black;
+  }
+  
+  header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+  }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  nav li {
+    margin-right: 20px;
+  }
+  
+  nav a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 20px;
+  }
+  
+  main {
+    color: #000000;
+  }
+
+  .pagina-login{
+    padding: 20px;
+    background-color: #fff;
+    min-height: 70vh;
+    max-width: 80vh;
+    border-radius: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+  }
+
+  .logo{
+    background-image: url('../logo.png');
+    height: 100px;
+    width: 180px;
+    margin-bottom: 1%;
+    margin-top: 1%;
+    background-position: center;
+    background-size: cover;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  
+  form {
+    margin-top: 40px;
+  }/*formulário completo*/
+
+  input[type="text"],
+  input[type="password"],
+  input[type="file"],
+  button {
+    padding: 3px;
+    margin-bottom: 10px;
+    background-color: #000000;
+    border-radius: 60px;
+    min-width: 250px;
+    border: none;
+    text-align: center;   
+  }
+  
+  button {
+    background-color: #000000 ;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    min-width: 100px;
+  }
+  .login{
+    text-align: center;
+  }/*titulo + form + imagem*/
+
+  div.login{
+    margin-top: 3%;
+    text-decoration: none;
+  }/*titulo + form*/
+
+  p.login{
+    background-color:#a8a5a5;
+    min-width:50%;
+    margin-left: 5%;
+    margin-top: 10%;
+    margin-bottom: 10%;
+    padding-top: 38%;
+  }/*imagem*/
+
+  #titulo{
+    display: block;
+    font-size:35px;
+  }
+
+  h2 {
+    font-size: 17px;
+    margin-top: 20px;
+  }/*titulos do textfield*/
+
+  h3{
+    margin-top: 48%;
+    font-size: 18px;
+  }
+  p{
+    margin-top: 20px;
+  }
+  a{
+    text-decoration: none;
+    color:#000000;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 18px;
+  }
+  
+  #graph {
+    margin-top: 20px;
+  }

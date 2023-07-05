@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Página Principal</h1>
+  {% if current_user %}
+  <form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".json">
+    <button type="submit">Carregar</button>
+  </form>
+  {% endif %}
+
+  {% if graph_json %}
+  <div id="graph">{{ graph_json|safe }}</div>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    Plotly.newPlot("graph", JSON.parse('{{ graph_json|tojson|safe }}'));
+  </script>
+  {% endif %}
+{% endblock %}

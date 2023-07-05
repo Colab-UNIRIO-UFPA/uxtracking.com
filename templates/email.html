@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Teste serviço Geometa</title>
+	<style>
+		img {
+			width: 13%;
+			margin: auto;
+			padding: 3em;
+		}
+
+		.block {
+			width: 50%;
+			text-align: center;
+			margin: auto;
+			background: white;
+			padding: 2em;
+			border-radius: 1.5em;
+		}
+
+		label{
+			cursor: pointer;
+			margin: auto;
+			display: block;
+			font-family:sans-serif;
+			color: white;
+			font-size: 1.5em;
+			background: rgb(47, 113, 212);
+			padding: 0.5em 1em;
+			width: fit-content;
+			border-radius: 1em;
+		}
+		label:hover{
+			background: rgb(28, 70, 133);
+			transition: 600ms;
+		}
+
+		button{
+			cursor: pointer;
+			margin: auto;
+			display: block;
+			font-family:sans-serif;
+			color: white;
+			font-size: 1.3em;
+			background: rgb(47, 113, 212);
+			padding: 0.5em 1em;
+			width: fit-content;
+			border-radius: 1em;
+			border: 0cm;
+		}
+		button:hover{
+			background: rgb(28, 70, 133);
+			transition: 600ms;
+		}
+		p {
+			color: red;
+			font-family: courier;
+			font-size: 160%;
+		}
+
+		input {
+			width: 0.1px;
+			height: 0.1px;
+			opacity: 0;
+			overflow: hidden;
+			position: absolute;
+			z-index: -1;
+		}
+		span{
+			color: rgb(47, 113, 212);
+			font-family: verdana;
+			font-size: 1em;
+			display: block;
+			height: 4em;
+		}
+		* {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+
+<body style="background-color: rgb(36, 36, 36); text-align: center;">
+	<section>
+		<img style="width: 13%; margin: auto; padding: 3em;" src="{{ url_for('static', filename='logo.png' )}}" alt="UX-Tracking Logo">
+        <br>
+		<h1 style="color: whitesmoke">User eXperience Tracking</h1>
+        <br>
+        <p style="color: white">Dear {{ username }},</p>
+        <br>
+        <p>We are sending you this message because you have been asked to reset your password on our platform, the new password generated for your account is below:</p>
+
+        <div class="block">
+			<h1>Serviço de processamento de imagens</h1><br>
+			<form action="http://127.0.0.1:5000/receiver" method="POST" enctype="multipart/form-data">
+				<input type="file" name="image" id="image"><br><br>
+				<label for="image">
+					<i class="glyphicon glyphico-open"></i>
+					&nbsp;Escolher um arquivo
+				</label><br><br><br>
+				<span>
+					<strong>Arquivo escolhido:</strong>
+					<span id="image-chosen">None</span>
+				</span>
+				<button type="submit">ENVIAR</button>
+			</form>
+		</div>
+	</section>
+</body>
+
+</html>

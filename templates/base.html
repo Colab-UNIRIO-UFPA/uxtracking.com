@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>{{ title }}</title>
-    <link rel="stylesheet" href="static\css\style.css">
   </head>
   <body>
     <header>
@@ -10,15 +9,16 @@
         {% if session %}
         <ul>
           <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('datafilter', username=username, metadata='datetime') }}">Baixar minhas coletas</a></li>
           <li><a href="{{ url_for('change_pass') }}">Change Password</a></li>
           <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
         {% else %}
         <ul>
           <li><a href="{{ url_for('index') }}">Home</a></li>
-          <li><a href="{{ url_for('forgot_pass') }}">Password Reset</a></li>
-          <li><a href="{{ url_for('register') }}">Register</a></li>
           <li><a href="{{ url_for('login') }}">Login</a></li>
+          <li><a href="{{ url_for('register') }}">Register</a></li>
+          <li><a href="{{ url_for('forgot_pass') }}">Password Reset</a></li>
         </ul>
         {% endif %}
       </nav>

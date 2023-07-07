@@ -340,7 +340,7 @@ def change_pass():
 @app.route("/", methods=["GET", "POST"])
 def index():
     if 'username' in session:
-        return render_template('index.html', session=True)
+        return render_template('index.html', session=True, username=session['username'])
     else:
         return render_template('index.html', session=False)
 
@@ -383,91 +383,101 @@ def index():
 @app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
 def datafilter(username, metadata):
     if request.method == 'POST':
-        #faz a leitura da base de dados de coletas do usuário
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for i in range(len(users)):
-            if users[i]['username'] == username:
-                userid = users[i]['id']
-        datadir=f'./Samples/{userid}'
+        if 'username' in session:
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == username:
+                    userid = users[i]['id']
+            datadir=f'./Samples/{userid}'
 
 
-        if metadata == 'datetime':
-            #adiciona as datas à seção
-            session['dates'] = request.form.getlist('dates[]')
-            #refireciona pra seleção dos traços
-            return redirect(url_for('datafilter', username=username, metadata='pages'))
+            if metadata == 'datetime':
+                #adiciona as datas à seção
+                session['dates'] = request.form.getlist('dates[]')
+                #refireciona pra seleção dos traços
+                return redirect(url_for('datafilter', username=username, metadata='pages'))
 
-        elif metadata == 'pages':
-            #adiciona as páginas à seção
-            session['pages'] = request.form.getlist('pages[]')
+            elif metadata == 'pages':
+                #adiciona as páginas à seção
+                session['pages'] = request.form.getlist('pages[]')
 
-            datafiltered = pd.DataFrame(columns = ['datetime',
-                                                'site',
-                                                'type',
-                                                'time',
-                                                'image',
-                                                'class',
-                                                'id',
-                                                'mouseClass',
-                                                'mouseId',
-                                                'x',
-                                                'y',
-                                                'keys',
-                                                'scroll',
-                                                'height'])
+                datafiltered = pd.DataFrame(columns = ['datetime',
+                                                    'site',
+                                                    'type',
+                                                    'time',
+                                                    'image',
+                                                    'class',
+                                                    'id',
+                                                    'mouseClass',
+                                                    'mouseId',
+                                                    'x',
+                                                    'y',
+                                                    'keys',
+                                                    'scroll',
+                                                    'height'])
+                
+                #filtragem dos dados utilizados
+                for date in session['dates']:
+                    df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                    df.insert(0, 'datetime',  [date]*len(df. index), True)
+                    datafiltered = pd.concat([datafiltered, df[df.site.isin(session['pages'])]], ignore_index=False)
+
+                return Response(
+                                datafiltered.to_csv(index=False),
+                                mimetype="text/csv",
+                                headers={"Content-disposition":
+                                f"attachment; filename={username}_data.csv"})
             
-            #filtragem dos dados utilizados
-            for date in session['dates']:
-                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
-                df.insert(0, 'datetime',  [date]*len(df. index), True)
-                datafiltered = pd.concat([datafiltered, df[df.site.isin(session['pages'])]], ignore_index=False)
-
-            return Response(
-                            datafiltered.to_csv(index=False),
-                            mimetype="text/csv",
-                            headers={"Content-disposition":
-                            f"attachment; filename={username}_data.csv"})
+            else:
+                error = '404\nPage not found!'
+                return render_template("datafilter.html", username=username, error = error)
         
+        #se o usuário não está logado
         else:
-            error = '404\nPage not found!'
-            return render_template("datafilter.html", username=username, error = error)
-            
+            return render_template('index.html', session=False)
+                
     #método GET
     else:
-        #faz a leitura da base de dados de coletas do usuário
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for i in range(len(users)):
-            if users[i]['username'] == username:
-                userid = users[i]['id']
-        datadir=f'./Samples/{userid}'
-        
-        if metadata == 'datetime':
-            dates = []
-            #verifica quais datas estão disponíveis
-            for date in os.listdir(datadir):
-                dates.append(date)
+        if 'username' in session:
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == username:
+                    userid = users[i]['id']
+            datadir=f'./Samples/{userid}'
             
-            return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
-        
-        elif metadata == 'pages':
-            dates = session['dates']
-             
-             #verifica quais datas estão disponíveis
-            pages = []
-            for date in dates:
-                # Lendo as páginas no csv 
-                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
-                for page in df.site.unique():
-                    if page not in pages:
-                        pages.append(page)
+            if metadata == 'datetime':
+                dates = []
+                #verifica quais datas estão disponíveis
+                for date in os.listdir(datadir):
+                    dates.append(date)
+                
+                return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
             
-            return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
+            elif metadata == 'pages':
+                dates = session['dates']
+                
+                #verifica quais datas estão disponíveis
+                pages = []
+                for date in dates:
+                    # Lendo as páginas no csv 
+                    df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                    for page in df.site.unique():
+                        if page not in pages:
+                            pages.append(page)
+                
+                return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
+            
+            else:
+                error = '404\nPage not found!'
+                return render_template("datafilter.html", username=username, error = error)
         
+        #se o usuário não está logado
         else:
-            error = '404\nPage not found!'
-            return render_template("datafilter.html", username=username, error = error)
+            return render_template('index.html', session=False)
     
 if __name__ == "__main__":
     app.run(debug=False)

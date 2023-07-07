@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, Response
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import json
@@ -36,22 +36,21 @@ def receiver():
     userid = metadata['userId']
     dateTime = str(metadata['dateTime'])
     data = json.loads(data)
-    sample = clean(metadata['sample'])
+
     if not os.path.exists("Samples"):
         os.makedirs("Samples", exist_ok=True)
     else:
-        if not os.path.exists(f'Samples/{userid}/'+ sample):
+        if not os.path.exists(f'Samples/{userid}'):
             os.makedirs(f'Samples/{userid}', exist_ok=True)
-            os.makedirs(f'Samples/{userid}/'+sample, exist_ok=True)
         else:
-            if not os.path.exists(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime'])):
-                os.makedirs(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']), exist_ok=True)
+            if not os.path.exists(f'Samples/{userid}/' + str(metadata['dateTime'])):
+                os.makedirs(f'Samples/{userid}/' + str(metadata['dateTime']), exist_ok=True)
 
     try:
         if data['imageData'] != "NO":
-            if not os.path.exists(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/' + str(data['imageName'])):
+            if not os.path.exists(f'Samples/{userid}/' + str(metadata['dateTime']) + '/' + str(data['imageName'])):
                 imageData = base64.b64decode(re.sub('^data:image/\w+;base64,', '', data['imageData']))
-                with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/' + str(data['imageName']), "wb") as fh:
+                with open(f'Samples/{userid}/' + str(metadata['dateTime']) + '/' + str(data['imageName']), "wb") as fh:
                     fh.write(imageData)
     
     except:
@@ -67,9 +66,10 @@ def receiver():
     
     traceData = ['eye', 'mouse', 'keyboard', 'freeze', 'click', 'wheel', 'move']
     if str(metadata['type']) in traceData:
-        if not os.path.exists(f'Samples/{userid}/{sample}/{dateTime}/trace.csv'):
+        if not os.path.exists(f'Samples/{userid}/{dateTime}/trace.csv'):
             # se a base não existe, cria o csv
-            fields = ['type',
+            fields = ['site',
+                    'type',
                     'time',
                     'image',
                     'class',
@@ -82,20 +82,21 @@ def receiver():
                     'scroll',
                     'height']
             
-            file = Path(f'Samples/{userid}/{sample}/{dateTime}/trace.csv')
+            file = Path(f'Samples/{userid}/{dateTime}/trace.csv')
             file.touch(exist_ok=True)
             
-            with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'w') as csvfile:
+            with open(f'Samples/{userid}/{dateTime}/trace.csv', 'w') as csvfile:
                 # criando um objeto csv dict writer
                 csvwriter = csv.writer(csvfile)
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
             
-        with open(f'Samples/{userid}/{sample}/{dateTime}/trace.csv', 'a') as csvfile:
+        with open(f'Samples/{userid}/{dateTime}/trace.csv', 'a') as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
-            csvwriter.writerow([str(metadata['type']),
+            csvwriter.writerow([str(metadata['sample']),
+                            str(metadata['type']),
                             str(metadata['time']),
                             str(data['imageName']),
                             str(data['Class']),
@@ -108,7 +109,7 @@ def receiver():
                             str(metadata['scroll']),
                             str(metadata['height'])])
 
-        with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
+        with open(f'Samples/{userid}/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
             f.write(str(metadata['dateTime']))
             
         return "received"
@@ -118,9 +119,10 @@ def receiver():
         ##########################################################
         #IMPLEMENTAR
         print(metadata['type'])
-        if not os.path.exists(f'Samples/{userid}/{sample}/{dateTime}/audio.csv'):
+        if not os.path.exists(f'Samples/{userid}/{dateTime}/audio.csv'):
             # se a base não existe, cria o csv
-            fields = ['time',
+            fields = ['site',
+                      'time',
                     'text',
                     'image',
                     'class',
@@ -132,20 +134,21 @@ def receiver():
                     'scroll',
                     'height']
             
-            file = Path(f'Samples/{userid}/{sample}/{dateTime}/audio.csv')
+            file = Path(f'Samples/{userid}/{dateTime}/audio.csv')
             file.touch(exist_ok=True)
             
-            with open(f'Samples/{userid}/{sample}/{dateTime}/audio.csv', 'w') as csvfile:
+            with open(f'Samples/{userid}/{dateTime}/audio.csv', 'w') as csvfile:
                 # criando um objeto csv dict writer
                 csvwriter = csv.writer(csvfile)
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
             
-        with open(f'Samples/{userid}/{sample}/{dateTime}/audio.csv', 'a') as csvfile:
+        with open(f'Samples/{userid}/{dateTime}/audio.csv', 'a') as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
-            csvwriter.writerow([str(metadata['time']),
+            csvwriter.writerow([str(metadata['sample']),
+                                str(metadata['time']),
                                 str(data['Spoken']),
                                 str(data['imageName']),
                                 str(data['Class']),
@@ -157,7 +160,7 @@ def receiver():
                                 str(metadata['scroll']),
                                 str(metadata['height'])])
 
-        with open(f'Samples/{userid}/' + sample + '/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
+        with open(f'Samples/{userid}/' + str(metadata['dateTime']) + '/lastTime.txt', 'w') as f:
             f.write(str(metadata['dateTime']))
             
         return "received"
@@ -170,10 +173,9 @@ def sample_checker():
     if request.method == 'POST':
         time = request.form['dateTime']
         userid = request.form['userId']
-        domain = clean(request.form['domain'])
-        if not os.path.exists(f'Samples/{userid}/'+ domain + '/' + time):
-            os.makedirs(f'Samples/{userid}/' + domain + '/' + time, mode=0o777, exist_ok=True)
-        filename = f'Samples/{userid}/'+ domain + '/' + time + '/lastTime.txt'
+        if not os.path.exists(f'Samples/{userid}/' + time):
+            os.makedirs(f'Samples/{userid}/' + time, mode=0o777, exist_ok=True)
+        filename = f'Samples/{userid}/'+ time + '/lastTime.txt'
         if os.path.exists(filename):
             with open(filename, 'r') as file:
                 content = file.read()
@@ -389,27 +391,47 @@ def datafilter(username, metadata):
                 userid = users[i]['id']
         datadir=f'./Samples/{userid}'
 
-        if metadata == 'page':
-            #adiciona as páginas à seção
-            session['pages'] = request.form['pages']
 
-            #redireciona pra seleção das datas
-            return redirect(url_for(f"datafilter/{username}/datetime"))
-
-        elif metadata == 'datetime':
+        if metadata == 'datetime':
             #adiciona as datas à seção
-            session['dates'] = request.form['dates']
-
+            session['dates'] = request.form.getlist('dates[]')
             #refireciona pra seleção dos traços
-            return redirect(url_for(f"datafilter/{username}/trace"))
+            return redirect(url_for('datafilter', username=username, metadata='pages'))
 
-        elif metadata == 'trace':
-            #adiciona os traços à seção
-            session['traces'] = request.form['traces']
+        elif metadata == 'pages':
+            #adiciona as páginas à seção
+            session['pages'] = request.form.getlist('pages[]')
 
-            ###############################################################################
-            #implementar filtragem dos dados do objeto pandas e retornar ao usuário um csv
-            ###############################################################################
+            datafiltered = pd.DataFrame(columns = ['datetime',
+                                                'site',
+                                                'type',
+                                                'time',
+                                                'image',
+                                                'class',
+                                                'id',
+                                                'mouseClass',
+                                                'mouseId',
+                                                'x',
+                                                'y',
+                                                'keys',
+                                                'scroll',
+                                                'height'])
+            
+            #filtragem dos dados utilizados
+            for date in session['dates']:
+                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                df.insert(0, 'datetime',  [date]*len(df. index), True)
+                datafiltered = pd.concat([datafiltered, df[df.site.isin(session['pages'])]], ignore_index=False)
+
+            return Response(
+                            datafiltered.to_csv(index=False),
+                            mimetype="text/csv",
+                            headers={"Content-disposition":
+                            f"attachment; filename={username}_data.csv"})
+        
+        else:
+            error = '404\nPage not found!'
+            return render_template("datafilter.html", username=username, error = error)
             
     #método GET
     else:
@@ -421,43 +443,27 @@ def datafilter(username, metadata):
                 userid = users[i]['id']
         datadir=f'./Samples/{userid}'
         
-        if metadata == 'page':
-            pages = []
-            #exibição dos sites que foram coletados
-            for page in os.listdir(datadir):
-                pages.append(page)
-
-            return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
-        
-        elif metadata == 'datetime':
-            pages = session['pages']
-
+        if metadata == 'datetime':
+            dates = []
             #verifica quais datas estão disponíveis
-            #{páginas:[data1, data2]}
-            dates = {}
-            for page in pages:
-                dates[page] = []
-                for date in os.listdir(os.path.join(datadir, page)):
-                    dates[page].append(date)
-
+            for date in os.listdir(datadir):
+                dates.append(date)
+            
             return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
         
-        elif metadata == 'trace':
-            pages = session['pages']
+        elif metadata == 'pages':
             dates = session['dates']
+             
+             #verifica quais datas estão disponíveis
+            pages = []
+            for date in dates:
+                # Lendo as páginas no csv 
+                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                for page in df.site.unique():
+                    if page not in pages:
+                        pages.append(page)
             
-             #verifica quais traços estão disponíveis
-            traces = []
-            for page in pages:
-                dates[page] = []
-                for date in os.listdir(os.path.join(datadir, page)):
-                    # Lendo os traços em csv 
-                    df = pd.read_csv(os.path.join(datadir, page, date, 'trace.csv'))
-                    for trace in df.type.unique():
-                        if trace not in traces:
-                            traces.append(trace)
-            
-            return render_template("datafilter.html", username=username, metadata=metadata, items=traces)
+            return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
         
         else:
             error = '404\nPage not found!'

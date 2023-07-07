@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, Response
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import json
@@ -394,16 +394,16 @@ def datafilter(username, metadata):
 
         if metadata == 'datetime':
             #adiciona as datas à seção
-            session['dates'] = request.form['dates']
-
+            session['dates'] = request.form.getlist('dates[]')
             #refireciona pra seleção dos traços
-            return redirect(url_for(f"datafilter/{username}/pages"))
+            return redirect(url_for('datafilter', username=username, metadata='pages'))
 
         elif metadata == 'pages':
             #adiciona as páginas à seção
-            session['pages'] = request.form['pages']
+            session['pages'] = request.form.getlist('pages[]')
 
-            datafiltred = pd.DataFrame(columns = ['site',
+            datafiltered = pd.DataFrame(columns = ['datetime',
+                                                'site',
                                                 'type',
                                                 'time',
                                                 'image',
@@ -419,11 +419,19 @@ def datafilter(username, metadata):
             
             #filtragem dos dados utilizados
             for date in session['dates']:
-                df = pd.read_csv(os.path.join(datadir, date, 'trace.csv'))
+                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                df.insert(0, 'datetime',  [date]*len(df. index), True)
+                datafiltered = pd.concat([datafiltered, df[df.site.isin(session['pages'])]], ignore_index=False)
+
+            return Response(
+                            datafiltered.to_csv(index=False),
+                            mimetype="text/csv",
+                            headers={"Content-disposition":
+                            f"attachment; filename={username}_data.csv"})
         
-            ###############################################################################
-            #implementar filtragem dos dados do objeto pandas e retornar ao usuário um csv
-            ###############################################################################
+        else:
+            error = '404\nPage not found!'
+            return render_template("datafilter.html", username=username, error = error)
             
     #método GET
     else:
@@ -440,7 +448,7 @@ def datafilter(username, metadata):
             #verifica quais datas estão disponíveis
             for date in os.listdir(datadir):
                 dates.append(date)
-
+            
             return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
         
         elif metadata == 'pages':
@@ -450,8 +458,8 @@ def datafilter(username, metadata):
             pages = []
             for date in dates:
                 # Lendo as páginas no csv 
-                df = pd.read_csv(os.path.join(datadir, date, 'trace.csv'))
-                for page in df.type.unique():
+                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                for page in df.site.unique():
                     if page not in pages:
                         pages.append(page)
             

@@ -3,13 +3,29 @@
 {% block content %}
   <h1>Change password</h1>
   {% if error %}
-  <p>{{ error }}</p>
+    <p>{{ error }}</p>
   {% endif %}
-  <form method="POST">
-    <input type="text" name="username" placeholder="Username" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <input type="password" name="newpassword" placeholder="New Password" required>
-    <input type="password" name="confirm_newpassword" placeholder="Confirm your new password" required>
-    <button type="submit">Submit</button>
-  </form>
+
+  {% if metadata == 'datetime' %}
+    <form method="POST">
+      {% for date in items%}
+        <input type="checkbox" name= "dates[]" value= "{{ date }}">
+        <label for="{{ date }}"> {{ date }} </label><br>
+      {% endfor %}
+      <input type="submit" value="Enviar">
+    </form>
+
+  {% elif metadata == 'pages' %}
+    <form method="POST">
+      {% for page in items%}
+        <input type="checkbox" name= "pages[]" value= "{{ page }}">
+        <label for="{{ page }}"> {{ page }} </label><br>
+      {% endfor %}
+      <input type="submit" value="Enviar">
+    </form>
+
+  {% else %}
+  
+  {% endif %}
+
 {% endblock %}

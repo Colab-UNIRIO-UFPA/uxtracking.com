@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, Response
+from flask import Flask, render_template, request, redirect, url_for, Response, after_this_request
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import json
@@ -12,6 +12,8 @@ from simple_colors import *
 import csv
 from pathlib import Path
 import pandas as pd
+import zipfile
+import shutil
 
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
@@ -403,7 +405,8 @@ def datafilter(username, metadata):
                 #adiciona as páginas à seção
                 session['pages'] = request.form.getlist('pages[]')
 
-                datafiltered = pd.DataFrame(columns = ['datetime',
+                #cria csv para dados de traços
+                tracefiltered = pd.DataFrame(columns = ['datetime',
                                                     'site',
                                                     'type',
                                                     'time',
@@ -418,17 +421,59 @@ def datafilter(username, metadata):
                                                     'scroll',
                                                     'height'])
                 
-                #filtragem dos dados utilizados
-                for date in session['dates']:
-                    df = pd.read_csv(f'{datadir}/{date}/trace.csv')
-                    df.insert(0, 'datetime',  [date]*len(df. index), True)
-                    datafiltered = pd.concat([datafiltered, df[df.site.isin(session['pages'])]], ignore_index=False)
+                #cria csv para dados de audio
+                audiofiltered = pd.DataFrame(columns = ['site',
+                                                        'time',
+                                                        'text',
+                                                        'image',
+                                                        'class',
+                                                        'id',
+                                                        'mouseClass',
+                                                        'mouseId',
+                                                        'x',
+                                                        'y',
+                                                        'scroll',
+                                                        'height'])
+                
+                ##################################################################
+                #implementar try except para retornar dados de áudio concatenados#
+                ##################################################################
 
-                return Response(
-                                datafiltered.to_csv(index=False),
-                                mimetype="text/csv",
-                                headers={"Content-disposition":
-                                f"attachment; filename={username}_data.csv"})
+                with zipfile.ZipFile(f'{username}_data.zip', 'w') as zipf:    
+                    #filtragem dos dados utilizados
+                    for date in session['dates']:
+                        df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                        df = df[df.site.isin(session['pages'])]
+                        df.insert(0, 'datetime',  [date]*len(df. index), True)
+                        tracefiltered = pd.concat([tracefiltered, df], ignore_index=False)
+                        for image in df.image.unique():
+                            try:
+                                #adiciona as imagens ao zip
+                                shutil.copy(f'{datadir}/{date}/{image}', image)
+                                zipf.write(image)
+                                os.remove(image)
+                            except:
+                                pass
+                    
+                    # Criar diretório temporário
+                    temp_dir = '/temp'
+                    os.makedirs(temp_dir, exist_ok=True)
+                    tracefiltered.to_csv(f'{temp_dir}/trace.csv',index=False)
+                    #escreve o traço concatenado
+                    zipf.write(f'{temp_dir}/trace.csv', "trace.csv")
+                    # Remover diretório temporário
+                    shutil.rmtree(temp_dir)
+
+                #limpando o zip criado
+                with open(f'{username}_data.zip', 'rb') as f:
+                    data = f.readlines()
+                os.remove(f'{username}_data.zip')
+
+                #fornecendo o zip pra download
+                return Response(data, headers={
+                    'Content-Type': 'application/zip',
+                    'Content-Disposition': f'attachment; filename={username}_data.zip;'
+                })
             
             else:
                 error = '404\nPage not found!'

@@ -446,6 +446,12 @@ def datafilter(username, metadata):
                         df = df[df.site.isin(session['pages'])]
                         df.insert(0, 'datetime',  [date]*len(df. index), True)
                         tracefiltered = pd.concat([tracefiltered, df], ignore_index=False)
+
+                        df_audio = pd.read_csv(f'{datadir}/{date}/audio.csv')
+                        df_audio = df_audio[df_audio.site.isin(session['pages'])]
+                        df_audio.insert(0, 'datetime',  [date]*len(df_audio. index), True)
+                        audiofiltered = pd.concat([audiofiltered, df_audio], ignore_index=False)
+
                         for image in df.image.unique():
                             try:
                                 #adiciona as imagens ao zip
@@ -454,13 +460,15 @@ def datafilter(username, metadata):
                                 os.remove(image)
                             except:
                                 pass
-                    
+                        
                     # Criar diretório temporário
                     temp_dir = '/temp'
                     os.makedirs(temp_dir, exist_ok=True)
                     tracefiltered.to_csv(f'{temp_dir}/trace.csv',index=False)
+                    audiofiltered.to_csv(f'{temp_dir}/audio.csv',index=False)
                     #escreve o traço concatenado
                     zipf.write(f'{temp_dir}/trace.csv', "trace.csv")
+                    zipf.write(f'{temp_dir}/audio.csv', "audio.csv")
                     # Remover diretório temporário
                     shutil.rmtree(temp_dir)
 
@@ -468,6 +476,10 @@ def datafilter(username, metadata):
                 with open(f'{username}_data.zip', 'rb') as f:
                     data = f.readlines()
                 os.remove(f'{username}_data.zip')
+
+                #limpar os dados da sessão para nova consulta
+                session.pop('dates', None)
+                session.pop('pages', None)
 
                 #fornecendo o zip pra download
                 return Response(data, headers={

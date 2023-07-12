@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, Response
+from flask import Flask, render_template, request, redirect, url_for, Response, after_this_request
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import json
@@ -12,6 +12,8 @@ from simple_colors import *
 import csv
 from pathlib import Path
 import pandas as pd
+import zipfile
+import shutil
 
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
@@ -195,7 +197,7 @@ def register():
         # Verifica se o usuário já existe
         verification = auth(username, email)
         if verification[0]:
-            return render_template("register.html", error=verification[1])
+            return render_template("register.html", error=verification[1], title='Registrar')
 
         else:
             with open("users.json", "r") as arquivo:
@@ -210,11 +212,14 @@ def register():
                 # Escreve a lista de usuários atualizada no arquivo
                 json.dump(users, arquivo)
         # Redireciona para a página de login
-        return redirect(url_for("login"))
+        return redirect(url_for("login", title='Login'))
     
     else:
         # Se a requisição for GET, exibe a página de registro
-        return render_template("register.html")
+        if 'username' in session:
+            return render_template('index.html', session=True, username=session['username'], title='Home')
+        else:
+            return render_template('register.html', session=False, title='Registrar')
 
 # Define a rota para a página de login
 @app.route("/login", methods=["GET", "POST"])
@@ -231,21 +236,24 @@ def login():
             if user['username'] == username and user['password'] == password:
         # Se as credenciais estiverem corretas, redireciona para a página principal
                 session['username'] = request.form['username']
-                return redirect(url_for("index"))
+                return redirect(url_for("index", session=True, title='Home'))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
-            return render_template("login.html", error=error)
+            return render_template("login.html", error=error, title='Login')
     else:
         # Se a requisição for GET, exibe a página de login
-        return render_template("login.html")
+        if 'username' in session:
+            return render_template('index.html', session=True, username=session['username'], title='Home')
+        else:
+            return render_template('login.html', session=False, title='Login')
 
 # Define a rota para a página de login
 @app.route('/logout')
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('index', title='Home'))
 
 # Define a rota para reset de password
 @app.route('/forgot_pass', methods=["GET", "POST"])
@@ -294,9 +302,9 @@ This email was generated anonymously and automatically by an unmonitored email a
                     json.dump(users, arquivo)
 
                 #Redirecionar para o login
-                return redirect(url_for("login"))
+                return redirect(url_for("login", title='Login'))
     else:
-        return render_template("forgot_pass.html")
+        return render_template("forgot_pass.html", title='Esquici a senha')
 
 # Define a rota para a página de alteração de senha
 @app.route("/change_pass", methods=["GET", "POST"])
@@ -323,26 +331,26 @@ def change_pass():
 
                     #Usuário logado
                     session['username'] = request.form['username']
-                    return redirect(url_for("index"))
+                    return redirect(url_for("index", title='Home'))
                 
                 else:
                     error = "Make sure the new passwords match!"
-                    return render_template("change_pass.html", error=error)
+                    return render_template("change_pass.html", error=error, title='Alterar a senha')
             else:
                 error = "The username or password is incorrect."
-                return render_template("change_pass.html", error=error)
+                return render_template("change_pass.html", error=error, title='Alterar a senha')
             
     else:
         # Se a requisição for GET, exibe a página de alteração de senha
-        return render_template("change_pass.html")
+        return render_template("change_pass.html", title='Alterar a senha')
 
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
 def index():
     if 'username' in session:
-        return render_template('index.html', session=True)
+        return render_template('index.html', session=True, username=session['username'], title='Home')
     else:
-        return render_template('index.html', session=False)
+        return render_template('index.html', session=False, title='Home')
 
     """
     if request.method == "POST":
@@ -383,91 +391,168 @@ def index():
 @app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
 def datafilter(username, metadata):
     if request.method == 'POST':
-        #faz a leitura da base de dados de coletas do usuário
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for i in range(len(users)):
-            if users[i]['username'] == username:
-                userid = users[i]['id']
-        datadir=f'./Samples/{userid}'
+        if 'username' in session:
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == username:
+                    userid = users[i]['id']
+            datadir=f'./Samples/{userid}'
 
 
-        if metadata == 'datetime':
-            #adiciona as datas à seção
-            session['dates'] = request.form.getlist('dates[]')
-            #refireciona pra seleção dos traços
-            return redirect(url_for('datafilter', username=username, metadata='pages'))
+            if metadata == 'datetime':
+                #adiciona as datas à seção
+                session['dates'] = request.form.getlist('dates[]')
+                #refireciona pra seleção dos traços
+                return redirect(url_for('datafilter', username=username, metadata='pages', title='Coletas'))
 
-        elif metadata == 'pages':
-            #adiciona as páginas à seção
-            session['pages'] = request.form.getlist('pages[]')
+            elif metadata == 'pages':
+                #adiciona as páginas à seção
+                session['pages'] = request.form.getlist('pages[]')
 
-            datafiltered = pd.DataFrame(columns = ['datetime',
-                                                'site',
-                                                'type',
-                                                'time',
-                                                'image',
-                                                'class',
-                                                'id',
-                                                'mouseClass',
-                                                'mouseId',
-                                                'x',
-                                                'y',
-                                                'keys',
-                                                'scroll',
-                                                'height'])
+                #cria csv para dados de traços
+                tracefiltered = pd.DataFrame(columns = ['datetime',
+                                                    'site',
+                                                    'type',
+                                                    'time',
+                                                    'image',
+                                                    'class',
+                                                    'id',
+                                                    'mouseClass',
+                                                    'mouseId',
+                                                    'x',
+                                                    'y',
+                                                    'keys',
+                                                    'scroll',
+                                                    'height'])
+                
+                #cria csv para dados de audio
+                audiofiltered = pd.DataFrame(columns = ['site',
+                                                        'time',
+                                                        'text',
+                                                        'image',
+                                                        'class',
+                                                        'id',
+                                                        'mouseClass',
+                                                        'mouseId',
+                                                        'x',
+                                                        'y',
+                                                        'scroll',
+                                                        'height'])
+                
+                ##################################################################
+                #implementar try except para retornar dados de áudio concatenados#
+                ##################################################################
+
+                with zipfile.ZipFile(f'{username}_data.zip', 'w') as zipf:    
+                    #filtragem dos dados utilizados
+                    for date in session['dates']:
+                        df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                        df = df[df.site.isin(session['pages'])]
+                        df.insert(0, 'datetime',  [date]*len(df. index), True)
+                        tracefiltered = pd.concat([tracefiltered, df], ignore_index=False)
+
+                        df_audio = pd.read_csv(f'{datadir}/{date}/audio.csv')
+                        df_audio = df_audio[df_audio.site.isin(session['pages'])]
+                        df_audio.insert(0, 'datetime',  [date]*len(df_audio. index), True)
+                        audiofiltered = pd.concat([audiofiltered, df_audio], ignore_index=False)
+
+                        for image in df.image.unique():
+                            try:
+                                #adiciona as imagens ao zip
+                                shutil.copy(f'{datadir}/{date}/{image}', image)
+                                zipf.write(image)
+                                os.remove(image)
+                            except:
+                                pass
+                        
+                    # Criar diretório temporário
+                    temp_dir = '/temp'
+                    os.makedirs(temp_dir, exist_ok=True)
+                    tracefiltered.to_csv(f'{temp_dir}/trace.csv',index=False)
+                    audiofiltered.to_csv(f'{temp_dir}/audio.csv',index=False)
+                    #escreve o traço concatenado
+                    zipf.write(f'{temp_dir}/trace.csv', "trace.csv")
+                    zipf.write(f'{temp_dir}/audio.csv', "audio.csv")
+                    # Remover diretório temporário
+                    shutil.rmtree(temp_dir)
+
+                #limpando o zip criado
+                with open(f'{username}_data.zip', 'rb') as f:
+                    data = f.readlines()
+                os.remove(f'{username}_data.zip')
+
+                #limpar os dados da sessão para nova consulta
+                session.pop('dates', None)
+                session.pop('pages', None)
+
+                #fornecendo o zip pra download
+                return Response(data, headers={
+                    'Content-Type': 'application/zip',
+                    'Content-Disposition': f'attachment; filename={username}_data.zip;'
+                })
             
-            #filtragem dos dados utilizados
-            for date in session['dates']:
-                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
-                df.insert(0, 'datetime',  [date]*len(df. index), True)
-                datafiltered = pd.concat([datafiltered, df[df.site.isin(session['pages'])]], ignore_index=False)
-
-            return Response(
-                            datafiltered.to_csv(index=False),
-                            mimetype="text/csv",
-                            headers={"Content-disposition":
-                            f"attachment; filename={username}_data.csv"})
+            else:
+                error = '404\nPage not found!'
+                return render_template("datafilter.html", username=username, error = error, title='Coletas')
         
+        #se o usuário não está logado
         else:
-            error = '404\nPage not found!'
-            return render_template("datafilter.html", username=username, error = error)
-            
+            return render_template('index.html', session=False, title='Home')
+                
     #método GET
     else:
-        #faz a leitura da base de dados de coletas do usuário
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for i in range(len(users)):
-            if users[i]['username'] == username:
-                userid = users[i]['id']
-        datadir=f'./Samples/{userid}'
-        
-        if metadata == 'datetime':
-            dates = []
-            #verifica quais datas estão disponíveis
-            for date in os.listdir(datadir):
-                dates.append(date)
+        if 'username' in session:
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == username:
+                    userid = users[i]['id']
+            datadir=f'./Samples/{userid}'
             
-            return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
-        
-        elif metadata == 'pages':
-            dates = session['dates']
-             
-             #verifica quais datas estão disponíveis
-            pages = []
-            for date in dates:
-                # Lendo as páginas no csv 
-                df = pd.read_csv(f'{datadir}/{date}/trace.csv')
-                for page in df.site.unique():
-                    if page not in pages:
-                        pages.append(page)
+            if metadata == 'datetime':
+                dates = []
+                #verifica quais datas estão disponíveis
+                for date in os.listdir(datadir):
+                    dates.append(date)
+                
+                return render_template("datafilter.html", username=username, metadata=metadata, items=dates, title='Coletas')
             
-            return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
+            elif metadata == 'pages':
+                dates = session['dates']
+                
+                #verifica quais datas estão disponíveis
+                pages = []
+                for date in dates:
+                    # Lendo as páginas no csv 
+                    df = pd.read_csv(f'{datadir}/{date}/trace.csv')
+                    for page in df.site.unique():
+                        if page not in pages:
+                            pages.append(page)
+                
+                return render_template("datafilter.html", username=username, metadata=metadata, items=pages, title='Coletas')
+            
+            else:
+                error = '404\nPage not found!'
+                return render_template("datafilter.html", username=username, error = error, title='Coletas')
         
+        #se o usuário não está logado
         else:
-            error = '404\nPage not found!'
-            return render_template("datafilter.html", username=username, error = error)
+            return render_template('index.html', session=False, title='Home')
+
+
+@app.route('/dataprocessing/<username>/<metadata>', methods=["GET", "POST"])
+def dadaprocessing(username, metadata):
+    if request.method == 'POST':
+        if 'username' in session:
+            return
     
+    #método GET
+    else:
+        if 'username' in session:
+            return
+
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

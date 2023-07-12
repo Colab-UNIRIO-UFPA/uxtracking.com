@@ -1,30 +1,66 @@
 {% extends "base.html" %}
+{% block head %}
+  <style type="text/css">
+    body {
+      height: 100%;
+    }
+    
+    .form-signin {
+      max-width: 350px;
+      padding: 1rem;
+    }
+    
+    .form-signin .form-floating:focus-within {
+      z-index: 2;
+    }
+    
+    .form-signin input[type="text"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    
+    .form-signin input[type="password"] {
+      margin-bottom: 0px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .form-signin button[type="submit"] {
+      margin-top: 30px;
+      margin-bottom: 20px;
+    }
+  </style>
+{% endblock %}
+
 
 {% block content %}
-<div class="pagina-login">
-<div class="login">
-  <h1 id="titulo">LOGIN</h1>
-    {% if error %}
-    <p>{{ error }}</p>
-    {% endif %}
+  <div class="form-signin w-100 m-auto">    
     <form method="POST">
-     <div class="formLogin">
-        <h2>Username</h2>
-       <input type="text" name="username" placeholder="Username" required>
-     </div>
-      <div class="formLogin">
-       <h2>Password</h2>
-     <input type="password" name="password" placeholder="Password" required>
-    </div>
-     <div>
-       <button type="submit">LOGIN</button>
+      {% if error %}
+        <p>{{ error }}</p>
+      {% endif %}
+
+      <h1 class="h2 mb-4 mt-5 fw-normal" style="text-align: center;">Faça o login</h1>
+
+      <div class="form-floating">
+        <input type="text" name="username" class="form-control" id="floatingInput" placeholder="User123Example">
+        <label for="floatingInput">Nome de usuário</label>
       </div>
+      <div class="form-floating">
+        <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password">
+        <label for="floatingPassword">Senha</label>
+      </div>
+
+      <button class="btn btn-primary w-100 py-2" type="submit">Login</button>
+
+      <p style="text-align: center;"><br>
+        <a href="{{ url_for('forgot_pass') }}">Esqueceu a senha?</a><br>
+        <a href="{{ url_for('register') }}">Não tem uma conta?</a>
+      </p>
+
+      <p class="mt-5 mb-3 text-body-secondary">&copy; UX-Tracking: User eXperience Tracking</p>
     </form>
-    <h3>Forgot your password?</h3>
-    <p>
-    <a href="{{ url_for('register') }}">Don't you have an account?</a>
-   </p>
-    </div>
-  <p class="login">animação</p>
+
   </div>
-  {% endblock %}
+{% endblock %}

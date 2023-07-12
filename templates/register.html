@@ -1,15 +1,88 @@
 {% extends "base.html" %}
 
+{% block head %}
+  <style type="text/css">
+    body {
+      height: 100%;
+    }
+    
+    .form-signup {
+      max-width: 350px;
+      padding: 1rem;
+    }
+    
+    .form-signup .form-floating:focus-within {
+      z-index: 2;
+    }
+    
+    .form-signup input[type="text"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    .form-signup input[type="email"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+    
+    .form-signup input[type="password"] {
+      margin-bottom: -1px;
+    }
+    .form-signup input[name="confirm_password"] {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .form-signup button[type="submit"] {
+      margin-top: 30px;
+      margin-bottom: 20px;
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
-  <h1>Register</h1>
-  {% if error %}
-  <p>{{ error }}</p>
-  {% endif %}
-  <form method="POST">
-    <input type="text" name="username" placeholder="Username" required>
-    <input type="email" name="email" placeholder="Email" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <input type="password" name="confirm_password" placeholder="Confirm your password" required>
-    <button type="submit">Register</button>
-  </form>
+  <div class="form-signup w-100 m-auto">    
+    <form method="POST">
+      {% if error %}
+        <p>{{ error }}</p>
+      {% endif %}
+
+      <h1 class="h2 mb-4 mt-5 fw-normal" style="text-align: center;">Faça o registro</h1>
+
+      <div class="form-floating">
+        <input type="text" name="username" class="form-control" id="floatingInput" placeholder="User123Example">
+        <label for="floatingInput">Nome de usuário</label>
+      </div>
+      <div class="form-floating">
+        <input type="email" name="email" class="form-control" id="floatingPassword" placeholder="example@email.com">
+        <label for="floatingPassword">Endereço de email</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password" style="
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;">
+        <label for="floatingPassword">Senha</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="confirm_password" class="form-control" id="floatingPassword" placeholder="Password">
+        <label for="floatingPassword">Confirme sua senha</label>
+      </div>
+
+      <button class="btn btn-primary w-100 py-2" type="submit">Registrar</button>
+
+      <p style="text-align: center;"><br>
+        <a href="{{ url_for('forgot_pass') }}">Esqueceu sua senha?</a><br>
+        <a href="{{ url_for('login') }}">Já tem conta?</a>
+      </p>
+
+      <p class="mt-5 mb-3 text-body-secondary">&copy; UX-Tracking: User eXperience Tracking</p>
+    </form>
+
+  </div>
 {% endblock %}

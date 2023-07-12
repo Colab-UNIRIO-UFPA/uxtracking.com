@@ -6,7 +6,7 @@
     }
     
     .form-signin {
-      max-width: 330px;
+      max-width: 350px;
       padding: 1rem;
     }
     
@@ -14,16 +14,21 @@
       z-index: 2;
     }
     
-    .form-signin input[type="email"] {
+    .form-signin input[type="text"] {
       margin-bottom: -1px;
       border-bottom-right-radius: 0;
       border-bottom-left-radius: 0;
     }
     
     .form-signin input[type="password"] {
-      margin-bottom: 10px;
+      margin-bottom: 0px;
       border-top-left-radius: 0;
       border-top-right-radius: 0;
+    }
+
+    .form-signin button[type="submit"] {
+      margin-top: 30px;
+      margin-bottom: 20px;
     }
   </style>
 {% endblock %}
@@ -36,7 +41,7 @@
         <p>{{ error }}</p>
       {% endif %}
 
-      <h1 class="h3 mb-3 fw-normal" style="text-align: center;">Faça o login</h1>
+      <h1 class="h2 mb-4 mt-5 fw-normal" style="text-align: center;">Faça o login</h1>
 
       <div class="form-floating">
         <input type="text" name="username" class="form-control" id="floatingInput" placeholder="User123Example">

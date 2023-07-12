@@ -197,7 +197,7 @@ def register():
         # Verifica se o usuário já existe
         verification = auth(username, email)
         if verification[0]:
-            return render_template("register.html", error=verification[1], title='Registro')
+            return render_template("register.html", error=verification[1], title='Registrar')
 
         else:
             with open("users.json", "r") as arquivo:
@@ -216,7 +216,10 @@ def register():
     
     else:
         # Se a requisição for GET, exibe a página de registro
-        return render_template("register.html", title='Registro')
+        if 'username' in session:
+            return render_template('index.html', session=True, username=session['username'], title='Home')
+        else:
+            return render_template('register.html', session=False, title='Registrar')
 
 # Define a rota para a página de login
 @app.route("/login", methods=["GET", "POST"])

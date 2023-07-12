@@ -1,27 +1,55 @@
 {% extends "base.html" %}
 
-{% block content %}
-  <h1>Change password</h1>
-  {% if error %}
-    <p>{{ error }}</p>
-  {% endif %}
+{% block head %}
 
-  {% if metadata == 'datetime' %}
-    <form method="POST">
-      {% for date in items%}
-        <input type="checkbox" name= "dates[]" value= "{{ date }}">
-        <label for="{{ date }}"> {{ date }} </label><br>
-      {% endfor %}
-      <input type="submit" value="Enviar">
-    </form>
+{% endblock %}
+
+{% block content %}
+  <div class="form-signup w-50 m-auto">
+    {% if metadata == 'datetime' %}
+      <h1 class="h2 mb-4 mt-5 fw-normal" style="text-align: center;">Selecione as coletas que deseja baixar</h1>
+      
+      {% if error %}
+        <p>{{ error }}</p>
+      {% endif %}
+
+  
+      <form method="POST">
+        <div class="list-group">
+          {% for date in items%}
+            <label class="list-group-item d-flex gap-2">
+              <input class="form-check-input flex-shrink-0" type="checkbox" name= "dates[]" value= "{{ date }}">
+              <span>
+                {{ date }}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+        
+        <button class="btn btn-primary w-100 py-2 my-4" type="submit" value="Enviar">Próximo</button>
+      </form>
 
   {% elif metadata == 'pages' %}
+    <h1 class="h2 mb-4 mt-5 fw-normal" style="text-align: center;">Selecione as páginas que deseja baixar</h1>
+        
+    {% if error %}
+      <p>{{ error }}</p>
+    {% endif %}
+
+
     <form method="POST">
-      {% for page in items%}
-        <input type="checkbox" name= "pages[]" value= "{{ page }}">
-        <label for="{{ page }}"> {{ page }} </label><br>
-      {% endfor %}
-      <input type="submit" value="Enviar">
+      <div class="list-group">
+        {% for page in items%}
+          <label class="list-group-item d-flex gap-2">
+            <input class="form-check-input flex-shrink-0" type="checkbox" name= "pages[]" value= "{{ page }}">
+            <span>
+              {{ page }}
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+      
+      <button class="btn btn-primary w-100 py-2 my-4" type="submit" value="Enviar">Baixar</button>
     </form>
 
   {% else %}

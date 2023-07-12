@@ -304,7 +304,7 @@ This email was generated anonymously and automatically by an unmonitored email a
                 #Redirecionar para o login
                 return redirect(url_for("login", title='Login'))
     else:
-        return render_template("forgot_pass.html", title='Esquici a senha')
+        return render_template("forgot_pass.html", title='Esqueci a senha')
 
 # Define a rota para a página de alteração de senha
 @app.route("/change_pass", methods=["GET", "POST"])
@@ -452,12 +452,13 @@ def datafilter(username, metadata):
                         df = df[df.site.isin(session['pages'])]
                         df.insert(0, 'datetime',  [date]*len(df. index), True)
                         tracefiltered = pd.concat([tracefiltered, df], ignore_index=False)
-
-                        df_audio = pd.read_csv(f'{datadir}/{date}/audio.csv')
-                        df_audio = df_audio[df_audio.site.isin(session['pages'])]
-                        df_audio.insert(0, 'datetime',  [date]*len(df_audio. index), True)
-                        audiofiltered = pd.concat([audiofiltered, df_audio], ignore_index=False)
-
+                        try:
+                            df_audio = pd.read_csv(f'{datadir}/{date}/audio.csv')
+                            df_audio = df_audio[df_audio.site.isin(session['pages'])]
+                            df_audio.insert(0, 'datetime',  [date]*len(df_audio. index), True)
+                            audiofiltered = pd.concat([audiofiltered, df_audio], ignore_index=False)
+                        except:
+                            None
                         for image in df.image.unique():
                             try:
                                 #adiciona as imagens ao zip
@@ -472,9 +473,13 @@ def datafilter(username, metadata):
                     os.makedirs(temp_dir, exist_ok=True)
                     tracefiltered.to_csv(f'{temp_dir}/trace.csv',index=False)
                     audiofiltered.to_csv(f'{temp_dir}/audio.csv',index=False)
+
                     #escreve o traço concatenado
                     zipf.write(f'{temp_dir}/trace.csv', "trace.csv")
-                    zipf.write(f'{temp_dir}/audio.csv', "audio.csv")
+                    try:
+                        zipf.write(f'{temp_dir}/audio.csv', "audio.csv")
+                    except:
+                        None
                     # Remover diretório temporário
                     shutil.rmtree(temp_dir)
 

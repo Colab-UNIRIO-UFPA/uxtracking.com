@@ -233,14 +233,17 @@ def login():
             if user['username'] == username and user['password'] == password:
         # Se as credenciais estiverem corretas, redireciona para a página principal
                 session['username'] = request.form['username']
-                return redirect(url_for("index"))
+                return redirect(url_for("index", session=True))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
             return render_template("login.html", error=error)
     else:
         # Se a requisição for GET, exibe a página de login
-        return render_template("login.html")
+        if 'username' in session:
+            return render_template('login.html', session=True, username=session['username'])
+        else:
+            return render_template('login.html', session=False)
 
 # Define a rota para a página de login
 @app.route('/logout')
@@ -535,6 +538,18 @@ def datafilter(username, metadata):
         #se o usuário não está logado
         else:
             return render_template('index.html', session=False)
+
+
+@app.route('/dataprocessing/<username>/<metadata>', methods=["GET", "POST"])
+def dadaprocessing(username, metadata):
+    if request.method == 'POST':
+        if 'username' in session:
+            return
     
+    #método GET
+    else:
+        if 'username' in session:
+            return
+
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

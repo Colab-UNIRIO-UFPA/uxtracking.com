@@ -302,9 +302,9 @@ This email was generated anonymously and automatically by an unmonitored email a
                     json.dump(users, arquivo)
 
                 #Redirecionar para o login
-                return redirect(url_for("login", title='Login'))
+                return redirect(url_for("login", title='Login', session=False))
     else:
-        return render_template("forgot_pass.html", title='Esqueci a senha')
+        return render_template('forgot_pass.html', session=False, title='Esqueci a senha')
 
 # Define a rota para a página de alteração de senha
 @app.route("/change_pass", methods=["GET", "POST"])
@@ -342,7 +342,10 @@ def change_pass():
             
     else:
         # Se a requisição for GET, exibe a página de alteração de senha
-        return render_template("change_pass.html", title='Alterar a senha')
+        if 'username' in session:
+            return render_template('change_pass.html', session=True, username=session['username'], title='Alterar a senha')
+        else:
+            return render_template('login.html', session=False, title='Login')
 
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])

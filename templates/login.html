@@ -4,6 +4,7 @@
     .form-signin {
       max-width: 350px;
       padding: 1rem;
+      min-height: 80vh;
     }
     
     .form-signin .form-floating:focus-within {
@@ -31,7 +32,7 @@
 
 
 {% block content %}
-  <div class="form-signin w-100 m-auto">    
+  <div class="form-signin justify-content-center w-100 m-auto">    
     <form method="POST">
       {% if error %}
         <p>{{ error }}</p>
@@ -54,8 +55,7 @@
         <a href="{{ url_for('forgot_pass') }}">Esqueceu a senha?</a><br>
         <a href="{{ url_for('register') }}">Não tem uma conta?</a>
       </p>
-
-      <p class="mt-5 mb-3 text-body-secondary">&copy; UX-Tracking: User eXperience Tracking</p>
+      
     </form>
 
   </div>

@@ -197,7 +197,7 @@ def register():
         # Verifica se o usuário já existe
         verification = auth(username, email)
         if verification[0]:
-            return render_template("register.html", error=verification[1])
+            return render_template("register.html", error=verification[1], title='Registro')
 
         else:
             with open("users.json", "r") as arquivo:
@@ -212,11 +212,11 @@ def register():
                 # Escreve a lista de usuários atualizada no arquivo
                 json.dump(users, arquivo)
         # Redireciona para a página de login
-        return redirect(url_for("login"))
+        return redirect(url_for("login", title='Login'))
     
     else:
         # Se a requisição for GET, exibe a página de registro
-        return render_template("register.html")
+        return render_template("register.html", title='Registro')
 
 # Define a rota para a página de login
 @app.route("/login", methods=["GET", "POST"])
@@ -233,24 +233,24 @@ def login():
             if user['username'] == username and user['password'] == password:
         # Se as credenciais estiverem corretas, redireciona para a página principal
                 session['username'] = request.form['username']
-                return redirect(url_for("index", session=True))
+                return redirect(url_for("index", session=True, title='Home'))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
-            return render_template("login.html", error=error)
+            return render_template("login.html", error=error, title='Login')
     else:
         # Se a requisição for GET, exibe a página de login
         if 'username' in session:
-            return render_template('login.html', session=True, username=session['username'])
+            return render_template('index.html', session=True, username=session['username'], title='Home')
         else:
-            return render_template('login.html', session=False)
+            return render_template('login.html', session=False, title='Login')
 
 # Define a rota para a página de login
 @app.route('/logout')
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('index', title='Home'))
 
 # Define a rota para reset de password
 @app.route('/forgot_pass', methods=["GET", "POST"])
@@ -299,9 +299,9 @@ This email was generated anonymously and automatically by an unmonitored email a
                     json.dump(users, arquivo)
 
                 #Redirecionar para o login
-                return redirect(url_for("login"))
+                return redirect(url_for("login", title='Login'))
     else:
-        return render_template("forgot_pass.html")
+        return render_template("forgot_pass.html", title='Esquici a senha')
 
 # Define a rota para a página de alteração de senha
 @app.route("/change_pass", methods=["GET", "POST"])
@@ -328,26 +328,26 @@ def change_pass():
 
                     #Usuário logado
                     session['username'] = request.form['username']
-                    return redirect(url_for("index"))
+                    return redirect(url_for("index", title='Home'))
                 
                 else:
                     error = "Make sure the new passwords match!"
-                    return render_template("change_pass.html", error=error)
+                    return render_template("change_pass.html", error=error, title='Alterar a senha')
             else:
                 error = "The username or password is incorrect."
-                return render_template("change_pass.html", error=error)
+                return render_template("change_pass.html", error=error, title='Alterar a senha')
             
     else:
         # Se a requisição for GET, exibe a página de alteração de senha
-        return render_template("change_pass.html")
+        return render_template("change_pass.html", title='Alterar a senha')
 
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
 def index():
     if 'username' in session:
-        return render_template('index.html', session=True, username=session['username'])
+        return render_template('index.html', session=True, username=session['username'], title='Home')
     else:
-        return render_template('index.html', session=False)
+        return render_template('index.html', session=False, title='Home')
 
     """
     if request.method == "POST":
@@ -402,7 +402,7 @@ def datafilter(username, metadata):
                 #adiciona as datas à seção
                 session['dates'] = request.form.getlist('dates[]')
                 #refireciona pra seleção dos traços
-                return redirect(url_for('datafilter', username=username, metadata='pages'))
+                return redirect(url_for('datafilter', username=username, metadata='pages', title='Coletas'))
 
             elif metadata == 'pages':
                 #adiciona as páginas à seção
@@ -492,11 +492,11 @@ def datafilter(username, metadata):
             
             else:
                 error = '404\nPage not found!'
-                return render_template("datafilter.html", username=username, error = error)
+                return render_template("datafilter.html", username=username, error = error, title='Coletas')
         
         #se o usuário não está logado
         else:
-            return render_template('index.html', session=False)
+            return render_template('index.html', session=False, title='Home')
                 
     #método GET
     else:
@@ -515,7 +515,7 @@ def datafilter(username, metadata):
                 for date in os.listdir(datadir):
                     dates.append(date)
                 
-                return render_template("datafilter.html", username=username, metadata=metadata, items=dates)
+                return render_template("datafilter.html", username=username, metadata=metadata, items=dates, title='Coletas')
             
             elif metadata == 'pages':
                 dates = session['dates']
@@ -529,15 +529,15 @@ def datafilter(username, metadata):
                         if page not in pages:
                             pages.append(page)
                 
-                return render_template("datafilter.html", username=username, metadata=metadata, items=pages)
+                return render_template("datafilter.html", username=username, metadata=metadata, items=pages, title='Coletas')
             
             else:
                 error = '404\nPage not found!'
-                return render_template("datafilter.html", username=username, error = error)
+                return render_template("datafilter.html", username=username, error = error, title='Coletas')
         
         #se o usuário não está logado
         else:
-            return render_template('index.html', session=False)
+            return render_template('index.html', session=False, title='Home')
 
 
 @app.route('/dataprocessing/<username>/<metadata>', methods=["GET", "POST"])

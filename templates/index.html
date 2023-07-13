@@ -1,13 +1,102 @@
 {% extends "base.html" %}
 
+{% block head %}
+  <style type="text/css">    
+    #h-divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, .1);
+        border: solid rgba(0, 0, 0, .15);
+        border-width: 1px 0;
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .35);
+      }
+  </style>
+{% endblock %}
+
 {% block content %}
-    <h1>Home</h1>
-    {% if session %}
-        <ul class="menu">
-            <a href="{{url_for('static', filename='UX-Tracking Tools.zip')}}">Ferramentas de Pós-processamento</a>
-            <a href="{{url_for('static', filename='UX-Tracking Extension.zip')}}">Extensão</a>
-            <a href="https://github.com/Colab-UNIRIO-UFPA/UX-Tracking#readme">Manual de Uso</a>
-            <a href="https://github.com/Colab-UNIRIO-UFPA/UX-Tracking">Repositório</a>
-        </ul>
+    {% if not session %}
+        <div class="container col-xxl-8 px-4 py-5">
+            <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+                <div class="col-10 col-sm-8 col-lg-6">
+                    <img src="{{ url_for('static', filename='ui_ux_design.svg')}}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="700" height="500" loading="lazy">
+                </div>
+                <div class="col-lg-6">
+                    <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Avaliação de UX em interfaces Web de forma automatizada</h1>
+                    <p class="lead">Realize avaliações de UX rastreando múltiplas interações do usuário com a ferramenta UX-Tracking: User eXperience Tracking. Com a nossa solução é possível oletar dados de interação do usuário em tempo real, mapear jornadas do usuário e identificar pontos de interesse em ambientes Web.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start py-3">
+                        <a href="{{ url_for('login') }}"><button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Entrar</button></a>
+                        <a href="{{ url_for('register') }}"><button type="button" class="btn btn-outline-secondary btn-lg px-4">Obter acesso</button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="b-example-divider" id="h-divider"></div>
+
+        <div class="container col-xxl-8 px-4 py-5">
+            <div class="row flex-lg-row align-items-center g-5 py-5">
+                <div class="col-10 col-sm-8 col-lg-6">
+                    <img src="{{ url_for('static', filename='product.svg')}}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="700" height="500" loading="lazy">
+                </div>
+                <div class="col-lg-6">
+                    <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Explore seus dados!</h1>
+                    <p class="lead">Com recursos avançados de visualização e relatórios avançados, a ferramenta UX-Tracking fornece insights valiosos para melhorar a usabilidade, otimizar a interação do usuário e elevar a satisfação dos usuários. Com nossa ferramenta, é possível explorar profundamente cada tipo de dado capturado através dos módulos de visualização e clusterização dos dados.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start py-3">
+                        <a href="#"><button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Ver nossos exemplos</button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="b-example-divider" id="h-divider"></div>
+
+        <div class="container px-4 py-5" id="featured-3">
+            <h2 class="pb-2 border-bottom  border-primary border-1">O que nossa ferramenta captura?</h2>
+            <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+                <div class="feature col">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <img src="{{ url_for('static', filename='eye-tracking.svg')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
+                    </div>
+                    <h3 class="fs-2 text-body-emphasis">Rastreamento do olhar</h3>
+                    <p>A captura dos olhos do usuário faz parte da ferramenta, permitindo saber quais pontos na interface chamam mais a atenção do usuário.</p>
+                </div>
+                <div class="feature col">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <img src="{{ url_for('static', filename='keyboard.svg')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
+                    </div>
+                    <h3 class="fs-2 text-body-emphasis">Captura do teclado</h3>
+                    <p>Através da ferramenta, é possível fazer a captura das interações no teclado, armazenando o que o usuário está digitando.</p>
+                </div>
+                <div class="feature col">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <img src="{{ url_for('static', filename='voice-recording.svg')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
+                    </div>
+                    <h3 class="fs-2 text-body-emphasis">Captura de voz</h3>
+                    <p>Com a captura de voz, é possível realizar análises de sentimento do usuário, utilzando métodos como o <a href="https://en.wikipedia.org/wiki/Think_aloud_protocol">Think Aloud</a>.</p>
+                </div>
+                </div>
+
+            
+            <div class="row g-4 py-5 row-cols-1 row-cols-lg-3 justify-content-center">
+                <div class="feature col">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <img src="{{ url_for('static', filename='mouse-tracking.svg')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
+                    </div>
+                    <h3 class="fs-2 text-body-emphasis">Rastreamento do mouse</h3>
+                    <p>Através do captura das interações com o mouse, é possível rastrear as ações do usuário, como caminhos percorridos com o mouse e clicks.</p>
+                </div>
+                <div class="feature col">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <img src="{{ url_for('static', filename='browser-historic.svg')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
+                    </div>
+                    <h3 class="fs-2 text-body-emphasis">Histórico de navegação</h3>
+                    <p>A ferramenta também permite analisar o histórico de navegação do usuário cruzando dados de interações capturados.</p>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        
     {% endif %}
+
 {% endblock %}

@@ -14,6 +14,9 @@ from pathlib import Path
 import pandas as pd
 import zipfile
 import shutil
+import plotly.graph_objects as go
+import datetime
+from plotly.graph_objects import Layout
 
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
@@ -118,9 +121,6 @@ def receiver():
     
     #se for um dado de voz
     else:
-        ##########################################################
-        #IMPLEMENTAR
-        print(metadata['type'])
         if not os.path.exists(f'Samples/{userid}/{dateTime}/audio.csv'):
             # se a base não existe, cria o csv
             fields = ['site',
@@ -166,7 +166,7 @@ def receiver():
             f.write(str(metadata['dateTime']))
             
         return "received"
-        ##########################################################
+    
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
 # (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
@@ -240,7 +240,7 @@ def login():
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
-            return render_template("login.html", error=error, title='Login')
+            return render_template("login.html", session=False, error=error, title='Login')
     else:
         # Se a requisição for GET, exibe a página de login
         if 'username' in session:
@@ -350,46 +350,144 @@ def change_pass():
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if 'username' in session:
-        return render_template('index.html', session=True, username=session['username'], title='Home')
-    else:
-        return render_template('index.html', session=False, title='Home')
-
-    """
     if request.method == "POST":
-        # Obtém o arquivo JSON enviado pelo usuário
-        file = request.files["file"]
+        if 'username' in session:
+            #código dash atividade recente
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == session['username']:
+                    userid = users[i]['id']
 
-        # Carrega os dados do arquivo JSON
-        data = json.load(file)
+            datadir=f'./Samples/{userid}'
+            folder = request.form.getlist('dates[]')
+            folder = folder[0]
 
-        # Obtém os dados de navegação do arquivo JSON
-        navigation_data = data["navigation_data"]
+            #cria um zip para inserção dos dados selecionados
+            with zipfile.ZipFile(f'{folder}_data.zip', 'w') as zipf:
+                for file in os.listdir(f'{datadir}/{folder}/'):
+                    shutil.copy(f'{datadir}/{folder}/{file}', file)
+                    zipf.write(file)
+                    os.remove(file)
 
-        # Cria o gráfico com os dados de navegação
-        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
-        fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
-                                 y=[x["scroll_height"] - x["scroll_top"] for x in navigation_data],
-                                 mode="markers",
-                                 marker=dict(color=[x["trace"] for x in navigation_data],
-                                             colorscale="Viridis",
-                                             size=5)),
-                                 row=1, col=1)
-        fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
-                                        y=[x["mouse_y"] for x in navigation_data],
-                                        mode="markers",
-                                        marker=dict(color=[x["trace"] for x in navigation_data],
-                                                    colorscale="Viridis",
-                                                    size=5)),
-                                        row=2, col=1)
-        fig.update_layout(height=600, title_text="Dados de Navegação do Usuário")
+            #limpando o zip criado
+            with open(f'{folder}_data.zip', 'rb') as f:
+                data = f.readlines()
+            os.remove(f'{folder}_data.zip')
 
-        # Renderiza o gráfico na página principal
-        return render_template("index.html", graph_json=fig.to_json())
+            #fornecendo o zip pra download
+            return Response(data, headers={
+                            'Content-Type': 'application/zip',
+                            'Content-Disposition': f'attachment; filename={folder}_data.zip;'
+                            })
+        
+        else:
+            return render_template('index.html', session=False, title='Home')
     else:
-        # Se a requisição for GET, exibe a página principal
-        return render_template("index.html")
-    """
+        if 'username' in session:
+            #código dash atividade recente
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == session['username']:
+                    userid = users[i]['id']
+
+            datadir=f'./Samples/{userid}'
+
+            #verifica quais datas estão disponíveis e limpa a string
+            dates = []
+            figdata = {}
+            folders = os.listdir(datadir)
+
+            for i in range(len(folders)):
+                try:
+                    items = folders[i].split('-')
+                    #verifica quais sites estão disponíveis
+                    df = pd.read_csv(f'{datadir}/{folders[i]}/trace.csv')
+                    pages = df.site.unique()
+                    items.append(pages)
+                    dates.append(items)
+                    date = f'{items[0][6:8]}/{items[0][4:6]}/{items[0][0:4]}'
+                    if date not in figdata.keys():
+                        figdata[date] = 1
+                    else:
+                        figdata[date] += 1
+                    if i == 5:
+                        break
+                except:
+                    break
+
+            dates = list(map(lambda time:   [f'{time[0][6:8]}/{time[0][4:6]}/{time[0][0:4]}',
+                                            f'{time[1][0:2]}:{time[1][2:4]}:{time[1][4:6]}',
+                                            time[2],
+                                            f'{time[0]}-{time[1]}'],
+                                            dates))
+            
+            #gera o gráfico de últimas atividades
+            date2day = datetime.date.today()
+            layout = Layout(plot_bgcolor='rgba(0,0,0,0)')
+            fig = go.Figure(layout=layout)
+            fig.add_trace(go.Scatter(x=list(figdata.keys()), y=list(figdata.values()), fill='tozeroy',
+                    mode='lines+markers' # override default markers+lines
+                    ))
+            fig.update_xaxes(tick0=0, dtick=1)
+            fig.update_yaxes(tick0=0, dtick=1)
+            fig.update_layout(  paper_bgcolor='rgba(0,0,0,0)',
+                                template='simple_white',
+                                font_color="#969696",
+                                xaxis_title="Data",
+                                yaxis_title="Coletas")
+            fig.update_xaxes(showline=True, linewidth=2, linecolor='#969696', gridcolor='#969696', mirror=True)
+            fig.update_yaxes(showgrid=True, showline=True, gridwidth=1, linewidth=2, linecolor='#969696', gridcolor='#969696', mirror=True)
+
+            plot_as_string = fig.to_html()
+            #lista de coletas
+            return render_template('index.html', 
+                                session=True, 
+                                username=session['username'], 
+                                title='Home',
+                                dates=dates,
+                                plot=plot_as_string)
+        else:
+            return render_template('index.html', session=False, title='Home')
+
+        """
+        if request.method == "POST":
+            # Obtém o arquivo JSON enviado pelo usuário
+            file = request.files["file"]
+
+            # Carrega os dados do arquivo JSON
+            data = json.load(file)
+
+            # Obtém os dados de navegação do arquivo JSON
+            navigation_data = data["navigation_data"]
+
+            # Cria o gráfico com os dados de navegação
+            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
+            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
+                                    y=[x["scroll_height"] - x["scroll_top"] for x in navigation_data],
+                                    mode="markers",
+                                    marker=dict(color=[x["trace"] for x in navigation_data],
+                                                colorscale="Viridis",
+                                                size=5)),
+                                    row=1, col=1)
+            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
+                                            y=[x["mouse_y"] for x in navigation_data],
+                                            mode="markers",
+                                            marker=dict(color=[x["trace"] for x in navigation_data],
+                                                        colorscale="Viridis",
+                                                        size=5)),
+                                            row=2, col=1)
+            fig.update_layout(height=600, title_text="Dados de Navegação do Usuário")
+
+            # Renderiza o gráfico na página principal
+            return render_template("index.html", graph_json=fig.to_json())
+        else:
+            # Se a requisição for GET, exibe a página principal
+            return render_template("index.html")
+        """
 
 @app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
 def datafilter(username, metadata):
@@ -443,11 +541,8 @@ def datafilter(username, metadata):
                                                         'y',
                                                         'scroll',
                                                         'height'])
-                
-                ##################################################################
-                #implementar try except para retornar dados de áudio concatenados#
-                ##################################################################
 
+                #cria um zip para inserção dos dados filtrados
                 with zipfile.ZipFile(f'{username}_data.zip', 'w') as zipf:    
                     #filtragem dos dados utilizados
                     for date in session['dates']:
@@ -521,10 +616,8 @@ def datafilter(username, metadata):
             datadir=f'./Samples/{userid}'
             
             if metadata == 'datetime':
-                dates = []
                 #verifica quais datas estão disponíveis
-                for date in os.listdir(datadir):
-                    dates.append(date)
+                dates = os.listdir(datadir)
                 
                 return render_template("datafilter.html", username=username, metadata=metadata, items=dates, title='Coletas')
             

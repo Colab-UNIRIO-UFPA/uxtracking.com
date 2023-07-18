@@ -14,7 +14,9 @@ from pathlib import Path
 import pandas as pd
 import zipfile
 import shutil
-from plotly_calplot import calplot
+import plotly.graph_objects as go
+import datetime
+from plotly.graph_objects import Layout
 
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
@@ -119,9 +121,6 @@ def receiver():
     
     #se for um dado de voz
     else:
-        ##########################################################
-        #IMPLEMENTAR
-        print(metadata['type'])
         if not os.path.exists(f'Samples/{userid}/{dateTime}/audio.csv'):
             # se a base não existe, cria o csv
             fields = ['site',
@@ -167,7 +166,7 @@ def receiver():
             f.write(str(metadata['dateTime']))
             
         return "received"
-        ##########################################################
+    
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
 # (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
@@ -399,26 +398,26 @@ def index():
 
             #verifica quais datas estão disponíveis e limpa a string
             dates = []
+            figdata = {}
             folders = os.listdir(datadir)
-            if len(folders) <= 5:
-                for date in os.listdir(datadir):
-                    items = date.split('-')
-                    #verifica quais sites estão disponíveis
-                    df = pd.read_csv(f'{datadir}/{date}/trace.csv')
-                    pages = df.site.unique()
-                    items.append(pages)
-                    dates.append(items)
-            
-            else:
-                for i in range(len(folders)):
+
+            for i in range(len(folders)):
+                try:
                     items = folders[i].split('-')
                     #verifica quais sites estão disponíveis
                     df = pd.read_csv(f'{datadir}/{folders[i]}/trace.csv')
                     pages = df.site.unique()
                     items.append(pages)
                     dates.append(items)
+                    date = f'{items[0][6:8]}/{items[0][4:6]}/{items[0][0:4]}'
+                    if date not in figdata.keys():
+                        figdata[date] = 1
+                    else:
+                        figdata[date] += 1
                     if i == 5:
                         break
+                except:
+                    break
 
             dates = list(map(lambda time:   [f'{time[0][6:8]}/{time[0][4:6]}/{time[0][0:4]}',
                                             f'{time[1][0:2]}:{time[1][2:4]}:{time[1][4:6]}',
@@ -426,12 +425,31 @@ def index():
                                             f'{time[0]}-{time[1]}'],
                                             dates))
             
+            #gera o gráfico de últimas atividades
+            date2day = datetime.date.today()
+            layout = Layout(plot_bgcolor='rgba(0,0,0,0)')
+            fig = go.Figure(layout=layout)
+            fig.add_trace(go.Scatter(x=list(figdata.keys()), y=list(figdata.values()), fill='tozeroy',
+                    mode='lines+markers' # override default markers+lines
+                    ))
+            fig.update_xaxes(tick0=0, dtick=1)
+            fig.update_yaxes(tick0=0, dtick=1)
+            fig.update_layout(  paper_bgcolor='rgba(0,0,0,0)',
+                                template='simple_white',
+                                font_color="#969696",
+                                xaxis_title="Data",
+                                yaxis_title="Coletas")
+            fig.update_xaxes(showline=True, linewidth=2, linecolor='#969696', gridcolor='#969696', mirror=True)
+            fig.update_yaxes(showgrid=True, showline=True, gridwidth=1, linewidth=2, linecolor='#969696', gridcolor='#969696', mirror=True)
+
+            plot_as_string = fig.to_html()
             #lista de coletas
             return render_template('index.html', 
                                 session=True, 
                                 username=session['username'], 
                                 title='Home',
-                                dates=dates)
+                                dates=dates,
+                                plot=plot_as_string)
         else:
             return render_template('index.html', session=False, title='Home')
 

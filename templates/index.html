@@ -100,7 +100,14 @@
         </div>
 
     {% else %}
-        <div class="d-flex flex-column w-100 flex-md-row p-0 gap-4 py-md-5 align-items-center justify-content-center">
+        <div class="d-flex flex-column w-100 p-0 gap-4 py-md-0 align-items-between justify-content-center pe-1">
+            <div class="list-group w-100 border rounded-0" fill="currentColor">
+                <p class="fs-4 fw-semibold my-0 py-1 ps-3 text-bg-secondary">Histórico de atividades</p>
+                <div class="list-group-item">
+                    {{ plot | safe }}
+                </div>
+            </div>
+            
             <div class="list-group">
                 <p class="fs-4 fw-semibold my-0 py-1 ps-3 text-bg-secondary">Últimas coletas</p>
                 {% for date in dates %}

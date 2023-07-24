@@ -1,7 +1,7 @@
 {
-  "name": "AIMT-UXT Client",
-  "version": "2.0",
-  "description": "Software de captura de dados de interacao.",
+  "name": "UX-Tracking Extension",
+  "version": "0.6.7",
+  "description": "Ferramenta de rastreio de múltiplas interações do usuário para avaliação de UX.",
   "background": {
     "persistent": false,
     "scripts": ["jquery-3.4.1.min.js","background.js" ]
@@ -20,7 +20,8 @@
   ],
   "browser_action": {
     "default_icon": "logo.png",
-    "default_title": "T2-UXT Client"
+    "default_title": "T2-UXT Client",
+    "default_popup": "index.html"
   },
   "permissions": [
     "storage",

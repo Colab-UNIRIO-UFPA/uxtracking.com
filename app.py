@@ -1,12 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, Response, after_this_request
+from flask import Flask, render_template, request, redirect, url_for, Response
 import plotly.graph_objs as go
-from plotly.subplots import make_subplots
 import json
 import os
 import base64
 import re
-from functions import auth, generate_user_id, clean, id_generator
-from flask import session, send_file
+from flask import session
 from flask_mail import Mail,  Message
 from simple_colors import *
 import csv
@@ -18,9 +16,14 @@ import plotly.graph_objects as go
 import datetime
 from plotly.graph_objects import Layout
 
+#funções nativas
+from functions import auth, generate_user_id, id_generator, list_dates, nlpBertimbau
+
+#declarando o servidor
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
 
+#configurando o serviço de email
 app.config.update(
     MAIL_SERVER = 'smtp.gmail.com',
     MAIL_PORT = 465,
@@ -32,7 +35,7 @@ mail = Mail(app)
 
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
+# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
 @app.route('/receiver', methods=['POST'])
 def receiver():
     metadata = request.form['metadata']
@@ -60,14 +63,6 @@ def receiver():
     
     except:
         None
-    # if metadata['type'] == "eye":
-    #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceX.txt', 'a') as f:
-    #         f.write(data['X'] + '\n')
-    #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceY.txt', 'a') as f:
-    #         f.write(data['Y'] + '\n')
-    #     with open('Samples/' + sample + '/' + str(metadata['dateTime']) + '/traceTime.txt', 'a') as f:
-    #         f.write(str(metadata['dateTime']) + '\n')
-    # else:
     
     traceData = ['eye', 'mouse', 'keyboard', 'freeze', 'click', 'wheel', 'move']
     if str(metadata['type']) in traceData:
@@ -96,7 +91,7 @@ def receiver():
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
             
-        with open(f'Samples/{userid}/{dateTime}/trace.csv', 'a') as csvfile:
+        with open(f'Samples/{userid}/{dateTime}/trace.csv', 'a', newline='') as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
@@ -145,7 +140,7 @@ def receiver():
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
             
-        with open(f'Samples/{userid}/{dateTime}/audio.csv', 'a') as csvfile:
+        with open(f'Samples/{userid}/{dateTime}/audio.csv', 'a', newline='') as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
@@ -166,10 +161,10 @@ def receiver():
             f.write(str(metadata['dateTime']))
             
         return "received"
-    
+
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(site coletado)/(data+hora da coleta)/(dados da coleta)
+# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(data+hora da coleta)/(dados da coleta)
 @app.route('/sample_checker', methods=['POST'])
 def sample_checker():
     if request.method == 'POST':
@@ -248,7 +243,7 @@ def login():
         else:
             return render_template('login.html', session=False, title='Login')
 
-# Define a rota para a página de login
+# Define a rota para o logout
 @app.route('/logout')
 def logout():
     # remove the username from the session if it's there
@@ -310,49 +305,45 @@ This email was generated anonymously and automatically by an unmonitored email a
 @app.route("/change_pass", methods=["GET", "POST"])
 def change_pass():
     if request.method == "POST":
-        # Obtém o usuário e a senha informados no formulário
-        username = request.form["username"]
-        password = request.form["password"]
-        newpassword = request.form["newpassword"]
-
-        # Verifica se as credenciais estão corretas
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for i in range(len(users)):
-            if users[i]['username'] == username and users[i]['password'] == password:
-                if newpassword == request.form["confirm_newpassword"]:
-                    #Senha do usuário alterada para a fornecida
-                    users[i]['password'] = newpassword
-
-                    # Abre o arquivo usuarios.json em modo de escrita
-                    with open("users.json", "w") as arquivo:
-                        # Escreve a lista de usuários atualizada no arquivo
-                        json.dump(users, arquivo)
-
-                    #Usuário logado
-                    session['username'] = request.form['username']
-                    return redirect(url_for("index", title='Home'))
-                
-                else:
-                    error = "Make sure the new passwords match!"
-                    return render_template("change_pass.html", error=error, title='Alterar a senha')
-            else:
-                error = "The username or password is incorrect."
-                return render_template("change_pass.html", error=error, title='Alterar a senha')
-            
-    else:
-        # Se a requisição for GET, exibe a página de alteração de senha
         if 'username' in session:
-            return render_template('change_pass.html', session=True, username=session['username'], title='Alterar a senha')
+            # Obtém o usuário e a senha informados no formulário
+            username = session['username']
+            password = request.form["password"]
+            newpassword = request.form["newpassword"]
+            newpassword2 = request.form["confirm_newpassword"]
+
+            # Verifica se as credenciais estão corretas
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == username and users[i]['password'] == password:
+                    if newpassword == newpassword2:
+                        #Senha do usuário alterada para a fornecida
+                        users[i]['password'] = newpassword
+
+                        # Abre o arquivo usuarios.json em modo de escrita
+                        with open("users.json", "w") as arquivo:
+                            # Escreve a lista de usuários atualizada no arquivo
+                            json.dump(users, arquivo)
+
+                        #Usuário logado
+                        return redirect(url_for("index", session=True, title='Home', username=session['username']))
+                    
+                    else:
+                        error = "Verifique se ambas as novas senhas são iguais e tente novamente!"
+                        return render_template("index.html", session=True, error=error, title='Home')
+                else:
+                    error = "A senha atual está incorreta!"
+                    return render_template("index.html", session=True, error=error, title='Home')
+            
         else:
-            return render_template('login.html', session=False, title='Login')
+            return render_template('login.html', session=False, title='Login', error='Faça o login!')
 
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         if 'username' in session:
-            #código dash atividade recente
             #faz a leitura da base de dados de coletas do usuário
             with open("users.json", "r") as arquivo:
                     users = json.load(arquivo)
@@ -414,7 +405,7 @@ def index():
                         figdata[date] = 1
                     else:
                         figdata[date] += 1
-                    if i == 5:
+                    if i == 4:
                         break
                 except:
                     break
@@ -598,7 +589,7 @@ def datafilter(username, metadata):
             
             else:
                 error = '404\nPage not found!'
-                return render_template("datafilter.html", username=username, error = error, title='Coletas')
+                return render_template("data_filter.html", username=username, error = error, title='Coletas')
         
         #se o usuário não está logado
         else:
@@ -617,9 +608,8 @@ def datafilter(username, metadata):
             
             if metadata == 'datetime':
                 #verifica quais datas estão disponíveis
-                dates = os.listdir(datadir)
-                
-                return render_template("datafilter.html", username=username, metadata=metadata, items=dates, title='Coletas')
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, metadata=metadata, items=dates, title='Coletas')
             
             elif metadata == 'pages':
                 dates = session['dates']
@@ -633,11 +623,11 @@ def datafilter(username, metadata):
                         if page not in pages:
                             pages.append(page)
                 
-                return render_template("datafilter.html", username=username, metadata=metadata, items=pages, title='Coletas')
+                return render_template("data_filter.html", username=username, metadata=metadata, items=pages, title='Coletas')
             
             else:
                 error = '404\nPage not found!'
-                return render_template("datafilter.html", username=username, error = error, title='Coletas')
+                return render_template("data_filter.html", username=username, error = error, title='Coletas')
         
         #se o usuário não está logado
         else:

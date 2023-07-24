@@ -22,7 +22,6 @@
       }
       
       main {
-        height: 100vh;
         height: -webkit-fill-available;
         overflow-x: auto;
         overflow-y: hidden;
@@ -31,7 +30,7 @@
       .b-example-vr {
         flex-shrink: 0;
         width: 0.3rem;
-        height: 100vh;
+        height: auto;
         background-color: rgba(0, 0, 0, .1);
         border: solid rgba(0, 0, 0, .15);
         border-width: 1px 0;
@@ -80,7 +79,18 @@
       .bd-mode-toggle {
         z-index: 1500;
       }
-
+      .modal-backdrop.show {
+        background-color: rgb(0, 0, 0);
+        opacity: 0.75;
+      }
+      ::-webkit-scrollbar {
+        background-color: rgba(0, 0, 0, 0);
+        width: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #707070;
+        border-radius: 5px;
+      }
     </style>
     {% block head %}{% endblock %}
 
@@ -138,6 +148,53 @@
 
 
     {% if session %}
+      <!-- change pass popup -->
+      <div class="modal fade" tabindex="-1" role="dialog" id="changepassModal" aria-labelledby="changepassModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content rounded-4 shadow">
+            <div class="modal-header p-5 pb-4 border-bottom-0">
+              <h1 class="fw-bold mb-0 fs-2" id="changepassModalLabel">Alteração de senha</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+      
+            <div class="modal-body p-5 pt-0">
+              <form method="POST" action="{{ url_for('change_pass') }}">
+                <div class="form-floating mb-3">
+                  <input type="password" class="form-control rounded-3" id="password" placeholder="Password" name="password">
+                  <label for="password">Senha atual</label>
+                </div>
+                <div class="form-floating mb-3">
+                  <input type="password" class="form-control rounded-3" id="newpassword" placeholder="Password" name="newpassword">
+                  <label for="newpassword">Nova senha</label>
+                </div>
+                <div class="form-floating mb-3">
+                  <input type="password" class="form-control rounded-3" id="confirm_newpassword" placeholder="Password" name="confirm_newpassword">
+                  <label for="confirm_newpassword">Repita a nova senha</label>
+                </div>
+                <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" type="submit">Alterar a senha</button>
+                <small class="text-body-secondary">Sua senha é somente sua e não deve ser compartilhada com ninguém.</small>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- logout popup -->
+      <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">Você deseja sair?</h5>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary w-25" data-bs-dismiss="modal">Continuar</button>
+            <a type="button" class="btn btn-danger w-25" href="{{ url_for('logout') }}">Sair</a>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- menu lateral -->
       <main class="d-flex flex-nowrap">
         <div class="d-flex flex-column flex-shrink-0 py-3 px-0 bg-body-tertiary" style="width: 280px;">
           <a href="/" class="d-flex flex-column align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
@@ -180,7 +237,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-cpu" viewBox="0 0 16 16">
                   <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2A2.5 2.5 0 0 1 14 4.5h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14a2.5 2.5 0 0 1-2.5 2.5v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14A2.5 2.5 0 0 1 2 11.5H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2A2.5 2.5 0 0 1 4.5 2V.5A.5.5 0 0 1 5 0zm-.5 3A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7zM5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3zM6.5 6a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
                 </svg>
-                Processamento de dados
+                Análise de dados
               </a>
             </li>
             <li>
@@ -212,6 +269,8 @@
             </li>
           </ul>
           <hr>
+
+          <!-- botão de usuário -->
           <div class="dropdown px-3">
             <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi me-2 bi-person-circle" viewBox="0 0 16 16">
@@ -222,15 +281,16 @@
             </a>
             <ul class="dropdown-menu text-small shadow  w-100 mb-4">
               <li><a class="dropdown-item ps-4" href="#">Configurações</a></li>
-              <li><a class="dropdown-item ps-4" href="{{ url_for('change_pass') }}">Alterar a senha</a></li>
+              <li><a class="dropdown-item ps-4" data-bs-toggle="modal" data-bs-target="#changepassModal">Alterar a senha</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item ps-4" href="{{ url_for('logout') }}">Logout</a></li>
+              <li><a class="dropdown-item ps-4" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a></li>
             </ul>
           </div>
         </div>
 
         <div class="b-example-divider b-example-vr"></div>
 
+        <!-- botão de tema -->
         <div class="dropdown position-fixed bottom-0 end-0 mb-4 me-3 bd-mode-toggle">
           <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
                   id="bd-theme"

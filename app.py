@@ -212,7 +212,7 @@ def register():
     else:
         # Se a requisição for GET, exibe a página de registro
         if 'username' in session:
-            return render_template('index.html', session=True, username=session['username'], title='Home')
+            return redirect(url_for('index'))
         else:
             return render_template('register.html', session=False, title='Registrar')
 
@@ -231,7 +231,7 @@ def login():
             if user['username'] == username and user['password'] == password:
         # Se as credenciais estiverem corretas, redireciona para a página principal
                 session['username'] = request.form['username']
-                return redirect(url_for("index", session=True, title='Home'))
+                return redirect(url_for('index'))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
@@ -239,7 +239,7 @@ def login():
     else:
         # Se a requisição for GET, exibe a página de login
         if 'username' in session:
-            return render_template('index.html', session=True, username=session['username'], title='Home')
+            return redirect(url_for('index'))
         else:
             return render_template('login.html', session=False, title='Login')
 
@@ -248,7 +248,7 @@ def login():
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
-    return redirect(url_for('index', title='Home'))
+    return redirect(url_for('index'))
 
 # Define a rota para reset de password
 @app.route('/forgot_pass', methods=["GET", "POST"])
@@ -297,12 +297,12 @@ This email was generated anonymously and automatically by an unmonitored email a
                     json.dump(users, arquivo)
 
                 #Redirecionar para o login
-                return redirect(url_for("login", title='Login', session=False))
+                return redirect(url_for('login'))
     else:
         return render_template('forgot_pass.html', session=False, title='Esqueci a senha')
 
 # Define a rota para a página de alteração de senha
-@app.route("/change_pass", methods=["GET", "POST"])
+@app.route("/change_pass", methods=["POST"])
 def change_pass():
     if request.method == "POST":
         if 'username' in session:
@@ -327,7 +327,7 @@ def change_pass():
                             json.dump(users, arquivo)
 
                         #Usuário logado
-                        return redirect(url_for("index", session=True, title='Home', username=session['username']))
+                        return redirect(url_for('index'))
                     
                     else:
                         error = "Verifique se ambas as novas senhas são iguais e tente novamente!"
@@ -444,42 +444,6 @@ def index():
         else:
             return render_template('index.html', session=False, title='Home')
 
-        """
-        if request.method == "POST":
-            # Obtém o arquivo JSON enviado pelo usuário
-            file = request.files["file"]
-
-            # Carrega os dados do arquivo JSON
-            data = json.load(file)
-
-            # Obtém os dados de navegação do arquivo JSON
-            navigation_data = data["navigation_data"]
-
-            # Cria o gráfico com os dados de navegação
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
-            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
-                                    y=[x["scroll_height"] - x["scroll_top"] for x in navigation_data],
-                                    mode="markers",
-                                    marker=dict(color=[x["trace"] for x in navigation_data],
-                                                colorscale="Viridis",
-                                                size=5)),
-                                    row=1, col=1)
-            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
-                                            y=[x["mouse_y"] for x in navigation_data],
-                                            mode="markers",
-                                            marker=dict(color=[x["trace"] for x in navigation_data],
-                                                        colorscale="Viridis",
-                                                        size=5)),
-                                            row=2, col=1)
-            fig.update_layout(height=600, title_text="Dados de Navegação do Usuário")
-
-            # Renderiza o gráfico na página principal
-            return render_template("index.html", graph_json=fig.to_json())
-        else:
-            # Se a requisição for GET, exibe a página principal
-            return render_template("index.html")
-        """
-
 @app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
 def datafilter(username, metadata):
     if request.method == 'POST':
@@ -497,7 +461,7 @@ def datafilter(username, metadata):
                 #adiciona as datas à seção
                 session['dates'] = request.form.getlist('dates[]')
                 #refireciona pra seleção dos traços
-                return redirect(url_for('datafilter', username=username, metadata='pages', title='Coletas'))
+                return redirect(url_for('datafilter', username=username, metadata='pages'))
 
             elif metadata == 'pages':
                 #adiciona as páginas à seção
@@ -631,19 +595,39 @@ def datafilter(username, metadata):
         
         #se o usuário não está logado
         else:
-            return render_template('index.html', session=False, title='Home')
+            return redirect(url_for('index'))
 
 
-@app.route('/dataprocessing/<username>/<metadata>', methods=["GET", "POST"])
-def dadaprocessing(username, metadata):
+@app.route('/dataanalysis/<username>/<model>', methods=["GET", "POST"])
+def dadaprocessing(username, model):
     if request.method == 'POST':
         if 'username' in session:
-            return
+            return redirect(url_for('index'))
     
     #método GET
     else:
         if 'username' in session:
-            return
+            #faz a leitura da base de dados de coletas do usuário
+            with open("users.json", "r") as arquivo:
+                    users = json.load(arquivo)
+            for i in range(len(users)):
+                if users[i]['username'] == username:
+                    userid = users[i]['id']
+            datadir=f'./Samples/{userid}'
+            if model == 'kmeans':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            elif model == 'meanshift':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            elif model == 'nlp':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            else:
+                error = '404\nPage not found!'
+                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+        else:
+            return render_template('login.html', session=False, title='Login', error='Faça o login!')
 
 if __name__ == "__main__":
     app.run(debug=True)

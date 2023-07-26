@@ -20,7 +20,7 @@ from plotly.graph_objects import Layout
 #funções nativas
 from functions import auth, generate_user_id, id_generator, list_dates, nlpBertimbau
 
-CONNECTION_STRING = "mongodb+srv://UX-Tracking:lpo12lpo@cluster0.yswyeml.mongodb.net/?retryWrites=true&w=majority"
+CONNECTION_STRING = " "
 client = pymongo.MongoClient(CONNECTION_STRING)
 db = client.get_database('users')
 

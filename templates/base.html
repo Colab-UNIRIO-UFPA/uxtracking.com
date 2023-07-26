@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-bs-theme='auto'>
+<html data-bs-theme='auto' lang="pt">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
@@ -75,7 +75,6 @@
         --bs-btn-active-bg: #144f6a;
         --bs-btn-active-border-color: #144f6a;
       }
-
       .bd-mode-toggle {
         z-index: 1500;
       }
@@ -180,15 +179,15 @@
       </div>
 
       <!-- logout popup -->
-      <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+      <div class="modal modal-sm fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-          <div class="modal-header">
-          <h5 class="modal-title" id="logoutModalLabel">Você deseja sair?</h5>
+          <div class="modal-header text-center">
+          <h5 class="modal-title w-100" id="logoutModalLabel">Você deseja sair?</h5>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary w-25" data-bs-dismiss="modal">Continuar</button>
-            <a type="button" class="btn btn-danger w-25" href="{{ url_for('logout') }}">Sair</a>
+          <div class="modal-footer align-items-center justify-content-center gap-3">
+            <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Continuar</button>
+            <a type="button" class="btn btn-danger px-5" href="{{ url_for('logout') }}">Sair</a>
           </div>
         </div>
         </div>
@@ -196,9 +195,9 @@
 
       <!-- menu lateral -->
       <main class="d-flex flex-nowrap">
-        <div class="d-flex flex-column flex-shrink-0 py-3 px-0 bg-body-tertiary" style="width: 280px;">
+        <div class="d-flex flex-column flex-shrink-0 py-3 px-0 bg-body-tertiary" style="width: 30vh;">
           <a href="/" class="d-flex flex-column align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-            <svg xmlns="http://www.w3.org/2000/svg" width="60%" height="auto" fill="currentColor" class="bi pe-none ms-3 me-3 bi-menu-button-wide" viewBox="0 0 783 501">
+            <svg xmlns="http://www.w3.org/2000/svg" width="55%" height="auto" fill="currentColor" class="bi pe-none ms-3 me-3 bi-menu-button-wide" viewBox="0 0 783 501">
               <path d="M57.269 250.461a5.333 5.333 0 1 0 9.462-4.921 5.333 5.333 0 0 0-9.462 4.921Zm175.865-91.481a5.333 5.333 0 1 0 9.463-4.923 5.334 5.334 0 0 0-9.463 4.923ZM62.462 248.887l175.865-91.481-.923-1.775-175.865 91.482.922 1.774Zm623.173-87.879c-6.266-6.231-16.397-6.202-22.627.064-6.231 6.266-6.202 16.397.064 22.627 6.266 6.231 16.397 6.202 22.627-.064 6.231-6.266 6.202-16.397-.064-22.627Zm-64.762 60.877a2.998 2.998 0 0 0 .012 4.242 2.998 2.998 0 0 0 4.242-.012l-4.254-4.23Zm51.353-51.647-51.353 51.647 4.254 4.23 51.354-51.646-4.255-4.231ZM563.118 288.125a3.001 3.001 0 0 0-4.236-4.25l4.236 4.25Zm-78.432 73.934c-6.238-6.259-16.368-6.276-22.627-.038-6.259 6.238-6.276 16.368-.038 22.627 6.238 6.259 16.368 6.276 22.627.038 6.259-6.238 6.276-16.368.038-22.627Zm74.196-78.184-87.646 87.354 4.235 4.249 87.647-87.353-4.236-4.25Z"/>
               <path d="M306.647 223.473a2 2 0 1 0 2.706-2.946l-2.706 2.946Zm-61.131-58.888c3.986-4.338 3.701-11.085-.637-15.071-4.338-3.986-11.085-3.701-15.071.637-3.986 4.338-3.701 11.086.637 15.071 4.338 3.986 11.086 3.701 15.071-.637Zm63.837 55.942-70.338-64.632-2.706 2.946 70.338 64.632 2.706-2.946Zm171.162 160.059c3.987-4.337 3.703-11.085-.635-15.072-4.337-3.986-11.085-3.702-15.071.635-3.987 4.337-3.702 11.085.635 15.072 4.337 3.986 11.085 3.702 15.071-.635Zm-103.161-97.558a2 2 0 1 0-2.708 2.944l2.708-2.944Zm96.662 88.867-96.662-88.867-2.708 2.944 96.663 88.868 2.707-2.945ZM471 221a2 2 0 1 0 4 0h-4Zm2-108.333c5.891 0 10.667-4.776 10.667-10.667S478.891 91.333 473 91.333 462.333 96.11 462.333 102s4.776 10.667 10.667 10.667ZM475 221V102h-4v119h4Z"/>
               <path d="M473 383.667c5.891 0 10.667-4.776 10.667-10.667s-4.776-10.667-10.667-10.667-10.667 4.776-10.667 10.667 4.776 10.667 10.667 10.667ZM475 285a2 2 0 1 0-4 0h4Zm0 88v-88h-4v88h4Zm8.499-272.944c-1.342-5.736-7.08-9.298-12.816-7.955-5.737 1.342-9.298 7.08-7.956 12.817 1.343 5.736 7.081 9.297 12.817 7.955 5.736-1.343 9.298-7.081 7.955-12.817Zm-235 55c-1.342-5.736-7.08-9.298-12.816-7.955-5.737 1.342-9.298 7.081-7.956 12.817 1.343 5.736 7.081 9.297 12.817 7.955 5.736-1.343 9.298-7.081 7.955-12.817Zm224.159-54.517-235 55 .911 3.895 235-55-.911-3.895ZM57.51 245.122a5.333 5.333 0 1 0 8.98 5.756 5.333 5.333 0 0 0-8.98-5.756Zm195 125a5.333 5.333 0 1 0 8.98 5.756 5.333 5.333 0 1 0-8.98-5.756ZM61.46 248.842l195 125 1.08-1.684-195-125-1.08 1.684Z"/>
@@ -216,29 +215,35 @@
           <hr>
           <ul class="nav nav-pills flex-column mb-auto px-2">
             <li class="nav-item">
+              <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Página inicial" data-bs-content="Acesse suas últimas coletas, seu histórico de atividades e o link para a documentação oficial.">
               <a href="{{ url_for('index') }}" class="nav-link link-body-emphasis">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-house" viewBox="0 0 16 16">
                   <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
                 </svg>
-                Página inicial
+                Home
               </a>
+            </span>
             </li>
             <li class="nav-item">
-              <a href="{{ url_for('datafilter', username=username, metadata='datetime') }}" class="nav-link link-body-emphasis">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-database-down" viewBox="0 0 16 16">
-                  <path d="M12.5 9a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm.354 5.854 1.5-1.5a.5.5 0 0 0-.708-.708l-.646.647V10.5a.5.5 0 0 0-1 0v2.793l-.646-.647a.5.5 0 0 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0Z"/>
-                  <path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262 0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>
-                </svg>
-                Minhas coletas
-              </a>
+              <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Minhas coletas" data-bs-content="Faça o download de suas coletas, podendo filtrar por data, hora e site coletados.">
+                <a href="{{ url_for('datafilter', username=username, metadata='datetime') }}" class="nav-link link-body-emphasis">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-database-down" viewBox="0 0 16 16">
+                    <path d="M12.5 9a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm.354 5.854 1.5-1.5a.5.5 0 0 0-.708-.708l-.646.647V10.5a.5.5 0 0 0-1 0v2.793l-.646-.647a.5.5 0 0 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0Z"/>
+                    <path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262 0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>
+                  </svg>
+                  Coletas
+                </a>
+              </span>
             </li>
             <li>
-              <a href="#" class="nav-link link-body-emphasis">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-cpu" viewBox="0 0 16 16">
-                  <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2A2.5 2.5 0 0 1 14 4.5h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14a2.5 2.5 0 0 1-2.5 2.5v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14A2.5 2.5 0 0 1 2 11.5H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2A2.5 2.5 0 0 1 4.5 2V.5A.5.5 0 0 1 5 0zm-.5 3A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7zM5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3zM6.5 6a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
-                </svg>
-                Análise de dados
-              </a>
+              <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Análise dos dados" data-bs-content="Realize a análise dos seus dados por meio de uma variedade de modelos estatísticos disponíveis.">
+                <a href="#" class="nav-link link-body-emphasis">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-cpu" viewBox="0 0 16 16">
+                    <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2A2.5 2.5 0 0 1 14 4.5h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14a2.5 2.5 0 0 1-2.5 2.5v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14A2.5 2.5 0 0 1 2 11.5H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2A2.5 2.5 0 0 1 4.5 2V.5A.5.5 0 0 1 5 0zm-.5 3A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7zM5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3zM6.5 6a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
+                  </svg>
+                  Análise
+                </a>
+              </span>
             </li>
             <li>
               <a href="#" class="nav-link link-body-emphasis">
@@ -411,5 +416,11 @@
     <script src="{{ url_for('static', filename='js/switchTheme.js') }}"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <script>
+      var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+      var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl)
+      })
+      </script>
   </body>
 </html>

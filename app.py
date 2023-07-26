@@ -1,3 +1,4 @@
+from flask_pymongo import pymongo
 from flask import Flask, render_template, request, redirect, url_for, Response
 import plotly.graph_objs as go
 import json
@@ -19,6 +20,10 @@ from plotly.graph_objects import Layout
 #funções nativas
 from functions import auth, generate_user_id, id_generator, list_dates, nlpBertimbau
 
+CONNECTION_STRING = "mongodb+srv://UX-Tracking:lpo12lpo@cluster0.yswyeml.mongodb.net/?retryWrites=true&w=majority"
+client = pymongo.MongoClient(CONNECTION_STRING)
+db = client.get_database('users')
+
 #declarando o servidor
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
@@ -32,6 +37,7 @@ app.config.update(
     MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
 )
 mail = Mail(app)
+
 
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
@@ -190,29 +196,20 @@ def register():
         email = request.form["email"]
 
         # Verifica se o usuário já existe
-        verification = auth(username, email)
-        if verification[0]:
-            return render_template("register.html", error=verification[1], title='Registrar')
+        userfound = db.users.find_one({"email":email})
 
+        if userfound == None:
+            db.users.insert_one({"username":username,"password":password,"email":email})
         else:
-            with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
+            return render_template("register.html", error='Esse email já foi cadastrado', title='Registrar')
 
-            users.append({  "username": username,
-                            "password": password,
-                            "email": email,
-                            "id": generate_user_id(username, email)})
-            # Abre o arquivo usuarios.json em modo de escrita
-            with open("users.json", "w") as arquivo:
-                # Escreve a lista de usuários atualizada no arquivo
-                json.dump(users, arquivo)
         # Redireciona para a página de login
         return redirect(url_for("login", title='Login'))
     
     else:
         # Se a requisição for GET, exibe a página de registro
         if 'username' in session:
-            return redirect(url_for('index'))
+            return render_template('index.html', session=True, username=session['username'], title='Home')
         else:
             return render_template('register.html', session=False, title='Registrar')
 
@@ -223,15 +220,15 @@ def login():
         # Obtém o usuário e a senha informados no formulário
         username = request.form["username"]
         password = request.form["password"]
+        userfound = db.users.find_one({"username": username, "password":password})
 
-        # Verifica se as credenciais estão corretas
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for user in users:
-            if user['username'] == username and user['password'] == password:
+
+        if userfound != None:
         # Se as credenciais estiverem corretas, redireciona para a página principal
+
                 session['username'] = request.form['username']
-                return redirect(url_for('index'))
+                return redirect(url_for("index", session=True, title='Home'))
+                
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
@@ -239,7 +236,7 @@ def login():
     else:
         # Se a requisição for GET, exibe a página de login
         if 'username' in session:
-            return redirect(url_for('index'))
+            return render_template('index.html', session=True, username=session['username'], title='Home')
         else:
             return render_template('login.html', session=False, title='Login')
 
@@ -248,7 +245,7 @@ def login():
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('index', title='Home'))
 
 # Define a rota para reset de password
 @app.route('/forgot_pass', methods=["GET", "POST"])
@@ -257,11 +254,9 @@ def forgot_pass():
         # Obtém o usuário e email informados no formulário
         username = request.form["username"]
         email = request.form["email"]
+        userfound = db.users.find_one({"username": username, "email":email})
 
-        with open("users.json", "r") as arquivo:
-                users = json.load(arquivo)
-        for i in range(len(users)):
-            if users[i]['username'] == username and users[i]['email'] == email:
+        if userfound != None:
                 # Se as credenciais estiverem corretas, envia um email para o usuário
                 # com a nova senha criada e redireciona para o login
 
@@ -288,21 +283,18 @@ This email was generated anonymously and automatically by an unmonitored email a
                 #Nova senha enviada
                 mail.send(msg)
 
-                #Senha do usuário alterada na BD
-                users[i]['password'] = generatedPass
+                #senha alterada
+                _id = userfound["_id"]
+                db.users.update_one({"_id": _id},{"$set": {"password": generatedPass}})
 
-                # Abre o arquivo usuarios.json em modo de escrita
-                with open("users.json", "w") as arquivo:
-                    # Escreve a lista de usuários atualizada no arquivo
-                    json.dump(users, arquivo)
-
-                #Redirecionar para o login
-                return redirect(url_for('login'))
+               # Redirecionar para o login após o envio do email e atualização da senha
+        return redirect(url_for("login", title='Login', session=False))
     else:
+        # Se a solicitação não for POST, renderizar o template "forgot_pass.html"
         return render_template('forgot_pass.html', session=False, title='Esqueci a senha')
 
 # Define a rota para a página de alteração de senha
-@app.route("/change_pass", methods=["POST"])
+@app.route("/change_pass", methods=["GET", "POST"])
 def change_pass():
     if request.method == "POST":
         if 'username' in session:
@@ -313,28 +305,21 @@ def change_pass():
             newpassword2 = request.form["confirm_newpassword"]
 
             # Verifica se as credenciais estão corretas
-            with open("users.json", "r") as arquivo:
-                    users = json.load(arquivo)
-            for i in range(len(users)):
-                if users[i]['username'] == username and users[i]['password'] == password:
-                    if newpassword == newpassword2:
-                        #Senha do usuário alterada para a fornecida
-                        users[i]['password'] = newpassword
-
-                        # Abre o arquivo usuarios.json em modo de escrita
-                        with open("users.json", "w") as arquivo:
-                            # Escreve a lista de usuários atualizada no arquivo
-                            json.dump(users, arquivo)
-
-                        #Usuário logado
-                        return redirect(url_for('index'))
+            userfound = db.users.find_one({"username": username, "password":password})
+            if userfound != None:
+                senha = userfound["password"]
+                if newpassword == newpassword2:
+                    idd = userfound["_id"]
+                    db.users.update_one({"_id": idd},{"$set": {"password": newpassword}})
+                    #Usuário logado
+                    return redirect(url_for("index", session=True, title='Home', username=session['username']))
                     
-                    else:
-                        error = "Verifique se ambas as novas senhas são iguais e tente novamente!"
-                        return render_template("index.html", session=True, error=error, title='Home')
                 else:
-                    error = "A senha atual está incorreta!"
+                    error = "Verifique se ambas as novas senhas são iguais e tente novamente!"
                     return render_template("index.html", session=True, error=error, title='Home')
+            else:
+                error = "A senha atual está incorreta!"
+                return render_template("index.html", session=True, error=error, title='Home')
             
         else:
             return render_template('login.html', session=False, title='Login', error='Faça o login!')
@@ -345,11 +330,8 @@ def index():
     if request.method == "POST":
         if 'username' in session:
             #faz a leitura da base de dados de coletas do usuário
-            with open("users.json", "r") as arquivo:
-                    users = json.load(arquivo)
-            for i in range(len(users)):
-                if users[i]['username'] == session['username']:
-                    userid = users[i]['id']
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
 
             datadir=f'./Samples/{userid}'
             folder = request.form.getlist('dates[]')
@@ -379,11 +361,8 @@ def index():
         if 'username' in session:
             #código dash atividade recente
             #faz a leitura da base de dados de coletas do usuário
-            with open("users.json", "r") as arquivo:
-                    users = json.load(arquivo)
-            for i in range(len(users)):
-                if users[i]['username'] == session['username']:
-                    userid = users[i]['id']
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
 
             datadir=f'./Samples/{userid}'
 
@@ -444,16 +423,49 @@ def index():
         else:
             return render_template('index.html', session=False, title='Home')
 
+        """
+        if request.method == "POST":
+            # Obtém o arquivo JSON enviado pelo usuário
+            file = request.files["file"]
+
+            # Carrega os dados do arquivo JSON
+            data = json.load(file)
+
+            # Obtém os dados de navegação do arquivo JSON
+            navigation_data = data["navigation_data"]
+
+            # Cria o gráfico com os dados de navegação
+            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
+            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
+                                    y=[x["scroll_height"] - x["scroll_top"] for x in navigation_data],
+                                    mode="markers",
+                                    marker=dict(color=[x["trace"] for x in navigation_data],
+                                                colorscale="Viridis",
+                                                size=5)),
+                                    row=1, col=1)
+            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
+                                            y=[x["mouse_y"] for x in navigation_data],
+                                            mode="markers",
+                                            marker=dict(color=[x["trace"] for x in navigation_data],
+                                                        colorscale="Viridis",
+                                                        size=5)),
+                                            row=2, col=1)
+            fig.update_layout(height=600, title_text="Dados de Navegação do Usuário")
+
+            # Renderiza o gráfico na página principal
+            return render_template("index.html", graph_json=fig.to_json())
+        else:
+            # Se a requisição for GET, exibe a página principal
+            return render_template("index.html")
+"""
+
 @app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
 def datafilter(username, metadata):
     if request.method == 'POST':
         if 'username' in session:
             #faz a leitura da base de dados de coletas do usuário
-            with open("users.json", "r") as arquivo:
-                    users = json.load(arquivo)
-            for i in range(len(users)):
-                if users[i]['username'] == username:
-                    userid = users[i]['id']
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
 
 
@@ -461,7 +473,7 @@ def datafilter(username, metadata):
                 #adiciona as datas à seção
                 session['dates'] = request.form.getlist('dates[]')
                 #refireciona pra seleção dos traços
-                return redirect(url_for('datafilter', username=username, metadata='pages'))
+                return redirect(url_for('datafilter', username=username, metadata='pages', title='Coletas'))
 
             elif metadata == 'pages':
                 #adiciona as páginas à seção
@@ -563,11 +575,8 @@ def datafilter(username, metadata):
     else:
         if 'username' in session:
             #faz a leitura da base de dados de coletas do usuário
-            with open("users.json", "r") as arquivo:
-                    users = json.load(arquivo)
-            for i in range(len(users)):
-                if users[i]['username'] == username:
-                    userid = users[i]['id']
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
             
             if metadata == 'datetime':
@@ -595,39 +604,19 @@ def datafilter(username, metadata):
         
         #se o usuário não está logado
         else:
-            return redirect(url_for('index'))
+            return render_template('index.html', session=False, title='Home')
 
 
-@app.route('/dataanalysis/<username>/<model>', methods=["GET", "POST"])
-def dadaprocessing(username, model):
+@app.route('/dataprocessing/<username>/<metadata>', methods=["GET", "POST"])
+def dadaprocessing(username, metadata):
     if request.method == 'POST':
         if 'username' in session:
-            return redirect(url_for('index'))
+            return
     
     #método GET
     else:
         if 'username' in session:
-            #faz a leitura da base de dados de coletas do usuário
-            with open("users.json", "r") as arquivo:
-                    users = json.load(arquivo)
-            for i in range(len(users)):
-                if users[i]['username'] == username:
-                    userid = users[i]['id']
-            datadir=f'./Samples/{userid}'
-            if model == 'kmeans':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
-            elif model == 'meanshift':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
-            elif model == 'nlp':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
-            else:
-                error = '404\nPage not found!'
-                return render_template("data_filter.html", username=username, error = error, title='Coletas')
-        else:
-            return render_template('login.html', session=False, title='Login', error='Faça o login!')
+            return
 
 if __name__ == "__main__":
     app.run(debug=True)

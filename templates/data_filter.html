@@ -5,17 +5,17 @@
     input[type="checkbox"]:checked + .btn {
       color: #ffffff;
       background: #676767!important;
-    }
-    
-    input[type="checkbox"]:hover + .btn {
-      color: #ffffff;
-      background: #676767!important;
-    }
+  }
+  
+  input[type="checkbox"]:hover + .btn {
+    color: #ffffff;
+    background: #676767!important;
+  }
   </style>
 {% endblock %}
 
 {% block content %}
-  <div class="form-signin w-100 m-auto pe-1 pt-1" style="text-align: center; min-height: 100vh">
+  <div class="form-signin w-100 m-auto pe-1" style="text-align: center; min-height: 100vh">
     {% if metadata == 'datetime' %}
       <p class="fs-4 fw-semibold my-0 py-1 ps-3 text-bg-secondary">Selecione as coletas que deseja baixar</p>
       {% if error %}

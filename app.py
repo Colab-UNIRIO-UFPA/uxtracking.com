@@ -18,9 +18,9 @@ import datetime
 from plotly.graph_objects import Layout
 
 #funções nativas
-from functions import auth, generate_user_id, id_generator, list_dates, nlpBertimbau
+from functions import id_generator, list_dates, nlpBertimbau
 
-CONNECTION_STRING = "mongodb+srv://UX-Tracking:lpo12lpo@cluster0.yswyeml.mongodb.net/?retryWrites=true&w=majority"
+CONNECTION_STRING = os.environ['URI_DATABASE']
 client = pymongo.MongoClient(CONNECTION_STRING)
 db = client.get_database('users')
 
@@ -37,7 +37,6 @@ app.config.update(
     MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
 )
 mail = Mail(app)
-
 
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
@@ -197,19 +196,17 @@ def register():
 
         # Verifica se o usuário já existe
         userfound = db.users.find_one({"email":email})
-
         if userfound == None:
             db.users.insert_one({"username":username,"password":password,"email":email})
         else:
             return render_template("register.html", error='Esse email já foi cadastrado', title='Registrar')
-
         # Redireciona para a página de login
         return redirect(url_for("login", title='Login'))
     
     else:
         # Se a requisição for GET, exibe a página de registro
         if 'username' in session:
-            return render_template('index.html', session=True, username=session['username'], title='Home')
+            return redirect(url_for('index'))
         else:
             return render_template('register.html', session=False, title='Registrar')
 
@@ -222,13 +219,9 @@ def login():
         password = request.form["password"]
         userfound = db.users.find_one({"username": username, "password":password})
 
-
         if userfound != None:
-        # Se as credenciais estiverem corretas, redireciona para a página principal
-
                 session['username'] = request.form['username']
-                return redirect(url_for("index", session=True, title='Home'))
-                
+                return redirect(url_for('index'))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
             error = "Usuário ou senha incorretos."
@@ -236,7 +229,7 @@ def login():
     else:
         # Se a requisição for GET, exibe a página de login
         if 'username' in session:
-            return render_template('index.html', session=True, username=session['username'], title='Home')
+            return redirect(url_for('index'))
         else:
             return render_template('login.html', session=False, title='Login')
 
@@ -245,7 +238,7 @@ def login():
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
-    return redirect(url_for('index', title='Home'))
+    return redirect(url_for('index'))
 
 # Define a rota para reset de password
 @app.route('/forgot_pass', methods=["GET", "POST"])
@@ -257,20 +250,20 @@ def forgot_pass():
         userfound = db.users.find_one({"username": username, "email":email})
 
         if userfound != None:
-                # Se as credenciais estiverem corretas, envia um email para o usuário
-                # com a nova senha criada e redireciona para o login
+            # Se as credenciais estiverem corretas, envia um email para o usuário
+            # com a nova senha criada e redireciona para o login
 
-                #Nova senha gerada
-                generatedPass = id_generator()
+            #Nova senha gerada
+            generatedPass = id_generator()
 
-                #Requisição por email
-                msg = Message( 
-                                'UX-Tracking password reset.', 
-                                sender = app.config.get("MAIL_USERNAME"), 
-                                recipients = [email] 
-                            ) 
-                
-                msg.body = f'''
+            #Requisição por email
+            msg = Message( 
+                            'UX-Tracking password reset.', 
+                            sender = app.config.get("MAIL_USERNAME"), 
+                            recipients = [email] 
+                        ) 
+            
+            msg.body = f'''
 Dear {username}!
 We are sending you this message because you have been asked to reset your password on our platform, the new password generated for your account is below:
 
@@ -280,21 +273,20 @@ If you are not the one who made the request, only you will see this password and
 ________________________________________________________
 This email was generated anonymously and automatically by an unmonitored email account, so please do not reply to this email.'''
 
-                #Nova senha enviada
-                mail.send(msg)
+            #Nova senha enviada
+            mail.send(msg)
 
-                #senha alterada
-                _id = userfound["_id"]
-                db.users.update_one({"_id": _id},{"$set": {"password": generatedPass}})
+            #senha alterada
+            _id = userfound["_id"]
+            db.users.update_one({"_id": _id},{"$set": {"password": generatedPass}})
 
-               # Redirecionar para o login após o envio do email e atualização da senha
-        return redirect(url_for("login", title='Login', session=False))
+            # Redirecionar para o login após o envio do email e atualização da senha
+            return redirect(url_for("login", title='Login', session=False))
     else:
-        # Se a solicitação não for POST, renderizar o template "forgot_pass.html"
         return render_template('forgot_pass.html', session=False, title='Esqueci a senha')
 
 # Define a rota para a página de alteração de senha
-@app.route("/change_pass", methods=["GET", "POST"])
+@app.route("/change_pass", methods=["POST"])
 def change_pass():
     if request.method == "POST":
         if 'username' in session:
@@ -307,7 +299,6 @@ def change_pass():
             # Verifica se as credenciais estão corretas
             userfound = db.users.find_one({"username": username, "password":password})
             if userfound != None:
-                senha = userfound["password"]
                 if newpassword == newpassword2:
                     idd = userfound["_id"]
                     db.users.update_one({"_id": idd},{"$set": {"password": newpassword}})
@@ -369,34 +360,35 @@ def index():
             #verifica quais datas estão disponíveis e limpa a string
             dates = []
             figdata = {}
-            folders = os.listdir(datadir)
+            try:
+                folders = os.listdir(datadir)
 
-            for i in range(len(folders)):
-                try:
-                    items = folders[i].split('-')
-                    #verifica quais sites estão disponíveis
-                    df = pd.read_csv(f'{datadir}/{folders[i]}/trace.csv')
-                    pages = df.site.unique()
-                    items.append(pages)
-                    dates.append(items)
-                    date = f'{items[0][6:8]}/{items[0][4:6]}/{items[0][0:4]}'
-                    if date not in figdata.keys():
-                        figdata[date] = 1
-                    else:
-                        figdata[date] += 1
-                    if i == 4:
+                for i in range(len(folders)):
+                    try:
+                        items = folders[i].split('-')
+                        #verifica quais sites estão disponíveis
+                        df = pd.read_csv(f'{datadir}/{folders[i]}/trace.csv')
+                        pages = df.site.unique()
+                        items.append(pages)
+                        dates.append(items)
+                        date = f'{items[0][6:8]}/{items[0][4:6]}/{items[0][0:4]}'
+                        if date not in figdata.keys():
+                            figdata[date] = 1
+                        else:
+                            figdata[date] += 1
+                        if i == 4:
+                            break
+                    except:
                         break
-                except:
-                    break
 
-            dates = list(map(lambda time:   [f'{time[0][6:8]}/{time[0][4:6]}/{time[0][0:4]}',
-                                            f'{time[1][0:2]}:{time[1][2:4]}:{time[1][4:6]}',
-                                            time[2],
-                                            f'{time[0]}-{time[1]}'],
-                                            dates))
-            
+                dates = list(map(lambda time:   [f'{time[0][6:8]}/{time[0][4:6]}/{time[0][0:4]}',
+                                                f'{time[1][0:2]}:{time[1][2:4]}:{time[1][4:6]}',
+                                                time[2],
+                                                f'{time[0]}-{time[1]}'],
+                                                dates))
+            except:
+                None
             #gera o gráfico de últimas atividades
-            date2day = datetime.date.today()
             layout = Layout(plot_bgcolor='rgba(0,0,0,0)')
             fig = go.Figure(layout=layout)
             fig.add_trace(go.Scatter(x=list(figdata.keys()), y=list(figdata.values()), fill='tozeroy',
@@ -423,42 +415,6 @@ def index():
         else:
             return render_template('index.html', session=False, title='Home')
 
-        """
-        if request.method == "POST":
-            # Obtém o arquivo JSON enviado pelo usuário
-            file = request.files["file"]
-
-            # Carrega os dados do arquivo JSON
-            data = json.load(file)
-
-            # Obtém os dados de navegação do arquivo JSON
-            navigation_data = data["navigation_data"]
-
-            # Cria o gráfico com os dados de navegação
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05)
-            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
-                                    y=[x["scroll_height"] - x["scroll_top"] for x in navigation_data],
-                                    mode="markers",
-                                    marker=dict(color=[x["trace"] for x in navigation_data],
-                                                colorscale="Viridis",
-                                                size=5)),
-                                    row=1, col=1)
-            fig.add_trace(go.Scatter(x=[x["page"] for x in navigation_data],
-                                            y=[x["mouse_y"] for x in navigation_data],
-                                            mode="markers",
-                                            marker=dict(color=[x["trace"] for x in navigation_data],
-                                                        colorscale="Viridis",
-                                                        size=5)),
-                                            row=2, col=1)
-            fig.update_layout(height=600, title_text="Dados de Navegação do Usuário")
-
-            # Renderiza o gráfico na página principal
-            return render_template("index.html", graph_json=fig.to_json())
-        else:
-            # Se a requisição for GET, exibe a página principal
-            return render_template("index.html")
-"""
-
 @app.route('/datafilter/<username>/<metadata>', methods=["GET", "POST"])
 def datafilter(username, metadata):
     if request.method == 'POST':
@@ -473,7 +429,7 @@ def datafilter(username, metadata):
                 #adiciona as datas à seção
                 session['dates'] = request.form.getlist('dates[]')
                 #refireciona pra seleção dos traços
-                return redirect(url_for('datafilter', username=username, metadata='pages', title='Coletas'))
+                return redirect(url_for('datafilter', username=username, metadata='pages'))
 
             elif metadata == 'pages':
                 #adiciona as páginas à seção
@@ -581,7 +537,10 @@ def datafilter(username, metadata):
             
             if metadata == 'datetime':
                 #verifica quais datas estão disponíveis
-                dates = list_dates(datadir)
+                try:
+                    dates = list_dates(datadir)
+                except:
+                    dates = []
                 return render_template("data_filter.html", username=username, metadata=metadata, items=dates, title='Coletas')
             
             elif metadata == 'pages':
@@ -604,19 +563,36 @@ def datafilter(username, metadata):
         
         #se o usuário não está logado
         else:
-            return render_template('index.html', session=False, title='Home')
+            return redirect(url_for('index'))
 
 
-@app.route('/dataprocessing/<username>/<metadata>', methods=["GET", "POST"])
-def dadaprocessing(username, metadata):
+@app.route('/dataanalysis/<username>/<model>', methods=["GET", "POST"])
+def dadaprocessing(username, model):
     if request.method == 'POST':
         if 'username' in session:
-            return
+            return redirect(url_for('index'))
     
     #método GET
     else:
         if 'username' in session:
-            return
+            #faz a leitura da base de dados de coletas do usuário
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
+            datadir=f'./Samples/{userid}'
+            if model == 'kmeans':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            elif model == 'meanshift':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            elif model == 'nlp':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            else:
+                error = '404\nPage not found!'
+                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+        else:
+            return render_template('login.html', session=False, title='Login', error='Faça o login!')
 
 if __name__ == "__main__":
     app.run(debug=True)

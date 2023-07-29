@@ -594,5 +594,33 @@ def dadaprocessing(username, model):
         else:
             return render_template('login.html', session=False, title='Login', error='Faça o login!')
 
+@app.route('/dataview/<username>/<type>', methods=["GET", "POST"])
+def dataview(username, type):
+    if request.method == 'POST':
+        if 'username' in session:
+            return redirect(url_for('index'))
+    
+    #método GET
+    else:
+        if 'username' in session:
+            #faz a leitura da base de dados de coletas do usuário
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
+            datadir=f'./Samples/{userid}'
+            if type == 'theatmap':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            elif type == 'meanshift':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            elif type == 'nlp':
+                dates = list_dates(datadir)
+                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            else:
+                error = '404\nPage not found!'
+                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+        else:
+            return render_template('login.html', session=False, title='Login', error='Faça o login!')
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -116,7 +116,7 @@ def make_heatmap(folder):
                 try:
                     img = base64.b64encode(open(f'{folder}/{i}', 'rb').read())
                     frames.append(go.Frame(data=go.Scatter(x=x[lista], y=y[lista], marker_size=z[lista]*32, mode='markers+text'),
-                                        layout=dict(images=[dict(source='data:image/jpg;base64,{}'.format(img.decode()))],
+                                        name=time, layout=dict(images=[dict(source='data:image/jpg;base64,{}'.format(img.decode()))],
                                                     annotations=[dict(x=0.5, y=0.04, xref="paper", yref="paper",
                                                                         text=f"Falado: {audio2text[0]}",
                                                                         font=dict(
@@ -136,13 +136,12 @@ def make_heatmap(folder):
                 except:
                     None
 
-    listainit = [index for (index, item) in enumerate(times) if item == times[0]]
-    data = data=go.Scatter(x=x[listainit], y=y[listainit], marker_size=z[listainit]*64)
-
     fig = go.Figure(
-        data=data,
+        data=frames[0].data,
         layout=go.Layout(
-            xaxis=dict(range=[0, width], autorange=False),
+            xaxis=dict(range=[0, width], autorange=False, rangeslider=dict(
+            visible=False
+        )),
             yaxis=dict(range=[0, height], autorange=False),
             images=[dict(
                         source='data:image/jpg;base64,{}'.format(im0.decode()),
@@ -174,12 +173,33 @@ def make_heatmap(folder):
                 )),
                     marker_gradient=dict(color='rgba(255, 0, 0, 0.35)', type='radial'),
                     selector=dict(type='scatter'))
+    
+    filtered_frames = []
+    names= []
+    for f in frames:
+        if f.name != None and f.name not in names:
+            names.append(f.name)
+            filtered_frames.append(f)
+            
     # Configure other layout
     fig.update_layout(
+        # iterate over frames to generate steps... NB frame name...
+        sliders=[{"steps": [{"args": [[f.name],{"frame": {"duration": 0, "redraw": True},
+                                            "mode": "immediate",},],
+                         "label": f.name, "method": "animate",}
+                        for f in filtered_frames],
+                    'x':0,
+                    'y':-0.07,
+                    'font':{'size':12},
+                    'ticklen':4,
+                    'currentvalue':{'visible':False}}],
         width=width*0.6,
         height=height*0.6,
-        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        margin={"l": 0, "r": 0, "t": 0, "b": 100},
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
     )
+
     fig['layout']['updatemenus'] = [
         {
             'buttons': [
@@ -200,13 +220,13 @@ def make_heatmap(folder):
             'pad': {'r': 0, 't': 0, 'b':0, 'l':0},
             'showactive': False,
             'type': 'buttons',
-            'x': 0.11,
+            'x': 0.12,
             'xanchor': 'right',
-            'y': 0.1,
+            'y': -0.02,
             'yanchor': 'top',
             'bgcolor': 'rgb(190, 190, 190)',
             'font':{'color':'rgb(0, 0, 0)'}
         }
     ]
-    
+    fig.update_xaxes(rangeslider_thickness = 0.1)
     fig.show()

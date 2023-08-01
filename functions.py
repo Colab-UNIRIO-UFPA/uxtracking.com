@@ -132,7 +132,7 @@ def make_heatmap(folder):
                 try:
                     img = base64.b64encode(open(f'{folder}/{i}', 'rb').read())
                     frames.append(go.Frame(data=go.Scatter(x=x[lista], y=y[lista], marker_size=z[lista]*32, mode='markers+text'),
-                                        layout=dict(images=[dict(source='data:image/jpg;base64,{}'.format(img.decode()))])))
+                                        name=time, layout=dict(images=[dict(source='data:image/jpg;base64,{}'.format(img.decode()))])))
                 except:
                     None
 
@@ -173,13 +173,6 @@ def make_heatmap(folder):
                 )),
                     marker_gradient=dict(color='rgba(255, 0, 0, 0.35)', type='radial'),
                     selector=dict(type='scatter'))
-    
-    filtered_frames = []
-    names= []
-    for f in frames:
-        if f.name != None and f.name not in names:
-            names.append(f.name)
-            filtered_frames.append(f)
             
     # Configure other layout
     fig.update_layout(
@@ -187,15 +180,15 @@ def make_heatmap(folder):
         sliders=[{"steps": [{"args": [[f.name],{"frame": {"duration": 0, "redraw": True},
                                             "mode": "immediate",},],
                          "label": f.name, "method": "animate",}
-                        for f in filtered_frames],
+                        for f in frames],
                     'x':0,
                     'y':-0.07,
                     'font':{'size':12},
                     'ticklen':4,
-                    'currentvalue':{'visible':False}}],
+                    'currentvalue':{"prefix": "Time(s):", 'visible':True}}],
         width=width*0.6,
         height=height*0.6,
-        margin={"l": 0, "r": 0, "t": 0, "b": 100},
+        margin={"l": 0, "r": 0, "t": 0, "b": 140},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
@@ -204,7 +197,7 @@ def make_heatmap(folder):
         {
             'buttons': [
                 {
-                    'args': [None, {'frame': {'duration': 500, 'redraw': True},
+                    'args': [None, {'frame': {'duration': 300, 'redraw': True},
                             'fromcurrent': True, 'transition': {'duration': 300, 'easing': 'quadratic-in-out'}}],
                     'label': 'Play',
                     'method': 'animate'

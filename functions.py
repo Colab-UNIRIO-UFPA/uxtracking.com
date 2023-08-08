@@ -76,7 +76,7 @@ def model_meanshift (dados,n_qualite,samples):
 
 def list_dates(dir):
     dates = []
-    folders = os.listdir(dir)
+    folders = sorted(os.listdir(dir))
     for item in folders:
         df = pd.read_csv(f'{dir}/{item}/trace.csv')
         pages = df.site.unique()
@@ -90,32 +90,65 @@ def list_dates(dir):
                                 dates))
     return dates
 
+def dirs2data(dir):
+    data = []
+    folders = sorted(os.listdir(dir))
+    for item in folders:
+        df = pd.read_csv(f'{dir}/{item}/trace.csv')
+        data.append({  
+                    'date': f'{item[6:8]}/{item[4:6]}/{item[0:4]}',
+                    'hour': f'{item[9:11]}:{item[11:13]}:{item[13:15]}',
+                    'pages': df.site.unique(),
+                    'dir': item
+                    })
+    return data
+
 def id_generator():
     chars=string.ascii_uppercase + string.digits
     return ''.join(random.choice(chars) for _ in range(8))
 
 #plot functions
-def make_heatmap(folder):
-    df = pd.read_csv(f'{folder}/trace.csv')
-    df_audio = pd.read_csv(f'{folder}/audio.csv')
-    x = df.loc[:,'x'].values
-    y = (abs(df['y']-df['scroll'])).values
-    z = df[['time','x','y']].value_counts()[df.time.unique()].values
-    images = df.loc[:,'image'].values
-    times = list(df.loc[:,'time'].values)
-    im = Image.open(f'{folder}/{df.image[0]}')
-    im0 = base64.b64encode(open(f'{folder}/{images[0]}', 'rb').read())
-    width, height = im.size
+def make_heatmap(folder, **kwargs):
+    df_trace = pd.read_csv(f'{folder}/trace.csv')
+    try:
+        df_audio = pd.read_csv(f'{folder}/audio.csv')
+    except:
+        df_audio = pd.DataFrame(columns=['site',
+                                        'type',
+                                        'time',
+                                        'image',
+                                        'class',
+                                        'id',
+                                        'mouseClass',
+                                        'mouseId',
+                                        'x',
+                                        'y',
+                                        'keys',
+                                        'scroll',
+                                        'height'])
+    try:
+        im = Image.open(f'{folder}/{df_trace.image[0]}')
+        im0 = base64.b64encode(open(f'{folder}/{df_trace.image[0]}', 'rb').read())
+    except:
+        im = Image.open(f'{folder}/{df_trace.image[10]}')
+        im0 = base64.b64encode(open(f'{folder}/{df_trace.image[10]}', 'rb').read())
 
+    width, height = im.size
+    key_list = {'mouse': ['move', 'click', 'freeze', 'wheel'],
+                'eye': ['eye']}
     frames = []
-    for time in range(max(times)):
-        lista = [index for (index, item) in enumerate(times) if item == time]
-        for i in list(set(images[lista])):
+    for time in range(df_trace['time'].max()):
+        filtered_df = df_trace[df_trace['time'] == time]
+        filtered_df = filtered_df[filtered_df['type'].isin(key_list[kwargs['type']])]
+        for image in filtered_df.image.unique():
+            plot_df = filtered_df[filtered_df['image'] == image]
+            y = (abs(plot_df['y']-plot_df['scroll'])).values
+            z = plot_df[['time','x','y']].value_counts()[plot_df.time.unique()].values
             if time in df_audio.time.values:
                 audio2text = df_audio.query(f'time == {time}')['text'].values
                 try:
-                    img = base64.b64encode(open(f'{folder}/{i}', 'rb').read())
-                    frames.append(go.Frame(data=go.Scatter(x=x[lista], y=y[lista], marker_size=z[lista]*32, mode='markers+text'),
+                    img = base64.b64encode(open(f'{folder}/{image}', 'rb').read())
+                    frames.append(go.Frame(data=go.Scatter(x=plot_df['x'], y=y, marker_size=np.mean(z)*32, mode='markers+text'),
                                         name=time, layout=dict(images=[dict(source='data:image/jpg;base64,{}'.format(img.decode()))],
                                                     annotations=[dict(x=0.5, y=0.04, xref="paper", yref="paper",
                                                                         text=f"Falado: {audio2text[0]}",
@@ -130,12 +163,11 @@ def make_heatmap(folder):
                     None
             else:
                 try:
-                    img = base64.b64encode(open(f'{folder}/{i}', 'rb').read())
-                    frames.append(go.Frame(data=go.Scatter(x=x[lista], y=y[lista], marker_size=z[lista]*32, mode='markers+text'),
+                    img = base64.b64encode(open(f'{folder}/{image}', 'rb').read())
+                    frames.append(go.Frame(data=go.Scatter(x=plot_df['x'], y=y, marker_size=z[0]*32, mode='markers+text'),
                                         name=time, layout=dict(images=[dict(source='data:image/jpg;base64,{}'.format(img.decode()))])))
                 except:
                     None
-
     fig = go.Figure(
         data=frames[0].data,
         layout=go.Layout(
@@ -180,14 +212,15 @@ def make_heatmap(folder):
         sliders=[{"steps": [{"args": [[f.name],{"frame": {"duration": 0, "redraw": True},
                                             "mode": "immediate",},],
                          "label": f.name, "method": "animate",}
+                         
                         for f in frames],
                     'x':0,
                     'y':-0.07,
                     'font':{'size':12},
                     'ticklen':4,
                     'currentvalue':{"prefix": "Time(s):", 'visible':True}}],
-        width=width*0.6,
-        height=height*0.6,
+        width=width*0.5,
+        height=height*0.5,
         margin={"l": 0, "r": 0, "t": 0, "b": 140},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
@@ -222,4 +255,6 @@ def make_heatmap(folder):
         }
     ]
     fig.update_xaxes(rangeslider_thickness = 0.1)
-    fig.show()
+    plot_as_string = fig.to_html(div_id='plotDiv')
+
+    return plot_as_string

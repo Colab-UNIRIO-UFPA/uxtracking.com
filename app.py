@@ -1,5 +1,5 @@
 from flask_pymongo import pymongo
-from flask import Flask, render_template, request, redirect, url_for, Response
+from flask import Flask, render_template, request, redirect, url_for, Response, flash
 import plotly.graph_objs as go
 import json
 import os
@@ -18,7 +18,7 @@ import datetime
 from plotly.graph_objects import Layout
 
 #funções nativas
-from functions import id_generator, list_dates, nlpBertimbau
+from functions import id_generator, list_dates, nlpBertimbau, dirs2data, make_heatmap
 
 CONNECTION_STRING = os.environ['URI_DATABASE']
 client = pymongo.MongoClient(CONNECTION_STRING)
@@ -199,7 +199,8 @@ def register():
         if userfound == None:
             db.users.insert_one({"username":username,"password":password,"email":email})
         else:
-            return render_template("register.html", error='Esse email já foi cadastrado', title='Registrar')
+            flash('Esse email já foi cadastrado')
+            return render_template("register.html", title='Registrar')
         # Redireciona para a página de login
         return redirect(url_for("login", title='Login'))
     
@@ -224,8 +225,8 @@ def login():
                 return redirect(url_for('index'))
         else:
             # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
-            error = "Usuário ou senha incorretos."
-            return render_template("login.html", session=False, error=error, title='Login')
+            flash("Usuário ou senha incorretos.")
+            return render_template("login.html", session=False, title='Login')
     else:
         # Se a requisição for GET, exibe a página de login
         if 'username' in session:
@@ -306,14 +307,15 @@ def change_pass():
                     return redirect(url_for("index", session=True, title='Home', username=session['username']))
                     
                 else:
-                    error = "Verifique se ambas as novas senhas são iguais e tente novamente!"
-                    return render_template("index.html", session=True, error=error, title='Home')
+                    flash("Verifique se ambas as novas senhas são iguais e tente novamente!")
+                    return render_template("index.html", session=True, title='Home')
             else:
-                error = "A senha atual está incorreta!"
-                return render_template("index.html", session=True, error=error, title='Home')
+                flash("A senha atual está incorreta!")
+                return render_template("index.html", session=True, title='Home')
             
         else:
-            return render_template('login.html', session=False, title='Login', error='Faça o login!')
+            flash('Faça o login!')
+            return render_template('login.html', session=False, title='Login')
 
 # Define a rota para a página principal
 @app.route("/", methods=["GET", "POST"])
@@ -323,8 +325,8 @@ def index():
             #faz a leitura da base de dados de coletas do usuário
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
-
             datadir=f'./Samples/{userid}'
+
             folder = request.form.getlist('dates[]')
             folder = folder[0]
 
@@ -349,12 +351,10 @@ def index():
         else:
             return render_template('index.html', session=False, title='Home')
     else:
-        if 'username' in session:
-            #código dash atividade recente
+        if 'username' in session:        
             #faz a leitura da base de dados de coletas do usuário
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
-
             datadir=f'./Samples/{userid}'
 
             #verifica quais datas estão disponíveis e limpa a string
@@ -380,7 +380,7 @@ def index():
                             break
                     except:
                         break
-
+ 
                 dates = list(map(lambda time:   [f'{time[0][6:8]}/{time[0][4:6]}/{time[0][0:4]}',
                                                 f'{time[1][0:2]}:{time[1][2:4]}:{time[1][4:6]}',
                                                 time[2],
@@ -391,7 +391,7 @@ def index():
             #gera o gráfico de últimas atividades
             layout = Layout(plot_bgcolor='rgba(0,0,0,0)')
             fig = go.Figure(layout=layout)
-            fig.add_trace(go.Scatter(x=list(figdata.keys()), y=list(figdata.values()), fill='tozeroy',
+            fig.add_trace(go.Scatter(x=list(figdata.keys()), y=list(figdata.values()), marker_size=10, fill='tozeroy',
                     mode='lines+markers' # override default markers+lines
                     ))
             fig.update_xaxes(tick0=0, dtick=1)
@@ -423,8 +423,6 @@ def datafilter(username, metadata):
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
-
-
             if metadata == 'datetime':
                 #adiciona as datas à seção
                 session['dates'] = request.form.getlist('dates[]')
@@ -520,8 +518,8 @@ def datafilter(username, metadata):
                 })
             
             else:
-                error = '404\nPage not found!'
-                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+                flash('404\nPage not found!')
+                return render_template("data_filter.html", username=username, title='Coletas')
         
         #se o usuário não está logado
         else:
@@ -534,7 +532,7 @@ def datafilter(username, metadata):
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
-            
+
             if metadata == 'datetime':
                 #verifica quais datas estão disponíveis
                 try:
@@ -558,47 +556,86 @@ def datafilter(username, metadata):
                 return render_template("data_filter.html", username=username, metadata=metadata, items=pages, title='Coletas')
             
             else:
-                error = '404\nPage not found!'
-                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+                flash('404\nPage not found!')
+                return render_template("data_filter.html", username=username, title='Coletas')
         
         #se o usuário não está logado
         else:
             return redirect(url_for('index'))
 
-
+@app.route('/dataanalysis/<username>/', methods=["GET", "POST"])
 @app.route('/dataanalysis/<username>/<model>', methods=["GET", "POST"])
-def dadaprocessing(username, model):
+def dataanalysis(username, model=None):
     if request.method == 'POST':
-        if 'username' in session:
-            return redirect(url_for('index'))
-    
-    #método GET
-    else:
         if 'username' in session:
             #faz a leitura da base de dados de coletas do usuário
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
+            
+            dir = request.form['dir']
+            folder = f'{datadir}/{dir}'
             if model == 'kmeans':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+                return
             elif model == 'meanshift':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+                return
             elif model == 'nlp':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+                return
             else:
-                error = '404\nPage not found!'
-                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+                flash('404\nPage not found!')
+                return render_template("data_analysis.html", username=username, title='Análise')
+        
+        #usuário não está logado
         else:
-            return render_template('login.html', session=False, title='Login', error='Faça o login!')
+            flash('Faça o login para continuar!')
+            return render_template('login.html', session=False, title='Login')
+        
+    #método GET
+    else:
+        if 'username' in session:
+            #faz a leitura da base de dados de coletas do usuário
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
+            datadir=f'./Samples/{userid}'
+            models = ['kmeans', 'meanshift', 'nlp']
+            if model == None:
+                return render_template("data_analysis.html", username=username, title='Análise')
+            elif model in models:
+                data = dirs2data(datadir)
+                return render_template("data_analysis.html", username=username, model=model, items=data, title='Análise')
+            else:
+                flash('404\nPage not found!')
+                return render_template("data_analysis.html", username=username, title='Análise')
+        else:
+            flash('Faça o login para continuar!')
+            return render_template('login.html', session=False, title='Login')
 
-@app.route('/dataview/<username>/<type>', methods=["GET", "POST"])
-def dataview(username, type):
+@app.route('/dataview/<username>/', methods=["GET", "POST"])
+@app.route('/dataview/<username>/<plot>', methods=["GET", "POST"])
+def dataview(username, plot=None):
     if request.method == 'POST':
         if 'username' in session:
-            return redirect(url_for('index'))
+            #faz a leitura da base de dados de coletas do usuário
+            userfound = db.users.find_one({"username": session['username']})
+            userid = userfound["_id"]
+            datadir=f'./Samples/{userid}'
+            
+            dir = request.form['dir']
+            folder = f'{datadir}/{dir}'
+            if plot == 'heatmap':
+                return make_heatmap(folder, type='mouse')
+            elif plot == 'meanshift':
+                return
+            elif plot == 'nlp':
+                return
+            else:
+                flash('404\nPage not found!')
+                return render_template("data_analysis.html", username=username, title='Análise')
+        
+        #usuário não está logado
+        else:
+            flash('Faça o login para continuar!')
+            return render_template('login.html', session=False, title='Login')
     
     #método GET
     else:
@@ -607,20 +644,19 @@ def dataview(username, type):
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
-            if type == 'theatmap':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
-            elif type == 'meanshift':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
-            elif type == 'nlp':
-                dates = list_dates(datadir)
-                return render_template("data_filter.html", username=username, items=dates, title='Coletas')
+            plots = ['heatmap']
+
+            if plot == None:
+                return render_template("data_view.html", username=username, title='Visualização')
+            elif plot in plots:
+                data = dirs2data(datadir)
+                return render_template("data_view.html", username=username, plot=plot, items=data, title='Visualização')
             else:
-                error = '404\nPage not found!'
-                return render_template("data_filter.html", username=username, error = error, title='Coletas')
+                flash('404\nPage not found!')
+                return render_template("data_view.html", username=username, title='Visualização')
         else:
-            return render_template('login.html', session=False, title='Login', error='Faça o login!')
+            flash('Faça o login para continuar!')
+            return render_template('login.html', session=False, title='Login')
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -12,30 +12,39 @@ import plotly.graph_objects as go
 from PIL import Image
 import base64
 
-def nlpBertimbau(text):
-    folder = "bertimbau-finetuned"
+folderBert = "bertimbau-finetuned"
 
-    tokenizer = AutoTokenizer.from_pretrained(folder)
-    model = AutoModelForSequenceClassification.from_pretrained(folder)
+tokenizer = AutoTokenizer.from_pretrained(folderBert)
+modelBert = AutoModelForSequenceClassification.from_pretrained(folderBert)
 
-    id2label = {
-        0:"RAIVA",
-        1:"MEDO",
-        2:"TRISTEZA",
-        3:"SURPRESA",
-        4:"ALEGRIA",
-        5:"NOJO",
-    }
+id2label = {
+    0:"RAIVA",
+    1:"MEDO",
+    2:"TRISTEZA",
+    3:"SURPRESA",
+    4:"ALEGRIA",
+    5:"NOJO",
+}
 
-    inputs = tokenizer(text, return_tensors="pt")
-    with torch.no_grad():
-        logits = model(**inputs).logits
-        
-    normalize = lambda x, vec: 100 * (x - vec.min()) / (vec.max() - vec.min())
-    normalized_logits = [normalize(element, logits) for element in logits]
-    output = id2label[normalized_logits[0].argmax().item()]
+def nlpBertimbau(folder):
+    try:
+        df_audio = pd.read_csv(f'{folder}/audio.csv')
+    except:
+        return 'Não foi possível processar a coleta, áudio ausente!'
+    
+    texts=[]
+    for text in df_audio['text']:
+        inputs = tokenizer(text, return_tensors="pt")
+        with torch.no_grad():
+            logits = modelBert(**inputs).logits
+            
+        normalize = lambda x, vec: 100 * (x - vec.min()) / (vec.max() - vec.min())
+        normalized_logits = [normalize(element, logits) for element in logits]
+        output = id2label[normalized_logits[0].argmax().item()]
+        texts.append(output)
 
-    return output
+    df_audio['feeling'] = texts
+    return df_audio.to_html(classes='table table-stripped table-hover table-sm')
 
 def model_kmeans(data, n_clusters, n_init, max_iter):
     x = data
@@ -107,31 +116,23 @@ def id_generator():
     chars=string.ascii_uppercase + string.digits
     return ''.join(random.choice(chars) for _ in range(8))
 
+###############
 #plot functions
 def make_heatmap(folder, **kwargs):
     df_trace = pd.read_csv(f'{folder}/trace.csv')
     try:
         df_audio = pd.read_csv(f'{folder}/audio.csv')
     except:
-        df_audio = pd.DataFrame(columns=['site',
-                                        'type',
-                                        'time',
-                                        'image',
-                                        'class',
-                                        'id',
-                                        'mouseClass',
-                                        'mouseId',
-                                        'x',
-                                        'y',
-                                        'keys',
-                                        'scroll',
-                                        'height'])
+        df_audio = pd.DataFrame(columns=['site','time','text','image','class','id','mouseClass','mouseId','x','y','scroll','height'])
     try:
         im = Image.open(f'{folder}/{df_trace.image[0]}')
         im0 = base64.b64encode(open(f'{folder}/{df_trace.image[0]}', 'rb').read())
     except:
-        im = Image.open(f'{folder}/{df_trace.image[10]}')
-        im0 = base64.b64encode(open(f'{folder}/{df_trace.image[10]}', 'rb').read())
+        try:
+            im = Image.open(f'{folder}/{df_trace.image[10]}')
+            im0 = base64.b64encode(open(f'{folder}/{df_trace.image[10]}', 'rb').read())
+        except:
+            return 'Não foi possível gerar o mapa de calor, imagens ausentes!'
 
     width, height = im.size
     key_list = {'mouse': ['move', 'click', 'freeze', 'wheel'],

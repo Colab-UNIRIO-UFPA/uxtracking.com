@@ -32,36 +32,36 @@
         {% endif %}
       {% endwith %}
       <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
+        <a href="{{ url_for('dataanalysis', username=username, model='bertimbau') }}" aria-current="true" class="text-decoration-none">
+          <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0" style="height: 70vh;">
+            <div class="my-3 p-3 align-self-start">
+              <h2 class="display-5">BERTimbau</h2>
+              <p class="lead">Descubra insights profundos através da Análise de Sentimentos por Processamento de Linguagem Natural (NLP).</p>
+            </div>
+            <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto align-self-end align-items-center" style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
+              <img src="{{ url_for('static', filename='bertimbau.svg')}}" class="img-fluid" style="width: auto; height: 200px;">
+            </div>
+          </div>
+        </a>
         <a href="{{ url_for('dataanalysis', username=username, model='kmeans') }}" aria-current="true" class="text-decoration-none">
-          <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0" style="height: 65vh;">
-            <div class="my-3 p-3">
+          <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled" style="height: 70vh;">
+            <div class="my-3 p-3 align-self-start">
               <h2 class="display-5">K-Means</h2>
               <p class="lead">Explore a análise de dados com K-Means! Descubra padrões e insights Valiosos para sua avaliação de UX.</p>
             </div>
-            <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto" style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
-              <img src="{{ url_for('static', filename='kmeans.svg')}}" class="img-fluid p-2">
+            <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto align-self-end align-items-center" style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
+              <img src="{{ url_for('static', filename='kmeans.svg')}}" class="img-fluid" style="width: auto; height: 200px;">
             </div>
           </div>
         </a>
         <a href="{{ url_for('dataanalysis', username=username, model='meanshift') }}" aria-current="true" class="text-decoration-none">
-          <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0" style="height: 65vh;">
-            <div class="my-3 p-3">
+          <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled" style="height: 70vh;">
+            <div class="my-3 p-3 align-self-start">
               <h2 class="display-5">Meanshift</h2>
               <p class="lead">Desvende padrões complexos com MeanShift! Explore uma análise avançada e revele insights surpreendentes!</p>
             </div>
-            <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto" style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
-              <img src="{{ url_for('static', filename='meanshift.svg')}}" class="img-fluid p-2">
-            </div>
-          </div>
-        </a>
-        <a href="#" aria-current="true" class="text-decoration-none">
-          <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled" style="height: 65vh;">
-            <div class="my-3 p-3">
-              <h2 class="display-5">Funcionalidade futura</h2>
-              <p class="lead">Fique atento às nossas atualizações.</p>
-            </div>
-            <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto" style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
-              <img src="{{ url_for('static', filename='coming-soon.png')}}" class="img-fluid p-2" style="width: auto; height: 240px;">
+            <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto align-self-end align-items-center" style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
+              <img src="{{ url_for('static', filename='meanshift.svg')}}" class="img-fluid" style="width: auto; height: 200px;">
             </div>
           </div>
         </a>
@@ -78,7 +78,7 @@
               <button type="button" onclick="closePopupResult()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="list-group modal-body align-items-center justify-content-center gap-3" style="text-align: center;">
-              <div class="list-group-item">
+              <div class="list-group-item border-0">
                 <div class="spinner-border text-secondary" id="spinner" role="status"></div>
                 <div  id="resultPlot"></div>
               </div>

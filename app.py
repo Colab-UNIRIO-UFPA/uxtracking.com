@@ -579,8 +579,8 @@ def dataanalysis(username, model=None):
                 return
             elif model == 'meanshift':
                 return
-            elif model == 'nlp':
-                return
+            elif model == 'bertimbau':
+                return nlpBertimbau(folder)
             else:
                 flash('404\nPage not found!')
                 return render_template("data_analysis.html", username=username, title='Análise')
@@ -597,7 +597,7 @@ def dataanalysis(username, model=None):
             userfound = db.users.find_one({"username": session['username']})
             userid = userfound["_id"]
             datadir=f'./Samples/{userid}'
-            models = ['kmeans', 'meanshift', 'nlp']
+            models = ['kmeans', 'meanshift', 'bertimbau']
             if model == None:
                 return render_template("data_analysis.html", username=username, title='Análise')
             elif model in models:
@@ -659,4 +659,4 @@ def dataview(username, plot=None):
             return render_template('login.html', session=False, title='Login')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, host="0.0.0.0")

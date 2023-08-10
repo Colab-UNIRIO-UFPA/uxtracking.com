@@ -50,9 +50,13 @@
       <div class="col-lg-6">
         <div class="form-signup justify-content-center w-100 m-auto">    
           <form method="POST">
-            {% if error %}
-              <p>{{ error }}</p>
-            {% endif %}
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <p>{{ message }}</p>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
             <h1 class="h2 my-4 fw-normal" style="text-align: center;">Faça o registro</h1>
 

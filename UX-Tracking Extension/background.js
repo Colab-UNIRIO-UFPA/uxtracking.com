@@ -14,7 +14,7 @@ var segundo = ("0" + dataHoraAtual.getSeconds()).slice(-2);
 // Cria a string de index no formato YYYYMMDD-HHMMSS
 var dateTime = ano + mes + dia + "-" + hora + minuto + segundo;
 var timeInternal = 0;
-var userId = "64c0845a5317794bf0fd4361";
+var userId = "64c1852d8ef087ee1c0f6912";
 var domain = "";
 var lastTime = 0;
 var timeInitial= Math.round(Date.now() / 1000);

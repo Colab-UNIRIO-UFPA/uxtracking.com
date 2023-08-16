@@ -16,7 +16,10 @@ import shutil
 import plotly.graph_objects as go
 import datetime
 from plotly.graph_objects import Layout
+from dotenv import load_dotenv
 
+#delete se estiver utilizando windows
+load_dotenv()
 #funções nativas
 from functions import id_generator, list_dates, nlpBertimbau, dirs2data, make_heatmap
 

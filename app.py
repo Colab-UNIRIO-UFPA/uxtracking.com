@@ -1,5 +1,5 @@
 from flask_pymongo import pymongo
-from flask import Flask, render_template, request, redirect, url_for, Response, flash
+from flask import Flask, render_template, request, redirect, url_for, Response, flash, jsonify
 import plotly.graph_objs as go
 import json
 import os
@@ -20,6 +20,7 @@ from plotly.graph_objects import Layout
 #funções nativas
 from functions import id_generator, list_dates, nlpBertimbau, dirs2data, make_heatmap
 
+#conexão com a base
 CONNECTION_STRING = os.environ['URI_DATABASE']
 client = pymongo.MongoClient(CONNECTION_STRING)
 db = client.get_database('users')
@@ -657,6 +658,18 @@ def dataview(username, plot=None):
         else:
             flash('Faça o login para continuar!')
             return render_template('login.html', session=False, title='Login')
+
+@app.route('/userAuth', methods=['POST'])
+def userAuth():
+    username = request.form["username"]
+    password = request.form["password"]
+    userfound = db.users.find_one({"username": username, "password":password})
+
+    if userfound != None:
+        userid = userfound["_id"]
+        session['username'] = request.form['username']
+        return jsonify({'id':str(userid)})
+
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0")

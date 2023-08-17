@@ -1,4 +1,4 @@
-const serverUrl = "http://127.0.0.1:5000";
+const serverUrl = "http://192.168.100.41:5000";
 
 // Cria um objeto Date com a data e hora atuais
 var dataHoraAtual = new Date();
@@ -14,7 +14,12 @@ var segundo = ("0" + dataHoraAtual.getSeconds()).slice(-2);
 // Cria a string de index no formato YYYYMMDD-HHMMSS
 var dateTime = ano + mes + dia + "-" + hora + minuto + segundo;
 var timeInternal = 0;
-var userId = "64c1852d8ef087ee1c0f6912";
+var userId = '';
+chrome.storage.sync.get(["authToken"], function(items){
+    debugger;
+    // NOTE: check syntax here, about accessing 'authToken'
+    userId= items.authToken
+});
 var domain = "";
 var lastTime = 0;
 var timeInitial= Math.round(Date.now() / 1000);
@@ -31,83 +36,124 @@ chrome.runtime.onMessage.addListener(function (request, sender)
     }
     //sendResponse({ farewell: "goodbye" });
 });
-var shot=5;
+
+let lastCaptureTime = 0;
+const captureInterval = 200; // Intervalo em milissegundos entre capturas
+
 function capture(type, data)
 {
+    const currentTime = Date.now();
+    // Verifica se o intervalo mínimo entre capturas foi atingido
+    if (currentTime - lastCaptureTime < captureInterval) {
+        return;
+    }
     chrome.windows.getCurrent(function (win) {   
-        chrome.tabs.getSelected(null, function (tab) {
-            var url = new URL(tab.url);
-            domain = url.hostname;
-            //if(lastTime == (Math.ceil(data.Time) + timeInternal)&& ((type=="move" || type=="freeze") && //Math.ceil(data.Time) % 3 == 1)){
-            //    data.imageData = "";
-            //}
-            if(type=="eye"){
-                data.imageData = "NO";
-                //data.Time-=0.2;
-                Post(type, data);
-            }else if(type=="voice"){
-                data.imageData = "NO";
-                //data.Time-=0.2;
-                Post(type, data);
-            }else{
-				if((type=="move" || type=="freeze") && shot<7){
-					data.imageData = "NO";
-					Post(type, data);              
-					shot++;
-				}
-				else{
-					shot=0;
-					lastTime = data.Time + timeInternal;
-					chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
-					{
-						data.imageData = screenshotUrl;
-						Post(type, data);
-					});
+        chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true
+        }, function (tabs) {
+            if (tabs && tabs[0] && tabs[0].url) {
+                var url = new URL(tabs[0].url);
+                domain = url.hostname;
+                lastCaptureTime = currentTime; // Atualiza o último tempo de captura
 
-				}
-			}
+                if(type=="eye"){
+                    lastTime = data.Time + timeInternal;
+                    chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
+                    {
+                        data.imageData = screenshotUrl;
+                        Post(type, data);
+                    });
+                }else if(type=="voice"){
+                    lastTime = data.Time + timeInternal;
+                    chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
+                    {
+                        data.imageData = screenshotUrl;
+                        Post(type, data);
+                    });
+                }else{
+                    if((type=="move" || type=="freeze")){
+                        lastTime = data.Time + timeInternal;
+                        chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
+                        {
+                            data.imageData = screenshotUrl;
+                            Post(type, data);
+                        });
+                    }
+                }
+            } else {
+                console.error('Nenhuma aba ativa encontrada.');
+            }            
         });
     });
 }
 
-function Post(type, data){
-	data.imageName = lastTime+".jpg";
-	time = new Date().getTime()
-    $.post(serverUrl+"/receiver",
-                {
-                    metadata: JSON.stringify({
-                            dateTime: dateTime,
-                            sample: domain,
-                            userId: userId,
-                            type: type,
-                            time: Math.round(Date.now() / 1000)-timeInitial,
-                            scroll: data.pageScroll,
-                            height: data.pageHeight,
-                            url: data.url
-                    }),
-                    data: JSON.stringify(data)
-
-            }
-			).fail(function (data){
-				console.log(type+" "+data);
-			}	
-			
-			).done(function (data) {
-                console.log(type+" "+data);
-                }
-            );
-}
+async function Post(type, data) {
+    data.imageName = lastTime + ".jpg";
+    const time = new Date().getTime();
+  
+    try {
+      const response = await fetch(`${serverUrl}/receiver`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          metadata: JSON.stringify({
+            dateTime: dateTime,
+            sample: domain,
+            userId: userId,
+            type: type,
+            time: Math.round(Date.now() / 1000) - timeInitial,
+            scroll: data.pageScroll,
+            height: data.pageHeight,
+            url: data.url
+          }),
+          data: JSON.stringify(data)
+        })
+      });
+  
+      if (response.ok) {
+        const responseData = await response.text();
+        console.log(type + " " + responseData);
+      } else {
+        console.error(type + " Request failed with status:", response.status);
+      }
+    } catch (error) {
+      console.error(type + " An error occurred:", error);
+    }
+  }
 
 function prepareSample() {
     chrome.storage.sync.get(["userid"], function (items) {
         var loadedId = items.userid;
         function useToken(userid) {
             userId = userid;
-            chrome.tabs.getSelected(null, function (tab) {
-                var url = new URL(tab.url);
+            chrome.tabs.query({
+                active: true,
+                lastFocusedWindow: true
+            }, async function (tabs) {
+                var url = new URL(tabs[0].url);
                 domain = url.hostname;
-                $.post(serverUrl+"/sample_checker", { userId: userid, domain: domain, dateTime: dateTime}).done(function (data) {
-                    timeInternal = parseInt(data);});
+            
+                try {
+                    const response = await fetch(`${serverUrl}/sample_checker`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId: userid, domain: domain, dateTime: dateTime })
+                    });
+            
+                    if (response.ok) {
+                        const data = await response.json();
+                        timeInternal = parseInt(data);
+                    } else {
+                        console.error("Request failed with status:", response.status);
+                    }
+                } catch (error) {
+                    console.error("An error occurred:", error);
+                }
             });
         }
         if (loadedId !== null && loadedId !== "" && typeof loadedId  !== 'undefined') {
@@ -124,19 +170,4 @@ function prepareSample() {
 
 
 var id = 0;
-function init() {
-    //alert("Mouse pos "+posX+" "+posY);
-}
-
-chrome.browserAction.onClicked.addListener(function (tab) {
-    chrome.storage.sync.remove(["userid"], function(Items) {
-        loadedId == null;
-    });
-    alert('Data Cleaned.');
-});
-
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    //alert("reloaded");
-    //chrome.tabs.executeScript(tabId, { file: "content.js" });
-});
 

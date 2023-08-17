@@ -1,44 +1,28 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "UX-Tracking Extension",
   "version": "3.0",
   "description": "Ferramenta de rastreio de múltiplas interações do usuário para avaliação de UX.",
   "homepage_url": "https://github.com/Colab-UNIRIO-UFPA/UX-Tracking",
-  "applications": {
-    "gecko": {
-      "id": "waves.brasil@live.com"
-    }
-  },
   "background": {
-    "persistent": false,
-    "scripts": [
-      "vendor/jquery-3.4.1.min.js",
-      "vendor/browser-polyfill-0.10.0.min.js",
-      "vendor/searchgazer.js",
-      "vendor/webgazer.js",
-      "background.js"
-    ]
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>", "http://*/*", "https://*/*"],
-      "exclude_globs": [
-        "http://*/webtracer/calibra_webgazer_*",
-        "https://*/webtracer/calibra_webgazer_*",
-        "http://localhost/webtracer/calibra_webgazer_*",
-        "https://localhost/webtracer/calibra_webgazer_*"
-      ],
+      "matches": ["<all_urls>"],
       "js": [
-        "vendor/jquery-3.4.1.min.js",
-        "vendor/browser-polyfill-0.10.0.min.js",
-        "vendor/searchgazer.js",
-        "vendor/webgazer.js",
+        "/vendor/jquery-3.4.1.min.js",
+        "/vendor/browser-polyfill-0.10.0.min.js",
+        "content.js",
+        "background.js",
         "main.js",
-        "content.js"
-      ]
+        "webgazer.js"
+      ],
+			"all_frames": true,
+      "run_at": "document_end"
     }
   ],
-  "browser_action": {
+  "action": {
     "default_icon": "logo.png",
     "default_title": "UX-Tracking Extension",
     "default_popup": "popup/index.html"
@@ -53,10 +37,8 @@
     "webNavigation",
     "unlimitedStorage",
     "tabs",
-    "<all_urls>",
-    "http://*/*",
-    "https://*/*",
-    "https://*/*"
+    "scripting"
   ],
-  "web_accessible_resources": []
+  "web_accessible_resources": [],
+  "host_permissions": ["<all_urls>"]
 }

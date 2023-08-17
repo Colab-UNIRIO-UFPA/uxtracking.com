@@ -2,13 +2,10 @@
  # UX-Tracking: User eXperience Tracking
 Repositório destinado a abrigar o código-fonte de todas as aplicações relacionadas ao ecossistema da ferramenta UX-Tracking.
 
-
-
-
 ## Tabela de conteúdos
 
-*  [Pre Requisitos](#pre-requisitos)
-*  [Registo do usuário](#Registro)
+*  [Pré Requisitos](Pré-requisitos)
+*  [Ambientação para desenvolvimento](#dev)
 *  [Módulos](#Módulos)
 * * [Cliente](#cliente)
 * * * [Rastreamento de mouse](#rastreamento-de-mouse)
@@ -28,9 +25,12 @@ Repositório destinado a abrigar o código-fonte de todas as aplicações relaci
 
 📃 Para a abertura dos projetos contidos neste repositório, estabelecem-se os seguintes requisitos:
 
-*  [Python](https://www.python.org/)
+*  [Python 3](https://www.python.org/)
 *  [Visual Studio Code](https://code.visualstudio.com/download)
 *  [Google Chrome](https://www.google.com/chrome/)
+
+## 
+
 
 ## Registro
 Para o registro do usuário, será necessário e-mail e senha. Sendo possível recuperar a senha caso perdida. Cada usuário tem suas próprias pesquisas armazenadas em sua conta.

@@ -2,13 +2,14 @@
  # UX-Tracking: User eXperience Tracking
 Repositório destinado a abrigar o código-fonte de todas as aplicações relacionadas ao ecossistema da ferramenta UX-Tracking.
 
-
-
-
 ## Tabela de conteúdos
 
-*  [Pre Requisitos](#pre-requisitos)
-*  [Registo do usuário](#Registro)
+*  [Pré Requisitos](#pré-requisitos)
+*  [Topologia](#topologia)
+*  [Ambiente de desenvolvimento](#ambiente-de-desenvolvimento)
+*  [Utilização](#utilização)
+* * [Distribuição](#distribuição)
+* * [Ambiente de desenvolvimento](#ambiente-de-desenvolvimento)
 *  [Módulos](#Módulos)
 * * [Cliente](#cliente)
 * * * [Rastreamento de mouse](#rastreamento-de-mouse)
@@ -28,12 +29,90 @@ Repositório destinado a abrigar o código-fonte de todas as aplicações relaci
 
 📃 Para a abertura dos projetos contidos neste repositório, estabelecem-se os seguintes requisitos:
 
-*  [Python](https://www.python.org/)
+*  [Python (Utilizada versão 3.11.4)](https://www.python.org/)
 *  [Visual Studio Code](https://code.visualstudio.com/download)
 *  [Google Chrome](https://www.google.com/chrome/)
 
-## Registro
-Para o registro do usuário, será necessário e-mail e senha. Sendo possível recuperar a senha caso perdida. Cada usuário tem suas próprias pesquisas armazenadas em sua conta.
+## Topologia
+
+- [UX-Tracking Extension](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/UX-Tracking%20Extension) - `Arquivos da extensão Chrome`
+  - [popup](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/UX-Tracking%20Extension/popup)  - `Popup exibido na extensão`
+    - index.html  - `Página html do popup`
+    - script.js - `Script do popup`
+    - styles.css - `CSS da página do popup`
+  - [vendor](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/UX-Tracking%20Extension/vendor)  - `Pasta para os scripts externos utilizados na extensão`
+    - browser-polyfill-0.10.0.min.js
+    - jquery-3.4.1.min.js
+  - background.js - `Script de background da extensão`
+  - content.js - `Script de conteúdo da extensão`
+  - logo.png - `Logo da extensão`
+  - main.js - `Script main da extensão`
+  - manifest.json - `Manifesto da extensão chrome`
+- [static](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/static) - `Arquivos estáticos carregados pelo flask no servidor`
+- [templates](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/templates) - `Templates (html + css + js) das páginas renderizadas pelo flask`
+  - base.html - `Template base para as demais páginas`
+  - dashboard.html - `Não implementado`
+  - data_analysis.html - `Página de análise dos dados`
+  - data_filter.html - `Página de coletas`
+  - data_view.html - `Página de visualização dos dados`
+  - email.html - `Email enviado para recuperação de senha do usuário`
+  - forgot_pass.html - `Página de recuperação de senha`
+  - index.html - `Página principal`
+  - login.html - `Página de login`
+  - register.html - `Página de registro`
+- [.gitignore](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/.gitignore) - `Lista de arquivos ignorados no commit`
+- [README.md](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/README.md) - `Documentação`
+- [app.py](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/app.py) - `Script python para declarar a aplicação web`
+- [functions.py](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/functions.py) - `Script python de funções chamadas pela aplicação`
+- [requirements.txt](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/requirements.txt) - `Arquivo de requisítos para a aplicação`
+- [wsgi.py](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/wsgi.py) - `Script wsgi`
+
+## Ambiente de desenvolvimento
+1. Abra o VSCode, crie um ambiente virtual e ative-o
+   ```bash
+   python -m venv venv
+   ```
+   Ativar o ambiente virtual:
+   | Sistema   | Shell       | Comando                           |
+   | :---------- | :--------- | :---------------------------------- |
+   | Windows | CMD | `venv/scripts/activate.bat` |
+   | Windows | PowerShell | `venv/bin/Activate.ps1` |
+   | Linux | bash | `source venv/bin/activate` |
+   
+2. Faça a instalação das bibliotecas necessárias
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Crie um arquivo `.env` e adicione as seguintes variáveis de ambiente no seu arquivo .env
+
+     `SECRET_KEY` - Chave secreta da aplicação Flask
+     
+     `MAIL_NAME` - Nome de usuário do serviço de email
+     
+     `MAIL_PASSWORD` - Senha do serviço de email
+     
+     `URI_DATABASE` - String de conexão com a base de dados mongo
+
+4. Para iniciar a aplicação, basta executar o arquivo app.py pelo vscode apertando a tecla `F5` ou pelo terminal
+
+5. A aplicação estará rodando em dois IP's, um somente na máquina executada e outro na rede local.
+
+## Utilização
+Para utilizar a ferramenta, pode-se fazer o uso da aplicação distribuída ou no ambiente de desenvolvimento criado.
+### Distribuição
+Para utilização da ferramenta distribuída, acesse o site da [UX-Tracking](https://uxtracking.andrepereira.eng.br), faça seu cadastro e faça o download da extensão disponibilizada para as coletas no seu navegador.
+
+1. Após o download da extensão UX-Tracking, faça sua descompressão e ative o [modo de programador no navegador Chrome](https://www.techtudo.com.br/noticias/2015/01/como-entrar-no-modo-desenvolvedor-do-google-chrome.ghtml)
+2. Carregue a extensão apertando o botão `Carregar expandida` na aba de extensões
+3. Faça seu login apertando no botão da extensão carregada e estará pronta pra utilizar
+4. Os dados coletados serão armazenados em nosso servidor e você poderá acessá-los diretamente na página da aplicação, bem como processar, visualizar e filtrar suas coletas.
+   
+### Ambiente de desenvolvimento
+Para utilização no ambiente de desenvolvimento construído, acesse um dos IP's gerados pelo servidor. Para carregar a extensão que irá apontar para o IP do servidor:
+1. Acesse o arquivo `background.js` que está na pasta `UX-Tracking Extension`
+2. Na linha `const serverUrl = "<SEU_IP";` insira o IP gerado pelo servidor
+3. Realize os passos para carregar a extensão da pasta `UX-Tracking Extension`
+4. A extensão estará apontando para o seu servidor local e você poderá realizar todas as operações que quiser
 ## Módulos
 A UX-Tracking é constituída de 3 módulos: Cliente, Web App e visualizador. Os três módulos são responsáveis respectivamente por coletar dados de interação; organizar e armazenar; e prover formas de visualizar os dados capturados. Os módulos são descritos a seguir.
 ### Cliente

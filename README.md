@@ -4,7 +4,7 @@ Repositório destinado a abrigar o código-fonte de todas as aplicações relaci
 
 ## Tabela de conteúdos
 
-*  [Pré Requisitos](Pré-requisitos)
+*  [Pré Requisitos](#pré-requisitos)
 *  [Ambientação para desenvolvimento](#dev)
 *  [Módulos](#Módulos)
 * * [Cliente](#cliente)

@@ -1,3 +1,33 @@
+document.addEventListener('DOMContentLoaded', () => {
+  var formLogin = $('#formLogin');
+
+  formLogin.submit(function (e) {
+    e.preventDefault();
+    const username = $("#username").val();
+    const password = $("#password").val();
+
+    $.post("http://192.168.100.41:5000/userAuth",
+    {
+      username: username,
+      password: password
+    },
+    function(authToken){
+      chrome.storage.sync.set({ "authToken": authToken.id }, function(){
+        console.log("User Authenticated!");
+      });
+      document.getElementById("divLogin").style.display = "none";
+      document.getElementById("mainContent").style.display = "";
+    });
+  });
+
+  const links = document.querySelectorAll("a");
+
+  links.forEach(link => {
+    const location = link.getAttribute('href');
+    link.addEventListener('click', () => chrome.tabs.create({active: true, url: location}));
+  });
+});
+
 function setKey(e, key) {
   let target = e.target.checked
 

@@ -15,8 +15,7 @@
         "/vendor/browser-polyfill-0.10.0.min.js",
         "content.js",
         "background.js",
-        "main.js",
-        "webgazer.js"
+        "main.js"
       ],
 			"all_frames": true,
       "run_at": "document_end"

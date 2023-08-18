@@ -1,4 +1,4 @@
-const serverUrl = "http://192.168.100.41:5000";
+const serverUrl = "https://uxtracking.andrepereira.eng.br";
 
 // Cria um objeto Date com a data e hora atuais
 var dataHoraAtual = new Date();
@@ -15,38 +15,33 @@ var segundo = ("0" + dataHoraAtual.getSeconds()).slice(-2);
 var dateTime = ano + mes + dia + "-" + hora + minuto + segundo;
 var timeInternal = 0;
 var userId = '';
-chrome.storage.sync.get(["authToken"], function(items){
-    debugger;
-    // NOTE: check syntax here, about accessing 'authToken'
-    userId= items.authToken
-});
 var domain = "";
 var lastTime = 0;
 var timeInitial= Math.round(Date.now() / 1000);
 
 chrome.runtime.onMessage.addListener(function (request, sender)
 {
-    if (request.type == "solicita")
-    {
-        prepareSample();
-    }
-    else
-    {
-        capture(request.type, request.data);
-    }
-    //sendResponse({ farewell: "goodbye" });
+    chrome.storage.session.get('authToken', function(data) {
+        if (data.authToken) {
+            userId = data.authToken;
+            if (request.type == "solicita")
+            {
+                prepareSample();
+            }else{
+                capture(request.type, request.data);
+            }
+        } else {
+            console.log('User ID is not set.');
+        }
+    });
 });
 
 let lastCaptureTime = 0;
-const captureInterval = 200; // Intervalo em milissegundos entre capturas
+const captureInterval = 1000; // Intervalo em milissegundos entre capturas
 
 function capture(type, data)
 {
     const currentTime = Date.now();
-    // Verifica se o intervalo mínimo entre capturas foi atingido
-    if (currentTime - lastCaptureTime < captureInterval) {
-        return;
-    }
     chrome.windows.getCurrent(function (win) {   
         chrome.tabs.query({
             active: true,
@@ -55,8 +50,8 @@ function capture(type, data)
             if (tabs && tabs[0] && tabs[0].url) {
                 var url = new URL(tabs[0].url);
                 domain = url.hostname;
-                lastCaptureTime = currentTime; // Atualiza o último tempo de captura
 
+                /*
                 if(type=="eye"){
                     lastTime = data.Time + timeInternal;
                     chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
@@ -64,15 +59,16 @@ function capture(type, data)
                         data.imageData = screenshotUrl;
                         Post(type, data);
                     });
-                }else if(type=="voice"){
-                    lastTime = data.Time + timeInternal;
-                    chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
-                    {
-                        data.imageData = screenshotUrl;
+                }else
+                */
+
+                if(type!="eye" && type!="freeze"){
+                    // Verifica se o intervalo mínimo entre capturas foi atingido
+                    if (currentTime - lastCaptureTime <= captureInterval) {
+                        lastCaptureTime = currentTime; // Atualiza o último tempo de captura
+                        data.imageData = 'NO';
                         Post(type, data);
-                    });
-                }else{
-                    if((type=="move" || type=="freeze")){
+                    }else{
                         lastTime = data.Time + timeInternal;
                         chrome.tabs.captureVisibleTab(win.id, { format: "jpeg", quality: 25 }, function (screenshotUrl)
                         {
@@ -167,7 +163,3 @@ function prepareSample() {
         }
     });
 }
-
-
-var id = 0;
-

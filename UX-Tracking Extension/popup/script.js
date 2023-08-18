@@ -1,23 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-  var formLogin = $('#formLogin');
-
-  formLogin.submit(function (e) {
-    e.preventDefault();
-    const username = $("#username").val();
-    const password = $("#password").val();
-
-    $.post("http://192.168.100.41:5000/userAuth",
-    {
-      username: username,
-      password: password
-    },
-    function(authToken){
-      chrome.storage.sync.set({ "authToken": authToken.id }, function(){
-        console.log("User Authenticated!");
-      });
+  chrome.storage.session.get('authToken', function(data) {
+    if (data.authToken) {
       document.getElementById("divLogin").style.display = "none";
       document.getElementById("mainContent").style.display = "";
-    });
+    } else {
+      var formLogin = $('#formLogin');
+    
+      formLogin.submit(function (e) {
+        e.preventDefault();
+        const username = $("#username").val();
+        const password = $("#password").val();
+    
+        $.post("http://192.168.100.41:5000/userAuth",
+        {
+          username: username,
+          password: password
+        },
+        function(authToken){
+          chrome.storage.session.set({ "authToken": authToken.id }, function(){
+            console.log("User Authenticated!");
+          });
+          document.getElementById("divLogin").style.display = "none";
+          document.getElementById("mainContent").style.display = "";
+        });
+      });
+    }
   });
 
   const links = document.querySelectorAll("a");
@@ -31,20 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
 function setKey(e, key) {
   let target = e.target.checked
 
-  browser.storage.local.set({ [key]: target }).catch((e) => {
+  browser.storage.sync.set({ [key]: target }).catch((e) => {
     console.error(e)
   })
 }
 
 function getKey(id, key) {
-  browser.storage.local.get([key]).then((result) => {
+  browser.storage.sync.get([key]).then((result) => {
     let target = result[key]
 
     document.getElementById(id).checked = !!target
   })
 }
 
-getKey('__listen_mouse__', 'mouse')
+getKey('__listen_mouse__', 'mouse') 
 getKey('__listen_keyboard__', 'keyboard')
 getKey('__listen_microphone__', 'microphone')
 getKey('__listen_camera__', 'camera')

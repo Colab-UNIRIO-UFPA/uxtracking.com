@@ -36,7 +36,9 @@
     "webNavigation",
     "unlimitedStorage",
     "tabs",
-    "scripting"
+    "contextMenus",
+    "scripting",
+    "notifications"
   ],
   "web_accessible_resources": [],
   "host_permissions": ["<all_urls>"]

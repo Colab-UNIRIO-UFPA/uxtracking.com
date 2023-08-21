@@ -92,10 +92,11 @@ Repositório destinado a abrigar o código-fonte de todas as aplicações relaci
      `MAIL_PASSWORD` - Senha do serviço de email
      
      `URI_DATABASE` - String de conexão com a base de dados mongo
+4. Adicione o modelo BERTimbau ao código, faça o [download](https://drive.google.com/drive/folders/1gE6JdtHgSw9GOqtS-u8xs0x9hjxZwwWA?usp=sharing) da pasta e insira-a nos arquivos da aplicação.
 
-4. Para iniciar a aplicação, basta executar o arquivo app.py pelo vscode apertando a tecla `F5` ou pelo terminal
+5. Para iniciar a aplicação, basta executar o arquivo app.py pelo vscode apertando a tecla `F5` ou pelo terminal
 
-5. A aplicação estará rodando em dois IP's, um somente na máquina executada e outro na rede local.
+6. A aplicação estará rodando em dois IP's, um somente na máquina executada e outro na rede local.
 
 ## Utilização
 Para utilizar a ferramenta, pode-se fazer o uso da aplicação distribuída ou no ambiente de desenvolvimento criado.

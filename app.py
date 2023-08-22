@@ -8,7 +8,7 @@ from flask import (
     Response,
     flash,
     jsonify,
-    session
+    session,
 )
 import json
 import os
@@ -25,6 +25,7 @@ import plotly.graph_objects as go
 import datetime
 from plotly.graph_objects import Layout
 from dotenv import load_dotenv
+from bson import ObjectId
 
 # delete se estiver utilizando windows
 load_dotenv()
@@ -60,8 +61,29 @@ def receiver():
     data = request.form["data"]
     metadata = json.loads(metadata)
     userid = metadata["userId"]
+    userfound = db.users.find_one({"_id": ObjectId(userid)})
     dateTime = str(metadata["dateTime"])
+    date = f"{dateTime[6:8]}/{dateTime[4:6]}/{dateTime[0:4]}"
+    hour = f"{dateTime[9:11]}:{dateTime[11:13]}:{dateTime[13:15]}"
     data = json.loads(data)
+
+    # armazena metadata da coleta ao mongodb
+    if userfound:
+        # se for o primeiro traço coletado
+        if dateTime not in userfound["data"]:
+            userfound["data"][dateTime] = {
+                "sites": [metadata["sample"]],
+                "date": date,
+                "hour": hour,
+            }
+            db.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
+        else:
+            # se for o primeiro traço coletado em um site
+            if metadata["sample"] not in userfound["data"][dateTime]["sites"]:
+                userfound["data"][dateTime]["sites"].append(metadata["sample"])
+                db.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
+    else:
+        return "ERROR: Usuário não autenticado"
 
     if not os.path.exists("Samples"):
         os.makedirs("Samples", exist_ok=True)
@@ -244,7 +266,7 @@ def register():
         userfound = db.users.find_one({"email": email})
         if userfound == None:
             db.users.insert_one(
-                {"username": username, "password": password, "email": email}
+                {"username": username, "password": password, "email": email, 'data': {}}
             )
         else:
             flash("Esse email já foi cadastrado")
@@ -429,37 +451,25 @@ def index():
             # verifica quais datas estão disponíveis e limpa a string
             dates = []
             figdata = {}
+            i = 0
             try:
-                folders = os.listdir(datadir)
+                for folder in userfound["data"]:
+                    date = userfound["data"][folder]["date"]
+                    if date not in figdata.keys():
+                        figdata[date] = 1
+                    else:
+                        figdata[date] += 1
+                    if i <= 4:
+                        i += 1
+                        dates.append(
+                            [
+                                userfound["data"][folder]["date"],
+                                userfound["data"][folder]["hour"],
+                                userfound["data"][folder]["sites"],
+                                folder,
+                            ]
+                        )
 
-                for i in range(len(folders)):
-                    try:
-                        items = folders[i].split("-")
-                        # verifica quais sites estão disponíveis
-                        df = pd.read_csv(f"{datadir}/{folders[i]}/trace.csv")
-                        pages = df.site.unique()
-                        items.append(pages)
-                        date = f"{items[0][6:8]}/{items[0][4:6]}/{items[0][0:4]}"
-                        if date not in figdata.keys():
-                            figdata[date] = 1
-                        else:
-                            figdata[date] += 1
-                        if i <= 4:
-                            dates.append(items)
-                    except:
-                        break
-
-                dates = list(
-                    map(
-                        lambda time: [
-                            f"{time[0][6:8]}/{time[0][4:6]}/{time[0][0:4]}",
-                            f"{time[1][0:2]}:{time[1][2:4]}:{time[1][4:6]}",
-                            time[2],
-                            f"{time[0]}-{time[1]}",
-                        ],
-                        dates,
-                    )
-                )
             except:
                 None
             # gera o gráfico de últimas atividades
@@ -498,7 +508,7 @@ def index():
                 linecolor="#969696",
                 gridcolor="#969696",
                 mirror=True,
-                dtick=3
+                dtick=3,
             )
 
             plot_as_string = fig.to_html()

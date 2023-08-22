@@ -99,17 +99,15 @@ def list_dates(dir):
                                 dates))
     return dates
 
-def dirs2data(dir):
+def dirs2data(userfound):
     data = []
-    folders = sorted(os.listdir(dir))
-    for item in folders:
-        df = pd.read_csv(f'{dir}/{item}/trace.csv')
-        data.append({  
-                    'date': f'{item[6:8]}/{item[4:6]}/{item[0:4]}',
-                    'hour': f'{item[9:11]}:{item[11:13]}:{item[13:15]}',
-                    'pages': df.site.unique(),
-                    'dir': item
-                    })
+    for folder in userfound["data"]:
+        data.append({
+            'date':userfound["data"][folder]["date"],
+            'hour':userfound["data"][folder]["hour"],
+            'pages':userfound["data"][folder]["sites"],
+            'dir':folder
+        })
     return data
 
 def id_generator():

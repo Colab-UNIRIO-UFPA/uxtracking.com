@@ -751,7 +751,7 @@ def dataanalysis(username, model=None):
                     "data_analysis.html", username=username, title="Análise"
                 )
             elif model in models:
-                data = dirs2data(datadir)
+                data = dirs2data(userfound)
                 return render_template(
                     "data_analysis.html",
                     username=username,
@@ -812,7 +812,7 @@ def dataview(username, plot=None):
                     "data_view.html", username=username, title="Visualização"
                 )
             elif plot in plots:
-                data = dirs2data(datadir)
+                data = dirs2data(userfound)
                 return render_template(
                     "data_view.html",
                     username=username,

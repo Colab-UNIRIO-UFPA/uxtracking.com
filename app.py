@@ -30,7 +30,14 @@ from bson import ObjectId
 # delete se estiver utilizando windows
 load_dotenv()
 # funções nativas
-from functions import id_generator, list_dates, nlpBertimbau, dirs2data, make_heatmap
+from functions import (
+    id_generator,
+    list_dates,
+    nlpBertimbau,
+    dirs2data,
+    make_heatmap,
+    make_recording,
+)
 
 # conexão com a base
 CONNECTION_STRING = os.environ["URI_DATABASE"]
@@ -266,7 +273,7 @@ def register():
         userfound = db.users.find_one({"email": email})
         if userfound == None:
             db.users.insert_one(
-                {"username": username, "password": password, "email": email, 'data': {}}
+                {"username": username, "password": password, "email": email, "data": {}}
             )
         else:
             flash("Esse email já foi cadastrado")
@@ -783,10 +790,10 @@ def dataview(username, plot=None):
             folder = f"{datadir}/{dir}"
             if plot == "heatmap":
                 return make_heatmap(folder, type="mouse")
-            elif plot == "meanshift":
-                return
+            elif plot == "recording":
+                return make_recording(folder)
             elif plot == "nlp":
-                return
+                return 
             else:
                 flash("404\nPage not found!")
                 return render_template(
@@ -805,7 +812,7 @@ def dataview(username, plot=None):
             userfound = db.users.find_one({"username": session["username"]})
             userid = userfound["_id"]
             datadir = f"./Samples/{userid}"
-            plots = ["heatmap"]
+            plots = ["heatmap", "recording"]
 
             if plot == None:
                 return render_template(

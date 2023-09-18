@@ -595,17 +595,32 @@ def make_recording(folder):
     return plot_as_string
 
 
-def generate_full_page_image(folder):
+def gen_fullpage(folder):
     stitcher = Stitcher()
     df_trace = pd.read_csv(f"{folder}/trace.csv")
-    images = [arquivo for arquivo in os.listdir(folder) if arquivo.lower().endswith('.jpg')]
-    images = [os.path.join(folder, imagem) for imagem in images]
-    panorama = stitcher.stitch(images)
-    plot_image(panorama, (20,20))
+    images = df_trace.image.unique()
+    scrolls = []
+    sites = []
+    for image in images:
+        scrolls.append(df_trace['scroll'][df_trace['image'] == image].iloc[0])
+        sites.append(df_trace['site'][df_trace['image'] == image].iloc[0])
+    # Criar séries
+    images = pd.Series(images, name='image')
+    scrolls = pd.Series(scrolls, name='scroll')
+    sites = pd.Series(sites, name='site')
+    data = pd.DataFrame({'image': images, 'scroll': scrolls, 'site': sites})
+    data = data.dropna(subset=['scroll'])
+    
+    data = data.sort_values(by='scroll')
+    # Iterar sobre as linhas do DataFrame
+    for index, row in data.iterrows():
+        try:
+            image = cv.imread(f'{folder}/{row.image}')
+            height, width, _ = image.shape
+        except:
+            return
 
 def plot_image(img, figsize_in_inches=(5,5)):
     fig, ax = plt.subplots(figsize=figsize_in_inches)
     ax.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
     plt.show()
-
-generate_full_page_image('./Samples/64c17c88a5a224024bcb722a/20230821-204245')

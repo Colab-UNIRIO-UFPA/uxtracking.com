@@ -344,18 +344,13 @@ def forgot_pass():
                 recipients=[email],
             )
 
-            msg.body = f"""
-Dear {username}!
-We are sending you this message because you have been asked to reset your password on our platform, the new password generated for your account is below:
-
-{generatedPass}
-
-If you are not the one who made the request, only you will see this password and will be able to change it on our platform.
-________________________________________________________
-This email was generated anonymously and automatically by an unmonitored email account, so please do not reply to this email."""
+            #estilizando a mensagem de e-mail
+            msg.html = render_template("email_forgot_pass.html", username= username, generatedPass = generatedPass)
 
             # Nova senha enviada
             mail.send(msg)
+
+            flash('E-mail enviado com sucesso!')
 
             # senha alterada
             _id = userfound["_id"]
@@ -363,6 +358,11 @@ This email was generated anonymously and automatically by an unmonitored email a
 
             # Redirecionar para o login após o envio do email e atualização da senha
             return redirect(url_for("login", title="Login", session=False))
+        
+        #Se as credenciais estiverem incorretas, retorna para a página de redefinir senha
+        else: 
+            flash('Usuário incorreto')
+            return render_template('forgot_pass.html', session=False, title='Esqueci a senha')
     else:
         return render_template(
             "forgot_pass.html", session=False, title="Esqueci a senha"

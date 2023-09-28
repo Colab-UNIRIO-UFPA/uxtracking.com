@@ -30,10 +30,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sys
-import locale
 from unidecode import unidecode
 
-locale.setlocale(locale.LC_ALL, "pt_BR.utf-8")
 # delete se estiver utilizando windows
 load_dotenv()
 # funções nativas

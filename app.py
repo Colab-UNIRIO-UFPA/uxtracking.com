@@ -26,7 +26,14 @@ import datetime
 from plotly.graph_objects import Layout
 from dotenv import load_dotenv
 from bson import ObjectId
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import sys
+import locale
+from unidecode import unidecode
 
+locale.setlocale(locale.LC_ALL, "pt_BR.utf-8")
 # delete se estiver utilizando windows
 load_dotenv()
 # funções nativas
@@ -849,5 +856,34 @@ def userAuth():
         return jsonify({"id": str(userid)})
 
 
+def send_email(subject, body):
+    # Configurar as informações de email
+    sender_email = app.config.get("MAIL_USERNAME")
+    sender_password = app.config.get("MAIL_PASSWORD")
+    receiver_email = 'flavio.moura@itec.ufpa.br'
+
+    # Criar o objeto de mensagem
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = receiver_email
+    message['Subject'] = subject
+
+    # Adicionar o corpo da mensagem
+    message.attach(MIMEText(body, 'plain'))
+
+    # Enviar o email usando SMTP
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, receiver_email, message.as_string())
+    server.quit()
+
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0")
+    try:
+        app.run(debug=False, host="0.0.0.0")
+    except BaseException as e:
+        dt = datetime.datetime.today()
+        dt = f'{dt.day}/{dt.month}/{dt.year}'
+        error_context = sys.exc_info()[1].__context__.strerror
+        error_context = unidecode(error_context)
+        error_msg = f'The application failed to start in {dt}.\r The message of error is: {sys.exc_info()[0]}:{e} - {error_context}'
+        send_email("UX-Tracking Initialization Failed.", error_msg)

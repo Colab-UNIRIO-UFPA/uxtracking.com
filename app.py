@@ -464,25 +464,35 @@ def index():
 
             # verifica quais datas estão disponíveis e limpa a string
             dates = []
+            folder = []
             figdata = {}
             i = 0
+
+            #pegar o nome dos arquivos
+            for pasta in userfound["data"]:
+                folder.append(pasta)
+
+            folder_reverse = folder[::-1]
+
             try:
                 for folder in userfound["data"]:
-                    date = userfound["data"][folder]["date"]
+                    # print(folder)
+                    date = userfound["data"][folder]["date"]         
                     if date not in figdata.keys():
                         figdata[date] = 1
                     else:
                         figdata[date] += 1
                     if i <= 4:
-                        i += 1
+                        date_info = userfound["data"][folder_reverse[i]]
                         dates.append(
                             [
-                                userfound["data"][folder]["date"],
-                                userfound["data"][folder]["hour"],
-                                userfound["data"][folder]["sites"],
-                                folder,
+                                date_info["date"],
+                                date_info["hour"],
+                                date_info["sites"],
+                                folder_reverse[i],
                             ]
                         )
+                        i += 1
 
             except:
                 None
@@ -549,6 +559,7 @@ def datafilter(username, metadata):
             if metadata == "datetime":
                 # adiciona as datas à seção
                 session["dates"] = request.form.getlist("dates[]")
+                
                 # refireciona pra seleção dos traços
                 return redirect(
                     url_for("datafilter", username=username, metadata="pages")
@@ -676,13 +687,31 @@ def datafilter(username, metadata):
             userfound = db.users.find_one({"username": session["username"]})
             userid = userfound["_id"]
             datadir = f"./Samples/{userid}"
+            folder = []
+            dates = []
 
+            for pasta in userfound['data']:
+                folder.append(pasta)
+            
+            folder = folder[::-1]
+            
             if metadata == "datetime":
                 # verifica quais datas estão disponíveis
                 try:
-                    dates = list_dates(datadir)
+                    for folders in folder: 
+                        date_info =  userfound["data"][folders]
+                        dates.append(
+                            [
+                                date_info["date"],
+                                date_info["hour"],
+                                date_info["sites"],
+                                folders,
+                            ]
+                        )
+
                 except:
                     dates = []
+                
                 return render_template(
                     "data_filter.html",
                     username=username,
@@ -693,7 +722,7 @@ def datafilter(username, metadata):
 
             elif metadata == "pages":
                 dates = session["dates"]
-
+                
                 # verifica quais datas estão disponíveis
                 pages = []
                 for date in dates:

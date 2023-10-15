@@ -31,6 +31,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sys
 from unidecode import unidecode
+import dash
+from dash import dcc, html
 
 # delete se estiver utilizando windows
 load_dotenv()
@@ -546,7 +548,6 @@ def index():
         else:
             return render_template("index.html", session=False, title="Home")
 
-
 @app.route("/datafilter/<username>/<metadata>", methods=["GET", "POST"])
 def datafilter(username, metadata):
     if request.method == "POST":
@@ -870,8 +871,8 @@ def dataview(username, plot=None):
             flash("Faça o login para continuar!")
             return render_template("login.html", session=False, title="Login")
 
-
-@app.route("/userAuth", methods=["POST"])
+@app.route("/external/", methods=["POST"])
+@app.route("/external/userAuth", methods=["POST"])
 def userAuth():
     username = request.form["username"]
     password = request.form["password"]
@@ -880,8 +881,12 @@ def userAuth():
     if userfound != None:
         userid = userfound["_id"]
         session["username"] = request.form["username"]
-        return jsonify({"id": str(userid)})
+        response = {"id": str(userid), 'status': 200}
+    #Credenciais incorretas
+    else:
+        response = {"id": None, 'status': 401}
 
+    return jsonify(response)
 
 def send_email(subject, body):
     # Configurar as informações de email

@@ -104,7 +104,6 @@
             <div class="list-group w-100 border-0 rounded-0" fill="currentColor">
                 <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary">Histórico de atividades</p>
                 <div class="list-group-item">
-                    <iframe src="{{ url_for('/dash/datePicker/') }}" width="100%" height="100%" style="z-index: 1000; position: absolute"></iframe>
                     {{ plot | safe }}
                 </div>
             </div>

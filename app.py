@@ -10,6 +10,8 @@ from flask import (
     jsonify,
     session,
 )
+from authlib.integrations.flask_client import OAuth
+from authlib.common.security import generate_token
 import json
 import os
 import base64
@@ -54,6 +56,9 @@ db = client.get_database("users")
 # declarando o servidor
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
+
+# autenticação google
+oauth = OAuth(app)
 
 # configurando o serviço de email
 app.config.update(
@@ -117,6 +122,45 @@ def login():
         else:
             return render_template("login.html", session=False, title="Login")
 
+# autenticação google
+@app.route('/google/')
+def google():
+
+    GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
+    GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
+
+    CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
+    oauth.register(
+        name='google',
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET,
+        server_metadata_url=CONF_URL,
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
+
+    # Redirect to google_auth function
+    redirect_uri = url_for('google_auth', _external=True)
+    session['nonce'] = generate_token()
+    return oauth.google.authorize_redirect(redirect_uri, nonce=session['nonce'])
+
+@app.route('/google/auth/')
+def google_auth():
+    token = oauth.google.authorize_access_token()
+    user = oauth.google.parse_id_token(token, nonce=session['nonce'])
+    username = user['name']
+    email = user['email']
+    password = user['sub']
+    
+    # Verifica se o usuário já existe
+    userfound = db.users.find_one({"email": email})
+    if userfound == None:
+        db.users.insert_one(
+            {"username": username, "password": password, "email": email, "data": {}}
+        )
+    session['username'] = username
+    return redirect('/')
 
 # Define a rota para o logout
 @app.route("/logout")
@@ -705,6 +749,41 @@ def userRegister():
         
     return jsonify(response)
 
+@app.route("/external/userRecover", methods=["POST"])
+def userRecover():
+    # Obtém o usuário e email informados no formulário
+    email = request.form["email"]
+    userfound = db.users.find_one({"email": email})
+
+    if userfound != None:
+        # Nova senha gerada
+        generatedPass = id_generator()
+
+        # Requisição por email
+        msg = Message(
+            "UX-Tracking password reset.",
+            sender=app.config.get("MAIL_USERNAME"),
+            recipients=[email],
+        )
+
+        #estilizando a mensagem de e-mail
+        msg.html = render_template("email_forgot_pass.html", username= userfound["username"], generatedPass = generatedPass)
+
+        # Nova senha enviada
+        mail.send(msg)
+
+        # senha alterada
+        _id = userfound["_id"]
+        db.users.update_one({"_id": _id}, {"$set": {"password": generatedPass}})
+
+        response = {'status': 200}
+    
+    #Se as credenciais estiverem incorretas, retorna para a página de redefinir senha
+    else: 
+        response = {'status': 401}
+    
+    return jsonify(response)
+
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
 # (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
@@ -928,7 +1007,7 @@ def send_email(subject, body):
 
 if __name__ == "__main__":
     try:
-        app.run(debug=False, host="0.0.0.0")
+        app.run(debug=True, host="0.0.0.0")
     except BaseException as e:
         dt = datetime.datetime.today()
         dt = f'{dt.day}/{dt.month}/{dt.year}'

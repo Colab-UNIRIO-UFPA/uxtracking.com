@@ -15,6 +15,8 @@
     margin-inline: 0rem;
     }
   </style>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -104,7 +106,99 @@
             <div class="list-group w-100 border-0 rounded-0" fill="currentColor">
                 <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary">Histórico de atividades</p>
                 <div class="list-group-item">
-                    {{ plot | safe }}
+                    <div id="datePicker">
+                        <div>
+                            <input type="date" id="start-date" min="{{datas[0]}}" max="{{datas[-1]}}" value="{{datas[0]}}">
+                            <input type="date" id="end-date" min="{{datas[0]}}" max="{{datas[-1]}}" value="{{datas[-1]}}">
+                        </div>
+                        <div id="output-date-range"></div>
+                    </div>
+                    <div id="graph-line"></div>
+
+                    <script>
+                        // Dados de exemplo
+                        const datas = JSON.parse('{{ datas | tojson | safe }}');
+                        const valores = JSON.parse('{{ values | tojson | safe}}');
+                
+                        // Crie um objeto similar a um DataFrame
+                        const df = {
+                            Data: datas,
+                            Valor: valores
+                        };
+                
+                        // Intervalo de datas iniciai
+                        const data_inicial = datas[0];
+                        const data_final = datas[datas.length - 1];
+                
+                        // Crie o gráfico inicial
+                        atualizarGrafico(data_inicial, data_final);
+                
+                        // Adicione um ouvinte de eventos aos campos de data
+                        const inputDataInicial = document.getElementById('start-date');
+                        const inputDataFinal = document.getElementById('end-date');
+                
+                        inputDataInicial.addEventListener('input', function () {
+                            const data_inicial = inputDataInicial.value;
+                            const data_final = inputDataFinal.value;
+                            atualizarGrafico(data_inicial, data_final);
+                        });
+                
+                        inputDataFinal.addEventListener('input', function () {
+                            const data_inicial = inputDataInicial.value;
+                            const data_final = inputDataFinal.value;
+                            atualizarGrafico(data_inicial, data_final);
+                        });
+                
+                        function atualizarGrafico(data_inicial, data_final) {
+                            // Filtrar os dados com base no intervalo de datas selecionado
+                            const dadosFiltrados = df.Data.filter(function(data) {
+                                return data >= data_inicial && data <= data_final;
+                            });
+                
+                            const valoresFiltrados = df.Valor.filter(function(data, index) {
+                                return df.Data[index] >= data_inicial && df.Data[index] <= data_final;
+                            });
+                
+                            // Atualize o gráfico com os dados filtrados
+                            const trace = {
+                                x: dadosFiltrados,
+                                y: valoresFiltrados,
+                                mode: 'lines+markers',
+                                line: { color: '#1F73AD' },
+                                marker: { size: 10 },
+                                fill: 'tozeroy'
+                            };
+                
+                            const layout = {
+                                xaxis: {
+                                    title: 'Data',
+                                    showline: true,
+                                    linewidth: 2,
+                                    linecolor: '#969696',
+                                    showgrid: true,
+                                    gridcolor: 'rgba(0,0,0,0)',
+                                    mirror: true
+                                },
+                                yaxis: {
+                                    title: 'Coletas',
+                                    showline: true,
+                                    linewidth: 2,
+                                    linecolor: '#969696',
+                                    gridcolor: '#969696',
+                                    mirror: true,
+                                    showgrid: true,
+                                    gridwidth: 1,
+                                    dtick: 1
+                                },
+                                paper_bgcolor: 'rgba(0,0,0,0)',
+                                plot_bgcolor: 'rgba(0,0,0,0)',
+                                font: { color: '#969696' },
+                                template: 'simple_white'
+                            };
+                
+                            Plotly.newPlot('graph-line', [trace], layout);
+                        }
+                    </script>
                 </div>
             </div>
             

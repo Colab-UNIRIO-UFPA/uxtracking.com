@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 from PIL import Image
 import base64
 from stitching import Stitcher
+from datetime import datetime
 
 folderBert = "bertimbau-finetuned"
 
@@ -28,6 +29,16 @@ id2label = {
     4: "ALEGRIA",
     5: "NOJO",
 }
+
+def format_ISO(dates):
+    iso_format_dates = []
+
+    for date in dates:
+        date_obj = datetime.strptime(date, '%d/%m/%Y')
+        iso_date = date_obj.strftime('%Y-%m-%d')
+        iso_format_dates.append(iso_date)
+
+    return iso_format_dates
 
 
 def nlpBertimbau(folder):

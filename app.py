@@ -23,9 +23,7 @@ from pathlib import Path
 import pandas as pd
 import zipfile
 import shutil
-import plotly.graph_objects as go
 import datetime
-from plotly.graph_objects import Layout
 from dotenv import load_dotenv
 from bson import ObjectId
 import smtplib
@@ -34,7 +32,7 @@ from email.mime.multipart import MIMEMultipart
 import sys
 from unidecode import unidecode
 import dash
-from dash import dcc, html
+from django.core.paginator import Paginator
 
 # delete se estiver utilizando windows
 load_dotenv()
@@ -46,6 +44,7 @@ from functions import (
     dirs2data,
     make_heatmap,
     make_recording,
+    format_ISO
 )
 
 # conexão com a base
@@ -338,46 +337,10 @@ def index():
 
             except:
                 None
-            # gera o gráfico de últimas atividades
-            layout = Layout(plot_bgcolor="rgba(0,0,0,0)")
-            fig = go.Figure(layout=layout)
-            fig.add_trace(
-                go.Scatter(
-                    x=list(figdata.keys()),
-                    y=list(figdata.values()),
-                    marker_size=10,
-                    fill="tozeroy",
-                    mode="lines+markers",  # override default markers+lines
-                )
-            )
-            fig.update_xaxes(tick0=0, dtick=1)
-            fig.update_yaxes(tick0=0, dtick=1)
-            fig.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                template="simple_white",
-                font_color="#969696",
-                xaxis_title="Data",
-                yaxis_title="Coletas",
-            )
-            fig.update_xaxes(
-                showline=True,
-                linewidth=2,
-                linecolor="#969696",
-                gridcolor="#969696",
-                mirror=True,
-            )
-            fig.update_yaxes(
-                showgrid=True,
-                showline=True,
-                gridwidth=1,
-                linewidth=2,
-                linecolor="#969696",
-                gridcolor="#969696",
-                mirror=True,
-                dtick=3,
-            )
 
-            plot_as_string = fig.to_html()
+            datas = format_ISO(figdata.keys())
+            values = list(figdata.values())
+
             # lista de coletas
             return render_template(
                 "index.html",
@@ -385,7 +348,8 @@ def index():
                 username=session["username"],
                 title="Home",
                 dates=dates,
-                plot=plot_as_string,
+                datas=datas,
+                values=values
             )
         else:
             return render_template("index.html", session=False, title="Home")
@@ -554,11 +518,18 @@ def datafilter(username, metadata):
                 except:
                     dates = []
                 
+                #Paginação das coletas
+                paginator = Paginator(dates, 5)
+                page_number = request.args.get('page_number', 1, type=int)
+                page_obj = paginator.get_page(page_number)
+                page_coleta = paginator.page(page_number).object_list
+
                 return render_template(
                     "data_filter.html",
                     username=username,
                     metadata=metadata,
-                    items=dates,
+                    items=page_coleta,
+                    page_obj=page_obj,
                     title="Coletas",
                 )
 

@@ -23,9 +23,7 @@ from pathlib import Path
 import pandas as pd
 import zipfile
 import shutil
-import plotly.graph_objects as go
 import datetime
-from plotly.graph_objects import Layout
 from dotenv import load_dotenv
 from bson import ObjectId
 import smtplib
@@ -33,8 +31,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sys
 from unidecode import unidecode
-import dash
-from dash import dcc, html
+from django.core.paginator import Paginator
 
 # delete se estiver utilizando windows
 load_dotenv()
@@ -519,12 +516,19 @@ def datafilter(username, metadata):
 
                 except:
                     dates = []
-                
+
+                #Paginação das coletas
+                paginator = Paginator(dates, 5)
+                page_number = request.args.get('page_number', 1, type=int)
+                page_obj = paginator.get_page(page_number)
+                page_coleta = paginator.page(page_number).object_list
+
                 return render_template(
                     "data_filter.html",
                     username=username,
                     metadata=metadata,
-                    items=dates,
+                    items=page_coleta,
+                    page_obj=page_obj,
                     title="Coletas",
                 )
 
@@ -532,19 +536,19 @@ def datafilter(username, metadata):
                 dates = session["dates"]
                 
                 # verifica quais datas estão disponíveis
-                pages = []
+                page_number = []
                 for date in dates:
                     # Lendo as páginas no csv
                     df = pd.read_csv(f"{datadir}/{date}/trace.csv")
                     for page in df.site.unique():
-                        if page not in pages:
-                            pages.append(page)
+                        if page not in page_number:
+                            page_number.append(page)
 
                 return render_template(
                     "data_filter.html",
                     username=username,
                     metadata=metadata,
-                    items=pages,
+                    items=page_number,
                     title="Coletas",
                 )
 

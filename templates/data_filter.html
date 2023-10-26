@@ -62,47 +62,8 @@
             </label>
           {% endfor %}
         </div>
-         
-        <div class="py-2 px-2">
-          <div class="row">
-            <div class="col-md-4">
-              <div class="mt-4 ml-4 mx-4">
-                {% if page_obj.has_other_pages() %}
-                <ul class="pagination">
-
-                    {% if page_obj.number != 1%}
-                      <li class="page-item">
-                        <a class="page-link text-body-secondary" href="{{ url_for('datafilter', username=username, metadata=metadata, page_number=1)}}">Início</a>
-                      </li>
-                    {% else %}
-                      <li class="page-link text-body-secondary disabled">Início</li>
-                    {% endif %}
-          
-                  {% for i in page_obj.paginator.page_range %}
-                    {% if i >= page_obj.number - 2 and i <= page_obj.number + 2 %}
-                      <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                        <a class="page-link text-body-secondary" href="{{ url_for('datafilter', username=username, metadata=metadata, page_number=i) }}">{{ i }}</a>
-                      </li>
-                    {% endif %}
-                  {% endfor %}
-                  
-                  {% if page_obj.number != page_obj.paginator.num_pages%}
-                    <li class="page-item">
-                    <a class="page-link text-body-secondary" href="{{ url_for('datafilter', username=username, metadata=metadata, page_number=page_obj.paginator.num_pages)}}">Final</a></li>
-                  {% else %}
-                    <li class="page-link text-body-secondary disabled">Final</li>
-                  {% endif %}
-                </ul>
-                {% endif %}
-
-              </div>
-            </div>
-            <div class="col-md-4 offset-md-4" style="text-align: end;">
-              <button class="btn btn-secondary w-50 my-4 mx-5" type="submit" value="Enviar">Próximo</button>
-            </div>
-          </div>
-        </div>
-
+        <button class="btn btn-secondary w-25 py-2 my-4" type="submit" value="Enviar">Próximo</button>
+        
       </form>
 
     {% elif metadata == 'pages' %}

@@ -1,6 +1,6 @@
-![Badge](https://img.shields.io/badge/VS%20Code-1.60-information?style=flat&logo=Visual-Studio-Code&logoColor=white&color=007ACC)
- # UX-Tracking: User eXperience Tracking
-Repositório destinado a abrigar o código-fonte de todas as aplicações relacionadas ao ecossistema da ferramenta UX-Tracking.
+![alt text](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/blob/main/UX-Tracking%20Banner.png)
+ # UX-Tracking: Web Server
+Repositório do servidor web do framework [UX-Tracking: User eXperience Tracking](https://uxtracking.andrepereira.eng.br/)
 
 ## Tabela de conteúdos
 
@@ -35,19 +35,6 @@ Repositório destinado a abrigar o código-fonte de todas as aplicações relaci
 
 ## Topologia
 
-- [UX-Tracking Extension](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/UX-Tracking%20Extension) - `Arquivos da extensão Chrome`
-  - [popup](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/UX-Tracking%20Extension/popup)  - `Popup exibido na extensão`
-    - index.html  - `Página html do popup`
-    - script.js - `Script do popup`
-    - styles.css - `CSS da página do popup`
-  - [vendor](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/UX-Tracking%20Extension/vendor)  - `Pasta para os scripts externos utilizados na extensão`
-    - browser-polyfill-0.10.0.min.js
-    - jquery-3.4.1.min.js
-  - background.js - `Script de background da extensão`
-  - content.js - `Script de conteúdo da extensão`
-  - logo.png - `Logo da extensão`
-  - main.js - `Script main da extensão`
-  - manifest.json - `Manifesto da extensão chrome`
 - [static](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/static) - `Arquivos estáticos carregados pelo flask no servidor`
 - [templates](https://github.com/Colab-UNIRIO-UFPA/uxtracking.com/tree/main/templates) - `Templates (html + css + js) das páginas renderizadas pelo flask`
   - base.html - `Template base para as demais páginas`

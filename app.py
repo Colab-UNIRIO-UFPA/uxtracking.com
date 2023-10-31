@@ -935,11 +935,18 @@ def sample_checker():
     if request.method == "POST":
         time = request.form["dateTime"]
         userid = request.form["userId"]
-        if not os.path.exists(f"Samples/{userid}/" + time):
-            os.makedirs(f"Samples/{userid}/" + time, mode=0o777, exist_ok=True)
-        filename = f"Samples/{userid}/" + time + "/lastTime.txt"
-        if os.path.exists(filename):
-            with open(filename, "r") as file:
+        base_path = f"Samples/{userid}/"
+
+        if not os.path.exists( base_path + time):
+            os.makedirs(base_path + time, mode=0o777, exist_ok=True)
+
+        filename = time + "/lastTime.txt"
+        fullpath = os.path.normpath(os.path.join(base_path, filename))
+        if not fullpath.startswith(base_path):
+            raise Exception("not allowed")
+        
+        if os.path.exists(fullpath):
+            with open(fullpath, "r") as file:
                 content = file.read()
                 return content
         else:

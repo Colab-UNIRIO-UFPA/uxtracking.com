@@ -123,17 +123,18 @@ def list_dates(dir):
     return dates
 
 
-def dirs2data(userfound):
+def dirs2data(userfound, datadir):
     data = []
     for folder in userfound["data"]:
-        data.append(
-            {
-                "date": userfound["data"][folder]["date"],
-                "hour": userfound["data"][folder]["hour"],
-                "pages": userfound["data"][folder]["sites"],
-                "dir": folder,
-            }
-        )
+        if folder in os.listdir(datadir):
+            data.append(
+                {
+                    "date": userfound["data"][folder]["date"],
+                    "hour": userfound["data"][folder]["hour"],
+                    "pages": userfound["data"][folder]["sites"],
+                    "dir": folder,
+                }
+            )
     return data
 
 

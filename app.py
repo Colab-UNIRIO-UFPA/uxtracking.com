@@ -311,7 +311,8 @@ def index():
 
             #pegar o nome dos arquivos
             for pasta in userfound["data"]:
-                folder.append(pasta)
+                if pasta in os.listdir(datadir):
+                    folder.append(pasta)
 
             folder_reverse = folder[::-1]
 
@@ -493,33 +494,13 @@ def datafilter(username, metadata):
             userfound = db.users.find_one({"username": session["username"]})
             userid = userfound["_id"]
             datadir = f"./Samples/{userid}"
-            folder = []
-            dates = []
-
-            for pasta in userfound['data']:
-                folder.append(pasta)
-            
-            folder = folder[::-1]
             
             if metadata == "datetime":
-                # verifica quais datas estão disponíveis
-                try:
-                    for folders in folder: 
-                        date_info =  userfound["data"][folders]
-                        dates.append(
-                            [
-                                date_info["date"],
-                                date_info["hour"],
-                                date_info["sites"],
-                                folders,
-                            ]
-                        )
+                data = dirs2data(userfound, datadir)
+                data = data[::-1]
 
-                except:
-                    dates = []
-                
                 #Paginação das coletas
-                paginator = Paginator(dates, 5)
+                paginator = Paginator(data, 5)
                 page_number = request.args.get('page_number', 1, type=int)
                 page_obj = paginator.get_page(page_number)
                 page_coleta = paginator.page(page_number).object_list
@@ -606,11 +587,11 @@ def dataanalysis(username, model=None):
                     "data_analysis.html", username=username, title="Análise"
                 )
             elif model in models:
-                data = dirs2data(userfound)
+                data = dirs2data(userfound, datadir)
                 data = data[::-1]
 
                 #Paginação das coletas
-                paginator = Paginator(data, 5)
+                paginator = Paginator(data, 7)
                 page_number = request.args.get('page_number', 1, type=int)
                 page_obj = paginator.get_page(page_number)
                 page_coleta = paginator.page(page_number).object_list
@@ -676,7 +657,7 @@ def dataview(username, plot=None):
                     "data_view.html", username=username, title="Visualização"
                 )
             elif plot in plots:
-                data = dirs2data(userfound)
+                data = dirs2data(userfound, datadir)
                 return render_template(
                     "data_view.html",
                     username=username,
@@ -987,7 +968,7 @@ def send_email(subject, body):
 
 if __name__ == "__main__":
     try:
-        app.run(debug=True, host="0.0.0.0")
+        app.run(debug=False, host="0.0.0.0")
     except BaseException as e:
         dt = datetime.datetime.today()
         dt = f'{dt.day}/{dt.month}/{dt.year}'

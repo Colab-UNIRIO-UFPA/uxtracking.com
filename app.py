@@ -607,11 +607,20 @@ def dataanalysis(username, model=None):
                 )
             elif model in models:
                 data = dirs2data(userfound)
+                data = data[::-1]
+
+                #Paginação das coletas
+                paginator = Paginator(data, 5)
+                page_number = request.args.get('page_number', 1, type=int)
+                page_obj = paginator.get_page(page_number)
+                page_coleta = paginator.page(page_number).object_list
+
                 return render_template(
                     "data_analysis.html",
                     username=username,
                     model=model,
-                    items=data,
+                    items=page_coleta,
+                    page_obj=page_obj,
                     title="Análise",
                 )
             else:

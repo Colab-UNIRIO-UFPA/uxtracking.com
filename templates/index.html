@@ -163,27 +163,33 @@
                             const trace = {
                                 x: dadosFiltrados,
                                 y: valoresFiltrados,
-                                mode: 'lines+markers',
-                                line: { color: '#1F73AD' },
-                                marker: { size: 10 },
-                                fill: 'tozeroy'
+                                type: 'bar',
+                                textposition: 'inside',
+                                marker:{
+                                    line:{
+                                        width: 0.1
+                                    }
+                                }, 
                             };
                 
                             const layout = {
                                 xaxis: {
                                     title: 'Data',
                                     showline: true,
-                                    linewidth: 2,
                                     linecolor: '#969696',
                                     showgrid: true,
                                     gridcolor: 'rgba(0,0,0,0)',
                                     mirror: true,
                                     tickformat: "%d/%m/%Y",
+                                    tickvals: dadosFiltrados,
+                                    tickangle:-90, 
+                                    tickfont: {
+                                        size: 10
+                                    },
                                 },
                                 yaxis: {
                                     title: 'Coletas',
                                     showline: true,
-                                    linewidth: 2,
                                     linecolor: '#969696',
                                     gridcolor: '#969696',
                                     mirror: true,
@@ -191,10 +197,12 @@
                                     gridwidth: 1,
                                     dtick: 1
                                 },
+                                barmode: 'group',
+                                bargap: 0.1,
                                 paper_bgcolor: 'rgba(0,0,0,0)',
                                 plot_bgcolor: 'rgba(0,0,0,0)',
                                 font: { color: '#969696' },
-                                template: 'simple_white'
+                                template: 'simple_white',
                             };
                 
                             Plotly.newPlot('graph-line', [trace], layout);

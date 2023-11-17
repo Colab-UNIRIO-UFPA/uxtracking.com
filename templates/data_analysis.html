@@ -15,7 +15,7 @@
     text-align: center;
     width: 100%!important;
     position: relative;
-  }
+  } 
   </style>
 {% endblock %}
 
@@ -78,9 +78,10 @@
               <button type="button" onclick="closePopupResult()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="list-group modal-body align-items-center justify-content-center gap-3" style="text-align: center;">
-              <div class="list-group-item border-0">
+              <div class="list-group-item border-0 w-100">
                 <div class="spinner-border text-secondary" id="spinner" role="status"></div>
-                <div  id="resultPlot"></div>
+                <div  id="resultplot"></div>
+                <button type="button" onclick="clickbutton()" id="mybutton" class="btn btn-secondary mt-3" style="width: 250px">Baixar</button>
               </div>
             </div>
           </div>
@@ -154,22 +155,58 @@
     {% endif %}
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="text/javascript">
+    var valueData;
     function submitdata(data, model) {
+      valueData = data;
+      document.getElementById("mybutton").style.display = "none";
       $("#resultModal").modal('show');
       $.post("{{ url_for('dataanalysis', username=username, model=model) }}",
       {
         dir: data
       },
-      function(result){
+      function(results){
         document.getElementById("spinner").style.display = "none";
-        $('#resultPlot').html(result);
+        document.getElementById("mybutton").style.display = "inline-block";
+
+        var result1 = results.result1
+        var result2 = results.result2
+
+        if (result2 == false){
+          document.getElementById("mybutton").style.display = "none";
+          $('#resultplot').html(result1);
+        }else{
+          $('#resultplot').html(renderGraph(result1));
+        }
       });
     };
     function closePopupResult() {
       document.getElementById("spinner").style.display = "inline-flex";
-      $('#resultPlot').html('');
+      document.getElementById("mybutton").style.display = "none";
+      $('#resultplot').html('')
     };
+    function renderGraph(figJSON){
+      var fig = JSON.parse(figJSON)
+      var graphDiv = document.getElementById('resultplot');
+      Plotly.newPlot(graphDiv, fig.data, fig.layout);
+    }
+    function clickbutton(){
+      $.post("{{ url_for('downloadAudio')}}",
+      {
+        data: valueData
+      },
+      function(result){
+        let csvAudio = result;
+        let blob = new Blob([csvAudio], {type: 'text/csv'});
+
+        const link= window.document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = valueData + '/audio.csv';
+        link.click()
+        window.URL.revokeObjectURL(link.href);
+      });
+    }
   </script>
 {% endblock %}
   

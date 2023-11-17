@@ -31,7 +31,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sys
 from unidecode import unidecode
-import dash
+import plotly.io as pio
 from django.core.paginator import Paginator
 
 # delete se estiver utilizando windows
@@ -44,7 +44,8 @@ from functions import (
     dirs2data,
     make_heatmap,
     make_recording,
-    format_ISO
+    format_ISO,
+    graph_sentiment,
 )
 
 # conexão com a base
@@ -562,7 +563,18 @@ def dataanalysis(username, model=None):
             elif model == "meanshift":
                 return
             elif model == "bertimbau":
-                return nlpBertimbau(folder)
+                results = {}
+                try:
+                    df_audio = (nlpBertimbau(folder))
+                    fig = graph_sentiment(df_audio)
+                    results['result1'] = pio.to_json(fig)
+                    results['result2'] = True
+                except:
+                    results['result1'] = "Não foi possível processar a coleta, áudio ausente!"  
+                    results['result2'] = False 
+                
+                return results
+            
             else:
                 flash("404\nPage not found!")
                 return render_template(
@@ -613,6 +625,26 @@ def dataanalysis(username, model=None):
             flash("Faça o login para continuar!")
             return render_template("login.html", session=False, title="Login")
 
+@app.route("/downloadAudio", methods=['POST'])
+def downloadAudio():
+    userfound = db.users.find_one({"username": session["username"]})
+    userid = userfound["_id"]
+    datadir = f"./Samples/{userid}"
+
+    valueData = request.form["data"]
+
+    file_path = f"{datadir}/{valueData}/audio.csv"
+
+    with open(file_path, 'rb') as file:
+        file_content = file.read()
+    
+    return Response(
+        file_content,
+        headers={
+            "Content-Type": "text/csv",
+            "Content-Disposition": "attachment; filename=audio.csv",
+        }
+    )
 
 @app.route("/dataview/<username>/", methods=["GET", "POST"])
 @app.route("/dataview/<username>/<plot>", methods=["GET", "POST"])

@@ -45,8 +45,7 @@ def format_ISO(dates):
 
 
 def nlpBertimbau(folder):
-    df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='ISO-8859-1')
-
+    df_audio = pd.read_csv(f"{folder}/audio.csv")
     texts = []
     sentiment_dict = {sentiment: [] for sentiment in id2label.values()}
     for text in df_audio["text"]:
@@ -101,15 +100,16 @@ def graph_sentiment(df):
     #organização de subplots
     fig = make_subplots(
         rows=4, cols=2,
-        column_widths=[0.6, 0.6],
-        row_heights=[0.7, 0.7,0.7, 0.7],
-        specs=[[{"type": "bar"},  {"type": "scatterpolar", 'rowspan': 2}],
-                [{"type": "bar"}      , None],
+        column_widths=[0.5, 0.5],
+        row_heights=[0.56, 0.13, 0.13, 0.13],
+        specs=[[{"type": "scatterpolar", 'colspan': 2}, None],
+                [{"type": "bar"}, {"type": "bar"}],
                 [{"type": "bar"}, {"type": "bar"}],
                 [{"type": "bar"}, {"type": "bar"}]],
-        subplot_titles=('Raiva',None, 'Tristeza', 'Alegria', 'Surpresa', 'Nojo', 'Medo'),
-        print_grid=True,
-        horizontal_spacing=0.1
+        subplot_titles=('Sentiment Dominance Chart', 'Raiva', 'Tristeza', 'Alegria', 'Surpresa', 'Nojo', 'Medo'),
+        print_grid=False,
+        horizontal_spacing=0.05,
+        vertical_spacing=0.08
     )
 
     fig.add_trace(go.Scatterpolar(
@@ -117,10 +117,10 @@ def graph_sentiment(df):
         theta=df_radar['Emoção'],
         fill='toself',
         customdata=df_radar['Emoção'],
-        name='Sentiment Dominance <br>Chart',
         hovertemplate="Sentimento: %{theta} <br>Quantidade: %{r}",
+        showlegend=False
         ),
-        row=1, col=2
+        row=1, col=1
     )
 
     fig.add_trace(go.Bar(
@@ -131,7 +131,7 @@ def graph_sentiment(df):
         name='raiva',
         hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
        ),
-        row=1, col=1
+        row=2, col=1
     )
 
     fig.add_trace(
@@ -143,7 +143,7 @@ def graph_sentiment(df):
         name='tristeza',
         hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
        ),
-        row=2, col=1
+        row=2, col=2
     )
 
     fig.add_trace(
@@ -194,27 +194,33 @@ def graph_sentiment(df):
         row=4, col=2
     )
 
-    #Titulos x e y grafico barra
-    fig.update_xaxes(title_text='Tempo(s)')
-    fig.update_yaxes(title_text='Confiança')
+    # Update xaxis properties
+    fig.update_yaxes(title_text="Confiança", row=2, col=1)
+    fig.update_yaxes(title_text="Confiança", row=3, col=1)
+    fig.update_yaxes(title_text="Confiança", row=4, col=1)
 
+    # Update yaxis properties
+    fig.update_xaxes(title_text="Tempo(s)", row=4, col=1)
+    fig.update_xaxes(title_text="Tempo(s)", row=4, col=2)
 
     fig.update_polars(
         bgcolor= 'rgba(0, 0, 0, 0)',
-    )
 
+    )
+    fig.update_yaxes(range=[0, 100])
     fig.update_layout(
-        margin=dict(r=10, t=25, b=40, l=60),
-        height=1000,
+        margin=dict(r=60, t=60, b=40, l=60),
+        height=1200,
         paper_bgcolor='rgba(0, 0, 0, 0)' ,
         plot_bgcolor='rgba(0, 0, 0, 0)',
         polar = dict(
             radialaxis = dict(
             angle = 90,
             tickangle = 90 )),
-        font=dict(color="white")
+        font=dict(color="white"),
+        
     )
-
+    fig.update_annotations(yshift=15, font=dict(family="Helvetica", size=20))
     return fig
 
 def model_kmeans(data, n_clusters, n_init, max_iter):

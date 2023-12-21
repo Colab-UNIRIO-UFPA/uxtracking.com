@@ -9,6 +9,8 @@ from flask import (
     flash,
     jsonify,
     session,
+    abort,
+    make_response
 )
 from authlib.integrations.flask_client import OAuth
 from authlib.common.security import generate_token
@@ -69,6 +71,12 @@ app.config.update(
     MAIL_PASSWORD=os.environ["MAIL_PASSWORD"],
 )
 mail = Mail(app)
+
+#decorador de manipulação de erro personalizado
+@app.errorhandler(403)
+def forbidden(error):
+    response = make_response("Operação não permitida: o caminho especificado não está dentro do diretório permitido.", 403)
+    return response
 
 # Define a rota para a página de registro
 @app.route("/register", methods=["GET", "POST"])
@@ -274,10 +282,20 @@ def index():
             folder = request.form.getlist("dates[]")
             folder = folder[0]
 
+            #normalizando o caminho base
+            base_path = os.path.normpath(datadir)
+
+            #normalizando o caminho completo
+            fullpath = os.path.normpath(os.path.join(base_path, folder))
+
+            #verificando se o caminho completo começa com o caminho base
+            if not fullpath.startswith(base_path):
+                abort(403)
+
             # cria um zip para inserção dos dados selecionados
             with zipfile.ZipFile(f"{folder}_data.zip", "w") as zipf:
-                for file in os.listdir(f"{datadir}/{folder}/"):
-                    shutil.copy(f"{datadir}/{folder}/{file}", file)
+                for file in os.listdir(fullpath): 
+                    shutil.copy(os.path.join(fullpath, file), file)
                     zipf.write(file)
                     os.remove(file)
 

@@ -677,9 +677,9 @@ def dataview(username, plot=None):
             dir = request.form["dir"]
             folder = f"{datadir}/{dir}"
             if plot == "heatmap":
-                return make_heatmap(folder, type="mouse")
+                return make_heatmap(folder)
             elif plot == "recording":
-                return make_recording(folder)
+                return make_recording(folder, type="mouse")
             elif plot == "nlp":
                 return 
             else:

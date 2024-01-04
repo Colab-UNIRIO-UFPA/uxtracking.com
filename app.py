@@ -9,6 +9,7 @@ from flask import (
     flash,
     jsonify,
     session,
+    abort,
 )
 from authlib.integrations.flask_client import OAuth
 from authlib.common.security import generate_token
@@ -274,10 +275,20 @@ def index():
             folder = request.form.getlist("dates[]")
             folder = folder[0]
 
+            #normalizando o caminho base
+            base_path = os.path.normpath(datadir)
+
+            #normalizando o caminho completo
+            fullpath = os.path.normpath(os.path.join(base_path, folder))
+
+            #verificando se o caminho completo começa com o caminho base
+            if not fullpath.startswith(base_path):
+                raise Exception("not allowed")
+
             # cria um zip para inserção dos dados selecionados
             with zipfile.ZipFile(f"{folder}_data.zip", "w") as zipf:
-                for file in os.listdir(f"{datadir}/{folder}/"):
-                    shutil.copy(f"{datadir}/{folder}/{file}", file)
+                for file in os.listdir(fullpath): 
+                    shutil.copy(os.path.join(fullpath, file), file)
                     zipf.write(file)
                     os.remove(file)
 
@@ -657,7 +668,16 @@ def dataview(username, plot=None):
             datadir = f"./Samples/{userid}"
 
             dir = request.form["dir"]
-            folder = f"{datadir}/{dir}"
+
+            #normalizando caminho base
+            base_path = os.path.normpath(datadir)
+
+            #normalizando caminho completo
+            folder = os.path.normpath(os.path.join(base_path, dir))
+
+            if not folder.startswith(base_path):
+                raise Exception("not allowed")
+           
             if plot == "heatmap":
                 return make_heatmap(folder)
             elif plot == "recording":
@@ -967,16 +987,22 @@ def sample_checker():
     if request.method == "POST":
         time = request.form["dateTime"]
         userid = request.form["userId"]
-        base_path = f"Samples/{userid}/"
+        datadir = f"Samples/{userid}/"
 
-        if not os.path.exists( base_path + time):
-            os.makedirs(base_path + time, mode=0o777, exist_ok=True)
+        #normalizando caminho base
+        base_path = os.path.normpath(datadir)
 
-        filename = time + "/lastTime.txt"
-        fullpath = os.path.normpath(os.path.join(base_path, filename))
-        if not fullpath.startswith(base_path):
+        directory_path = os.path.join(datadir, time)
+
+        if not directory_path.startswith(base_path):
             raise Exception("not allowed")
-        
+
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path, mode=0o777, exist_ok=True)
+
+        #normalizando caminho completo
+        fullpath = os.path.normpath(os.path.join(directory_path, "lastTime.txt"))
+
         if os.path.exists(fullpath):
             with open(fullpath, "r") as file:
                 content = file.read()

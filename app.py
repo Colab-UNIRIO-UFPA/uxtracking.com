@@ -644,7 +644,12 @@ def downloadAudio():
 
     valueData = request.form["data"]
 
-    file_path = f"{datadir}/{valueData}/audio.csv"
+    base_path = os.path.normpath(datadir)
+
+    file_path = os.path.normpath(os.path.join(datadir, valueData, "audio.csv"))
+
+    if not file_path.startswith(base_path):
+        raise Exception("not allowed")
 
     with open(file_path, 'rb') as file:
         file_content = file.read()
@@ -803,7 +808,7 @@ def userRecover():
 @app.route("/external/receiver", methods=["POST"])
 def receiver():
     metadata = request.form["metadata"]
-    data = request.form["data"]
+    data = request.form["data"] 
     metadata = json.loads(metadata)
     userid = metadata["userId"]
     userfound = db.users.find_one({"_id": ObjectId(userid)})
@@ -811,6 +816,14 @@ def receiver():
     date = f"{dateTime[6:8]}/{dateTime[4:6]}/{dateTime[0:4]}"
     hour = f"{dateTime[9:11]}:{dateTime[11:13]}:{dateTime[13:15]}"
     data = json.loads(data)
+    data_img = str(data["imageName"])
+    datadir = os.path.normpath(os.path.join("Samples", userid))
+    path_dateTime = os.path.normpath(os.path.join(datadir, dateTime))
+    path_img = os.path.normpath(os.path.join(path_dateTime, data_img))
+
+    #verificando se o caminho completo começa com o caminho base
+    if not path_img.startswith(datadir):
+        raise Exception("not allowed")
 
     # armazena metadata da coleta ao mongodb
     if userfound:
@@ -833,40 +846,34 @@ def receiver():
     if not os.path.exists("Samples"):
         os.makedirs("Samples", exist_ok=True)
     else:
-        if not os.path.exists(f"Samples/{userid}"):
-            os.makedirs(f"Samples/{userid}", exist_ok=True)
+        if not os.path.exists(datadir): 
+            os.makedirs(datadir, exist_ok=True)
         else:
-            if not os.path.exists(f"Samples/{userid}/" + str(metadata["dateTime"])):
+            if not os.path.exists(path_dateTime):
                 os.makedirs(
-                    f"Samples/{userid}/" + str(metadata["dateTime"]), exist_ok=True
-                )
+                    path_dateTime, exist_ok=True
+                ) 
 
     try:
-        if data["imageData"] != "NO":
+        if data["imageData"] != "NO": 
             if not os.path.exists(
-                f"Samples/{userid}/"
-                + str(metadata["dateTime"])
-                + "/"
-                + str(data["imageName"])
+                path_img,
             ):
                 imageData = base64.b64decode(
                     re.sub("^data:image/\w+;base64,", "", data["imageData"])
                 )
-                with open(
-                    f"Samples/{userid}/"
-                    + str(metadata["dateTime"])
-                    + "/"
-                    + str(data["imageName"]),
+                with open( 
+                    path_img,
                     "wb",
                 ) as fh:
-                    fh.write(imageData)
+                    fh.write(imageData) 
 
     except:
         None
 
     traceData = ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"]
     if str(metadata["type"]) in traceData:
-        if not os.path.exists(f"Samples/{userid}/{dateTime}/trace.csv"):
+        if not os.path.exists(os.path.join(path_dateTime,"trace.csv")): 
             # se a base não existe, cria o csv
             fields = [
                 "site",
@@ -884,16 +891,16 @@ def receiver():
                 "height",
             ]
 
-            file = Path(f"Samples/{userid}/{dateTime}/trace.csv")
-            file.touch(exist_ok=True)
+            file = Path(os.path.join(path_dateTime,"trace.csv"))
+            file.touch(exist_ok=True) 
 
-            with open(f"Samples/{userid}/{dateTime}/trace.csv", "w") as csvfile:
+            with open(os.path.join(path_dateTime,"trace.csv"), "w") as csvfile: 
                 # criando um objeto csv dict writer
                 csvwriter = csv.writer(csvfile)
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
 
-        with open(f"Samples/{userid}/{dateTime}/trace.csv", "a", newline="") as csvfile:
+        with open(os.path.join(path_dateTime,"trace.csv"), "a", newline="") as csvfile: 
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
@@ -916,7 +923,7 @@ def receiver():
             )
 
         with open(
-            f"Samples/{userid}/" + str(metadata["dateTime"]) + "/lastTime.txt", "w"
+            os.path.join(path_dateTime,"lastTime.txt"), "w"
         ) as f:
             f.write(str(metadata["dateTime"]))
 
@@ -924,7 +931,7 @@ def receiver():
 
     # se for um dado de voz
     else:
-        if not os.path.exists(f"Samples/{userid}/{dateTime}/audio.csv"):
+        if not os.path.exists(os.path.join(path_dateTime, "audio.csv")): 
             # se a base não existe, cria o csv
             fields = [
                 "site",
@@ -941,16 +948,16 @@ def receiver():
                 "height",
             ]
 
-            file = Path(f"Samples/{userid}/{dateTime}/audio.csv")
-            file.touch(exist_ok=True)
+            file = Path(os.path.join(path_dateTime, "audio.csv"))
+            file.touch(exist_ok=True) #
 
-            with open(f"Samples/{userid}/{dateTime}/audio.csv", "w") as csvfile:
+            with open(os.path.join(path_dateTime, "audio.csv"), "w") as csvfile: 
                 # criando um objeto csv dict writer
                 csvwriter = csv.writer(csvfile)
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
 
-        with open(f"Samples/{userid}/{dateTime}/audio.csv", "a", newline="") as csvfile:
+        with open(os.path.join(path_dateTime, "audio.csv"), "a", newline="") as csvfile: 
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
@@ -972,7 +979,7 @@ def receiver():
             )
 
         with open(
-            f"Samples/{userid}/" + str(metadata["dateTime"]) + "/lastTime.txt", "w"
+            os.path.join(path_dateTime, "lastTime.txt"), "w" 
         ) as f:
             f.write(str(metadata["dateTime"]))
 
@@ -992,7 +999,7 @@ def sample_checker():
         #normalizando caminho base
         base_path = os.path.normpath(datadir)
 
-        directory_path = os.path.join(datadir, time)
+        directory_path = os.path.normpath(os.path.join(datadir, time))
 
         if not directory_path.startswith(base_path):
             raise Exception("not allowed")
@@ -1000,8 +1007,7 @@ def sample_checker():
         if not os.path.exists(directory_path):
             os.makedirs(directory_path, mode=0o777, exist_ok=True)
 
-        #normalizando caminho completo
-        fullpath = os.path.normpath(os.path.join(directory_path, "lastTime.txt"))
+        fullpath = os.path.join(directory_path, "lastTime.txt")
 
         if os.path.exists(fullpath):
             with open(fullpath, "r") as file:

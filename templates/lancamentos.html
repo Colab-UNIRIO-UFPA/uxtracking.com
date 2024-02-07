@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <style>
+        .minha-div {
+            width: 80%;        /* Define a largura para 80% da largura da tela */
+            margin: 0 auto;    /* Margem automática para centralizar */
+            padding-top: 80px; 
+        }
+        .meu-paragrafo {
+            text-align: left;
+            max-width: 600px; /* ou outra medida que prefira */
+            
+        }
+
+        
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    {% if not session %}
+        <div class="minha-div mt-5">
+            <h2 class="text-white">Lançamentos</h2>
+            <h6 class="meu-paragrafo mt-5">A versão mais estável do Framework User Experience Tracking é <strong>v0.8.7.5</strong></h6>
+            <h6 class="meu-paragrafo">Veja mais detalhes no nosso repositório do <a href="https://github.com/Colab-UNIRIO-UFPA" class="">Github</a></h6>
+
+            <hr class="mt-5 mb-5">
+
+            <h3>Atualizações Futuras</h3>
+            
+
+        </div>
+    {% else %}
+        
+    {% endif %}
+
+{% endblock %}

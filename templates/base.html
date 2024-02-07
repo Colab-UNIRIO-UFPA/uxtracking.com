@@ -9,25 +9,22 @@
     <style type="text/css">
       header{
         width: 100%;
+        z-index: 1000;
       }
       body {
         min-height: 100vh;
         min-height: -webkit-fill-available;
         background-color: rgba(0, 0, 0, .1);
-        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
-        
-      }
-      
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);  
+      }  
       html {
         height: -webkit-fill-available;
       }
-      
       main {
         height: -webkit-fill-available;
         overflow-x: auto;
         overflow-y: hidden;
       }
-
       .b-example-vr {
         flex-shrink: 0;
         width: 0.3rem;
@@ -36,19 +33,16 @@
         border: solid rgba(0, 0, 0, .15);
         border-width: 1px 0;
       }
-
       .bi {
         vertical-align: -.125em;
         fill: currentColor;
       }
-
       .nav-scroller {
         position: relative;
         z-index: 2;
         height: 2.75rem;
         overflow-y: hidden;
       }
-
       .nav-scroller .nav {
         display: flex;
         flex-wrap: nowrap;
@@ -59,7 +53,6 @@
         white-space: nowrap;
         -webkit-overflow-scrolling: touch;
       }
-
       .btn-bd-primary {
         --bd-violet-bg: #0f5778;
         --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
@@ -83,6 +76,7 @@
         background-color: rgb(0, 0, 0);
         opacity: 0.75;
       }
+      /*
       ::-webkit-scrollbar {
         background-color: rgba(0, 0, 0, 0);
         width: 10px;
@@ -91,39 +85,141 @@
         background-color: #707070;
         border-radius: 5px;
       }
+      */
+      .navbar-nav.mx-auto {
+        justify-content: center;
+        flex-grow: 1;
+        z-index: 1000;
+        align-items: center;
+        height: 100%;
+      }
+
+      /*
+      .navbar-nav .nav-link {
+        transition: color 0.2s ease-in-out;
+        position: relative;
+        overflow: hidden;
+
+      }       
+      .navbar-nav .nav-link::after {
+        content: '';
+        z-index: 1000;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: white; /* Cor do tracejado */
+        transform: scaleX(0);
+        transition: transform 0.2s ease-in-out;
+      }
+      .navbar-nav .nav-link:hover::after {
+        transform: scaleX(1);
+      }
+      blue: 1E90FF
+      */
+
+      .navbar-nav .nav-link {
+        transition: color 0.3s ease-in-out;
+      }
+      
+      .navbar-nav .nav-link:hover {
+        color: white; /* Cor ao passar o mouse */
+
+      }
+
+      .dropdown-menu {
+        animation: .5s slideup;
+      }
+      
+      @keyframes slideup{
+        from{
+          transform: translateY(10%);
+        }
+        to{
+          transform: translateY(0%);
+        }
+      .navbar {
+          z-index: 1000; /* Um valor alto para garantir que esteja acima de outros elementos */
+      }
+      }
     </style>
     {% block head %}{% endblock %}
 
   </head>
   <body>
+    
     {% if not session %}
-      <header>
-        <div class="px-3 py-2 text-bg-dark border-bottom" style="min-height: 10vh;">
-          <div class="container">
-            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-              <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+      <header style="position: fixed; top: 0; ">   
+        <div class="text-bg-dark">   
+          <nav class="navbar navbar-expand-lg bg-body-tertiary" style="z-index: 1000;">
+            <div class="container-fluid" style="width:80%;">
+              <a class="navbar-brand d-fl align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none" href="/">
                 <img class="bi me-2" src="{{ url_for('static', filename='logo.png') }}" alt="" width="auto" height="50">
-                <span class="fs-5 fw-bolder">UX-Tracking</span>
               </a>
-                <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
-                  <li>
-                    <a href="{{ url_for('index') }}" class="nav-link {{ 'text-secondary' if title == 'Home' else 'text-white'}}">
+              <span class="fs-5 fw-bolder" style="color: white;">UX-Tracking</span>
+
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+
+              <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                  <li class="nav-item-active">
+                    <a href="{{ url_for('index') }}" class="nav-link {{ 'text-secondary' if title == 'Home' else ''}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-house" viewBox="0 0 16 16">
                         <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
                       </svg>
                       Página inicial
                     </a>
                   </li>
-                  <li>
-                    <a href="{{ url_for('login') }}" class="nav-link {{ 'text-secondary' if title == 'Login' else 'text-white'}}">
+                  <li class="nav-item">
+                    <a href="{{ url_for('publicacoes') }}" class="nav-link {{ 'text-secondary' if title == 'Publicacoes' else ''}}">
+                      Publicações
+                    </a>
+                  </li>
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      Documentação
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a href="{{ url_for('guia') }}" class="dropdown-item nav-link {{ 'text-secondary' if title == 'Guia' else 'text-white'}}">
+                          Guia
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#" class="dropdown-item nav-link {{ 'text-secondary' if title == 'lancamentos' else 'text-white'}}">
+                          Tutoriais e Exemplos
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" {{ 'text-secondary' if title == 'Home' else 'text-white'}} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      Sobre
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li><a href="{{ url_for('equipe') }}" class="dropdown-item nav-link {{ 'text-secondary' if title == 'Equipe' else 'text-white'}}">
+                          Equipe</a>
+                      </li>
+                      <li><a href="{{ url_for('lancamentos') }}" class="dropdown-item nav-link {{ 'text-secondary' if title == 'Lancamentos' else 'text-white'}}">
+                          Lançamentos</a>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item" href="#">Guia da Comunidade</a></li>
+                    </ul>
+                  </li>
+                  <li class="nav-item">
+                    <a href="{{ url_for('login') }}" class="nav-link {{ 'text-secondary' if title == 'Login' else ''}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-person" viewBox="0 0 16 16">
                         <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
                       </svg>
                       Login
                     </a>
                   </li>
-                  <li>
-                    <a href="{{ url_for('register') }}" class="nav-link {{ 'text-secondary' if title == 'Registrar' else 'text-white'}}">
+                  <li class="nav-item">
+                    <a href="{{ url_for('register') }}" class="nav-link {{ 'text-secondary' if title == 'Registrar' else ''}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-person-add" viewBox="0 0 16 16">
                         <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
                         <path d="M8.256 14a4.474 4.474 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256Z"/>
@@ -131,19 +227,13 @@
                       Registrar
                     </a>
                   </li>
-                  <li>
-                    <a href="{{ url_for('forgot_pass') }}" class="nav-link {{ 'text-secondary' if title == 'Esqueci a senha' else 'text-white'}}">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-lock" viewBox="0 0 16 16">
-                        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
-                      </svg>
-                      Esqueci a senha
-                    </a>
-                  </li>
                 </ul>
+              </div>
             </div>
-          </div>
+          </nav>
         </div>
-      </header>
+      
+    </header>
     {% endif %}
 
 
@@ -399,6 +489,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/switchTheme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/meuscript.js') }}"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
     <script>
@@ -406,6 +497,10 @@
       var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl)
       })
+    </script>
+    <script>
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   </body>

@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <style>
+
+        .minha-div {
+            position: relative;
+            width: 80%;        /* Define a largura para 80% da largura da tela */
+            margin: 0 auto;    /* Margem automática para centralizar */
+            padding-top:65px;
+        }
+
+        .meu-paragrafo {
+            text-align: left;
+            max-width: 600px; /* ou outra medida que prefira */
+            
+        }
+        /*
+        #navbar-example3{
+          position: fixed;
+          border: 0px solid #1C1C1C;
+          background-color: #1C1C1C;
+          border-radius: 5px;
+          max-height: 400px; 
+          max-width: 350px;
+          overflow-y: auto;
+          padding: 10px;
+        }
+
+        @media screen and (max-width: 600px) {
+          #navbar-example3 {
+            width: 80%;
+            left: 10%;
+          }
+        }
+        */
+        
+        #navbar-example3 {
+          position: fixed;
+          top: 120px;
+          /*
+          max-height: 100vh; /* Altura máxima para garantir o scroll */
+          max-height: 400px;
+          */
+          height: 100%;
+          width: 320px;
+          overflow-y: auto; /* Habilita a barra de rolagem vertical se necessário */
+          border: 0px solid #1C1C1C;
+          background-color: #1C1C1C;
+          padding: 10px;
+        }
+        /* Estilização para garantir que a barra de navegação se ajuste ao conteúdo responsivamente */
+        @media (max-width: 1200px) { #navbar-example3 {width: 270px;} }
+        @media (max-width: 1000px) { #navbar-example3 {width: 220px;} }
+        @media (max-width: 880px) { #navbar-example3 {width: 200px;} }
+        @media (max-width: 800px) { #navbar-example3 {width: 190px; height:1000px; } }
+        @media (max-width: 770px) { #navbar-example3 {width: 170px;  height:1000px;} }
+        @media (max-width: 730px) { #navbar-example3 {width: 130px;  height:1000px; } }
+     
+        
+        /*
+        #navbar-example3 {
+          position: -webkit-sticky; /* Para o Safari */
+          position: sticky;
+          top: 0; /* Define o topo da barra de navegação como ponto de início do sticky */
+          max-height: 100vh;
+          overflow-y: auto;
+        }
+        .scrollspy-example-2 {
+          height: 450px; /* Altura fixa para demonstração */
+          overflow-y: scroll; /* Permite o scroll no conteúdo */
+        }
+        @media (max-width: 992px) { /* Ajusta para telas menores */
+          #navbar-example3 {
+            max-height: 50vh; /* Ajusta a altura em telas menores */
+          }
+        }
+        */
+
+      .img-guia {
+          width: 100%; /* ou qualquer largura desejada */
+          max-width: 600px; /* um exemplo de largura máxima para a div */
+          margin: auto; /* centraliza a div se a largura for menor que a largura da janela */
+      }
+      
+      .img-guia img {
+          width: 100%; /* faz a imagem se ajustar à largura da div */
+          height: auto; /* mantém as proporções da imagem */
+      }
+        
+    </style>
+    
+{% endblock %}
+
+{% block content %}
+    {% if not session %}
+        <div class="minha-div mt-5">
+           
+            <div class="row">
+                <div class="col-4">
+                  <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
+                    <nav class="nav nav-pills flex-column">
+                      
+                      <a class="nav-link" href="#item-1">1. Introdução</a>
+                      <a class="nav-link" href="#item-2">2. Instalação</a>
+                      <nav class="nav nav-pills flex-column">
+                        <a class="nav-link ms-3 my-1" href="#item-2-1">2.1 Versão Web</a>
+                        <a class="nav-link ms-3 my-1" href="#item-2-2">2.2 Versão Mobile</a>
+                      </nav>
+                      <a class="nav-link" href="#item-3">3. Como usar</a>
+                      <nav class="nav nav-pills flex-column">
+                        <a class="nav-link ms-3 my-1" href="#item-3-1">3.1 Versão Web</a>
+                        <a class="nav-link ms-3 my-1" href="#item-3-2">3.2 Versão Mobile</a>
+                      </nav>
+                      <a class="nav-link" href="#item-4">4. Métodos de Análise dos Resultados</a>
+                      <nav class="nav nav-pills flex-column">
+                        <a class="nav-link ms-3 my-1" href="#item-4-1">4.1 Item 1</a>
+                        <a class="nav-link ms-3 my-1" href="#item-4-2">4.2 Item 2</a>
+                      </nav>
+                    </nav>
+                  </nav>
+                </div>
+              
+                <div class="col-8" >
+                  <div data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" class="scrollspy-example-2" tabindex="0">
+                    <div id="item-1">
+                      <h2>Guia do Usuário</h2>
+                      <h4>Introdução</h4>
+                    
+                      <h5>Sobre a Ferramenta</h5>
+                      <p style="text-align: justify;">
+                        A UX-Tracking é a versão mais recente de uma ferramenta de captura multimodal gratuita e com licença de código aberto. Essa ferramenta pode ser utilizada tanto por pesquisadores quanto por profissionais da indústria que desejam realizar avaliações de User Experience (UX) em seus serviços e produtos. Além de permitir o acesso direto do usuário junto a ferramenta, com maior facilidade, sem a necessidade de configuração e instalação em sua máquina com módulos adicionais; a disponibilização de novos dispositivos de interação; e documentação detalhada, para seu uso, configuração e desenvolvimento por qualquer usuário. Para mais informações acesse a página Sobre no site da ferramenta através do <a href="https://uxtracking.andrepereira.eng.br/">link</a>.
+                      </p>
+
+                      <h5>Observações Adicionais</h5>
+                      <p  style="text-align: justify;">
+                        O seu uso livre não isenta os pesquisadores e profissionais das normas éticas que permeiam estudos envolvendo seres humanos. Portanto, é recomendado que estudos com a UX-Tracking estejam de acordo as normas vigentes de Ética em Pesquisa de cada área em que for utilizada (computação, saúde, educação, entre outros).
+                      </p>
+                    </div>
+                    <div id="item-2">
+                      <h4>Instalação</h4>
+                    </div>
+                    <div id="item-2-1">
+                      <h5>Versão Web</h5>
+                      <p  style="text-align: justify;">
+                        A instalação da ferramenta na versão Web consiste na instalação de uma extensão. A extensão pode ser encontrada na Chrome Web Store, que é a loja de extensões do Google, e pode ser acessada através do <a href="https://chromewebstore.google.com/?hl=pt-BR&utm_source=ext_sidebar">link</a>. 
+                      </p>
+                      <p>
+                        O passo a passo a seguir mostra como instalar a extensão.
+                        <ol>
+                          <li>
+                            Após acessar a loja de extensões, localize a barra de busca e pesquise o nome da ferramenta: UX-Tracking.
+                            <div class="img-guia mt-3 mb-3">
+                              <figure style="text-align: center; font-style: italic;">
+                                <img src="static/imagens-guia/barra-de-busca-loja-extensoes.png" alt="Descrição alternativa da imagem">
+                                <figcaption style="margin-top: 15px;">Etapa 1 para instalar a extensão.</figcaption>
+                              </figure>
+                          </div>
+                          </li>
+                          <li>
+                            Clique na opção UX-Tracking Extension, conforme a Figura 
+                            <div class="img-guia  mt-3 mb-3">
+                              <figure style="text-align: center; font-style: italic;">
+                                <img src="static/imagens-guia/opcao-busca-ux-tracking.png" alt="Descrição alternativa da imagem">
+                                <figcaption style="margin-top: 15px;">Etapa 2 para instalar a extensão.</figcaption>
+                              </figure> 
+                          </div>
+                          </li>
+                          <li>
+                            Clique em ``Usar no Chrome" para instalar a extensão, conforme a Figura
+                            <div class="img-guia  mt-3 mb-3">
+                              <figure style="text-align: center; font-style: italic;">
+                                <img src="static/imagens-guia/pagina-ux-tracking-loja.png" alt="Descrição alternativa da imagem">
+                                <figcaption style="margin-top: 15px;">Etapa 3 para instalar a extensão.</figcaption>
+                              </figure> 
+                          </div>
+                          </li>
+                          <li>
+                            Após isso, aparecerá uma mensagem pop-up perguntando se deseja adicionar a extensão, conforme a Figura
+                            <div class="img-guia  mt-3 mb-3">
+                              <figure style="text-align: center; font-style: italic;">
+                                <img src="static/imagens-guia/pop-up-adicionar-extensao.png" alt="Descrição alternativa da imagem">
+                                <figcaption style="margin-top: 15px;">Etapa 4 para instalar a extensão.</figcaption>
+                              </figure> 
+                            </div>
+                          
+                          </li>
+                        </ol>
+                        Com isso, a extensão estará instalada em seu navegador Chrome e pronta para uso.
+                      </p>
+                    </div>
+                    <div id="item-2-2">
+                      <h5>Versão Mobile</h5>
+                      <p  style="text-align: justify;">
+                        O seu uso livre não isenta os pesquisadores e profissionais das normas éticas que permeiam estudos envolvendo seres humanos. Portanto, é recomendado que estudos com a UX-Tracking estejam de acordo as normas vigentes de Ética em Pesquisa de cada área em que for utilizada (computação, saúde, educação, entre outros).
+                      </p>                      
+                    </div>
+                    <div id="item-3">
+                      <h4>Como Usar?</h4>
+                      <p style="text-align: justify;">Para utilizar a extensão, você deve acessar a página de extensões do seu navegador através do caminho demonstrado na Figura.</p>
+                        <div class="img-guia  mt-3 mb-3">
+                          <figure style="text-align: center; font-style: italic;">
+                            <img src="static/imagens-guia/ativar-extensao.png" alt="Descrição alternativa da imagem">
+                            <figcaption style="margin-top: 15px;">Etapa 1 para utilizar a extensão.</figcaption>
+                          </figure>  
+                        </div>
+
+                        <p style="text-align: justify;">Ative a extensão clicando no botão no canto inferior direito, conforme a Figura</p>
+                        
+                        <div class="img-guia  mt-3 mb-3">
+                          <figure style="text-align: center; font-style: italic;">
+                            <img src="static/imagens-guia/botao-ativar-extensao.png" alt="Descrição alternativa da imagem">
+                            <figcaption style="margin-top: 15px;">Etapa 2 para utilizar a extensão.</figcaption>
+                          </figure>  
+                        </div>
+
+                        <p style="text-align: justify;">Após isso, abra uma nova aba no seu navegador e digite o endereço do site no qual deseja utilizar a ferramenta. Ao acessar o site, aparecerá uma mensagem <i>pop-up</i> indicando que é necessário realizar <i>login</i> na extensão, conforme a Figura anterior. Caso a mensagem <i>pop-up</i> não apareça, deve-se realizar o <i>login</i> por meio do menu de extensões do Chrome, localizado ao lado da barra de endereços e indicado na Figura.</p>
+
+                        <div class="img-guia  mt-3 mb-3">
+                          <figure style="text-align: center; font-style: italic;">
+                            <img src="static/imagens-guia/menu-extensoes-chrome.png" alt="Descrição alternativa da imagem">
+                          </figure>  
+                          <figure style="text-align: center; font-style: italic;">
+                            <img src="static/imagens-guia/mensagem-pop-up-login-extensao.png" alt="Descrição alternativa da imagem">
+                            <figcaption style="margin-top: 15px;">Etapa 3 e 4 para utilizar a extensão.</figcaption>
+                          </figure> 
+                        </div>
+
+                        <p style="text-align: justify;">Clique no menu de extensões e, logo em seguida, na extensão da UX-Tracking. Após clicar, aparecerá a janela, mostrada na Figura <i>figura:janela-login-extensao</i>, para realizar o <i>login</i>. Insira seu nome de usuário e senha criados ao realizar o cadastro no site da UX-Tracking.</p>
+                      
+                        <div class="img-guia  mt-3 mb-3">
+                          <figure style="text-align: center; font-style: italic;">
+                            <img src="static/imagens-guia/janela-login-extensao.png" alt="Descrição alternativa da imagem">
+                            <figcaption style="margin-top: 15px;">Etapa 5 para utilizar a extensão.</figcaption>
+                          </figure>  
+                        </div>
+
+                        <p style="text-align: justify;">Após isso, selecione as variáveis que deseja que a ferramenta colete. As opções disponíveis atualmente são: a ferramenta estará pronta para ser utilizada.</p>
+                      
+                      </p>
+                    </div>
+                    <div id="item-3-1">
+                      <h5>Versão Web</h5>
+                      <p>...</p>
+                    </div>
+                    <div id="item-3-2">
+                      <h5>Versão Mobile</h5>
+                      <p>...</p>
+                    </div>
+                    <div id="item-3">
+                      <h4>Métodos de Análise dos Resultados</h4>
+                      <p>...</p>
+                    </div>
+                    <div id="item-3-1">
+                      <h5>Item 1</h5>
+                      <p>...</p>
+                    </div>
+                    <div id="item-3-2">
+                      <h5>Item 2</h5>
+                      <p>...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+        
+    {% else %}
+        
+    {% endif %}
+
+{% endblock %}

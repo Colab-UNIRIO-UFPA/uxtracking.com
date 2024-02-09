@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro {{erro}}</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100vh;
+            background-color: #19181E;
+            box-sizing: border-box;
+        }
+
+        .apresentacao__conteudo__titulo{
+            color: #C23131;
+            font-size: 40px;
+        }
+
+        .apresentacao__conteudo__texto {
+            color: white;
+            font-size: 18px;
+        }
+
+        .apresentacao{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10% 15%;
+        }
+
+        .apresentacao__conteudo{
+            width: 650px;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+        }
+
+        .apresentacao__conteudo__link{
+            color: #DAA55F;
+        }
+
+        .apresentacao__conteudo__link:hover{
+            color: #EB7326
+        }
+    </style>
+</head>
+<body>
+    <main class="apresentacao">
+        <img src="{{url_for('static', filename='error-page.png')}}" alt="error icon" width="350" height="350">
+        <section class="apresentacao__conteudo">
+            <p class="apresentacao__conteudo__titulo">Erro {{erro}}</p>
+            <p class="apresentacao__conteudo__texto">{{message}}</p>
+            <P class="apresentacao__conteudo__texto">Se desejar obter mais informações ou relatar o erro, por favor, entre em contato conosco através do e-mail <a class="apresentacao__conteudo__link" href="mailto:uxtracking.service@gmail.com">uxtracking.service@gmail.com</a></P>
+            <p class="apresentacao__conteudo__texto">Você pode retornar à página inicial clicando no link: <a class="apresentacao__conteudo__link" href="{{url_for('index')}}">Voltar para Página Inicial</a></p>
+        </section>
+    </main>
+</body>
+</html>

@@ -34,6 +34,7 @@ import sys
 from unidecode import unidecode
 import plotly.io as pio
 from django.core.paginator import Paginator
+from werkzeug.exceptions import HTTPException
 
 # delete se estiver utilizando windows
 load_dotenv()
@@ -70,6 +71,31 @@ app.config.update(
     MAIL_PASSWORD=os.environ["MAIL_PASSWORD"],
 )
 mail = Mail(app)
+
+# manipuladores de erro
+@app.errorhandler(404)
+def page_not_found(error):
+    message='A página que você está tentando acessar não foi encontrada neste servidor. Isso pode ocorrer devido a uma URL incorreta, uma página removida ou um link desatualizado.'
+    return render_template('erro.html', erro=404, message=message), 404
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    message = "O servidor encontrou um erro interno e não pôde atender à sua solicitação. Isso pode ser devido a uma sobrecarga no servidor ou a um erro na aplicação."
+    return render_template('erro.html', erro=500, message=message), 500
+
+@app.errorhandler(403)
+def forbidden(error):
+    message = 'Você não tem permissão para acessar o recurso solicitado. Ele está protegido contra leitura ou não é legível pelo servidor.'
+    return render_template('erro.html', erro=403, message=message), 403
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if isinstance(e, HTTPException):
+        message='Ops! Parece que encontramos um problema ao processar sua solicitação. Por favor, tente novamente mais tarde.'
+        return render_template("erro.html", message=message)
+
+    message = "O servidor encontrou um erro interno e não pôde atender à sua solicitação. Isso pode ser devido a uma sobrecarga no servidor ou a um erro na aplicação."
+    return render_template('erro.html', erro=500, message=message), 500
 
 # Define a rota para a página de registro
 @app.route("/register", methods=["GET", "POST"])
@@ -283,7 +309,7 @@ def index():
 
             #verificando se o caminho completo começa com o caminho base
             if not fullpath.startswith(base_path):
-                raise Exception("not allowed")
+                abort(403)
 
             # cria um zip para inserção dos dados selecionados
             with zipfile.ZipFile(f"{folder}_data.zip", "w") as zipf:
@@ -649,7 +675,7 @@ def downloadAudio():
     file_path = os.path.normpath(os.path.join(datadir, valueData, "audio.csv"))
 
     if not file_path.startswith(base_path):
-        raise Exception("not allowed")
+        abort(403)
 
     with open(file_path, 'rb') as file:
         file_content = file.read()
@@ -681,7 +707,7 @@ def dataview(username, plot=None):
             folder = os.path.normpath(os.path.join(base_path, dir))
 
             if not folder.startswith(base_path):
-                raise Exception("not allowed")
+                abort(403)
            
             if plot == "heatmap":
                 return make_heatmap(folder)
@@ -823,7 +849,7 @@ def receiver():
 
     #verificando se o caminho completo começa com o caminho base
     if not path_img.startswith(datadir):
-        raise Exception("not allowed")
+        abort(403)
 
     # armazena metadata da coleta ao mongodb
     if userfound:
@@ -1002,7 +1028,7 @@ def sample_checker():
         directory_path = os.path.normpath(os.path.join(datadir, time))
 
         if not directory_path.startswith(base_path):
-            raise Exception("not allowed")
+            abort(403)
 
         if not os.path.exists(directory_path):
             os.makedirs(directory_path, mode=0o777, exist_ok=True)

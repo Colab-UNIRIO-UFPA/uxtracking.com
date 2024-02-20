@@ -6,6 +6,8 @@
     <title>UX-Tracking: {{title}}</title>
     <link rel="shortcut icon" type="imagex/png" href="{{ url_for('static', filename='icon.svg') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="static/css/bootstrap.css">
+    <link rel="stylesheet" href="static/css/style.css">
     <style type="text/css">
       header{
         width: 100%;
@@ -33,6 +35,7 @@
         border: solid rgba(0, 0, 0, .15);
         border-width: 1px 0;
       }
+      
       .bi {
         vertical-align: -.125em;
         fill: currentColor;
@@ -53,6 +56,8 @@
         white-space: nowrap;
         -webkit-overflow-scrolling: touch;
       }
+      
+      
       .btn-bd-primary {
         --bd-violet-bg: #0f5778;
         --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
@@ -69,6 +74,8 @@
         --bs-btn-active-bg: #144f6a;
         --bs-btn-active-border-color: #144f6a;
       }
+      
+    
       .bd-mode-toggle {
         z-index: 1500;
       }
@@ -76,16 +83,7 @@
         background-color: rgb(0, 0, 0);
         opacity: 0.75;
       }
-      /*
-      ::-webkit-scrollbar {
-        background-color: rgba(0, 0, 0, 0);
-        width: 10px;
-      }
-      ::-webkit-scrollbar-thumb {
-        background-color: #707070;
-        border-radius: 5px;
-      }
-      */
+
       .navbar-nav.mx-auto {
         justify-content: center;
         flex-grow: 1;
@@ -93,31 +91,6 @@
         align-items: center;
         height: 100%;
       }
-
-      /*
-      .navbar-nav .nav-link {
-        transition: color 0.2s ease-in-out;
-        position: relative;
-        overflow: hidden;
-
-      }       
-      .navbar-nav .nav-link::after {
-        content: '';
-        z-index: 1000;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background-color: white; /* Cor do tracejado */
-        transform: scaleX(0);
-        transition: transform 0.2s ease-in-out;
-      }
-      .navbar-nav .nav-link:hover::after {
-        transform: scaleX(1);
-      }
-      blue: 1E90FF
-      */
 
       .navbar-nav .nav-link {
         transition: color 0.3s ease-in-out;
@@ -131,6 +104,10 @@
       .dropdown-menu {
         animation: .5s slideup;
       }
+
+      .link-press:hover, .link-press:active {
+        color: orange !important; /* Faz o link ficar laranja quando pressionado */
+      }
       
       @keyframes slideup{
         from{
@@ -142,6 +119,7 @@
       .navbar {
           z-index: 1000; /* Um valor alto para garantir que esteja acima de outros elementos */
       }
+    
       }
     </style>
     {% block head %}{% endblock %}
@@ -166,7 +144,7 @@
               <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                   <li class="nav-item-active">
-                    <a href="{{ url_for('index') }}" class="nav-link {{ 'text-secondary' if title == 'Home' else ''}}">
+                    <a href="{{ url_for('index') }}" class="nav-link link-press {{ 'text-primary' if title == 'Home' else ''}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-house" viewBox="0 0 16 16">
                         <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
                       </svg>
@@ -174,29 +152,29 @@
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="{{ url_for('publicacoes') }}" class="nav-link {{ 'text-secondary' if title == 'Publicacoes' else ''}}">
+                    <a href="{{ url_for('publicacoes') }}" class="nav-link link-press {{ 'text-primary' if title == 'Publicacoes' else 'text-white'}}">
                       Publicações
                     </a>
                   </li>
                   <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link text-white link-press dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       Documentação
                     </a>
                     <ul class="dropdown-menu">
                       <li>
-                        <a href="{{ url_for('guia') }}" class="dropdown-item nav-link {{ 'text-secondary' if title == 'Guia' else 'text-white'}}">
+                        <a href="{{ url_for('guia') }}" class=" link-press dropdown-item nav-link {{ 'text-secondary' if title == 'Guia' else 'text-white'}}">
                           Guia
                         </a>
                       </li>
                       <li>
-                        <a href="#" class="dropdown-item nav-link {{ 'text-secondary' if title == 'lancamentos' else 'text-white'}}">
+                        <a href="#" class="dropdown-item link-press nav-link {{ 'text-secondary' if title == 'lancamentos' else 'text-white'}}">
                           Tutoriais e Exemplos
                         </a>
                       </li>
                     </ul>
                   </li>
                   <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" {{ 'text-secondary' if title == 'Home' else 'text-white'}} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link text-white link-press dropdown-toggle" {{ 'text-primary' if title == 'Home' else 'text-white'}} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       Sobre
                     </a>
                     <ul class="dropdown-menu">
@@ -211,7 +189,7 @@
                     </ul>
                   </li>
                   <li class="nav-item">
-                    <a href="{{ url_for('login') }}" class="nav-link {{ 'text-secondary' if title == 'Login' else ''}}">
+                    <a href="{{ url_for('login') }}" class="nav-link link-press {{ 'text-primary' if title == 'Login' else 'text-white'}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-person" viewBox="0 0 16 16">
                         <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
                       </svg>
@@ -219,7 +197,7 @@
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="{{ url_for('register') }}" class="nav-link {{ 'text-secondary' if title == 'Registrar' else ''}}">
+                    <a href="{{ url_for('register') }}" class="nav-link link-press {{ 'text-primary' if title == 'Registrar' else 'text-white'}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-person-add" viewBox="0 0 16 16">
                         <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
                         <path d="M8.256 14a4.474 4.474 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256Z"/>
@@ -370,7 +348,7 @@
 
         <div class="b-example-divider b-example-vr"></div>
 
-        <!-- botão de tema -->
+        <!--
         <div class="dropdown position-fixed bottom-0 end-0 mb-4 me-3 bd-mode-toggle">
           <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
                   id="bd-theme"
@@ -414,9 +392,13 @@
             </li>
           </ul>
         </div>
+      -->
+
     
     {% else %}
       <main class="d-flex flex-column flex-nowrap">
+
+        <!--
 
         <div class="dropdown position-fixed bottom-0 end-0 mb-5 pb-5 me-3 bd-mode-toggle">
           <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
@@ -461,6 +443,7 @@
             </li>
           </ul>
         </div>
+        -->
     {% endif %}
 
       

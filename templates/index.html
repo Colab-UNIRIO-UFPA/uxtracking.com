@@ -78,7 +78,22 @@
       [transition-style="in:square:bottom-right"] {
         animation: 2.5s cubic-bezier(.25, 1, .30, 1) square-in-bottom-right both;
       }
-      
+
+      .btn-outline-secondary:hover{
+        color: #ffff;
+        border-color: #fd7e14;
+      }
+
+      .btn-outline-info{
+        background: #fd7e14;
+        border-color: #fd7e14;
+      }
+      .btn-outline-info:hover{
+        background: #FF4E00;
+        border-color: #FF4E00;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.5); /* Sombra inicial */
+    }
+
     
     
     </style>
@@ -97,7 +112,7 @@
                     <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Avaliação de UX em Interfaces Web e Mobile de Forma Automatizada</h1>
                     <p class="lead text-justify">Realize avaliações de UX rastreando múltiplas interações do usuário com a ferramenta UX-Tracking: User eXperience Tracking. Com a nossa solução é possível coletar dados de interação do usuário em tempo real, mapear jornadas do usuário, identificar pontos de interesse e fornecer insights relacionados e Experiência do Usuário em Ambientes Web e Mobile.</p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start py-3">
-                        <a href="{{ url_for('login') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-primary btn-lg px-4 me-md-2">Entrar</button></a>
+                        <a href="{{ url_for('login') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-primary text-white btn-lg px-4 me-md-2">Entrar</button></a>
                         <a href="{{ url_for('register') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-outline-secondary btn-lg px-4">Obter acesso</button></a>
                     </div>
                 </div>
@@ -109,7 +124,7 @@
         <div class="b-example-divider" id="h-divider"></div>
 
         <div class="container px-5 py-5" id="featured-3">
-            <h2 class="pb-2 border-bottom mb-2 border-primary border-1">O que nossa ferramenta captura?</h2>
+            <h2 style="" class="pb-2 border-bottom mb-2 border-primary border-1">O que nossa ferramenta captura?</h2>
             
             <div class="row px-5 ">
 
@@ -322,7 +337,7 @@
 
                     <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
                         <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-outline-info btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <button type="button" style="border-color: #fff;" class="btn text-white btn-outline-secondary btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
                             Saber mais
                         </button>
                         
@@ -338,7 +353,7 @@
                                     <p class="text-justify">O <strong>Mapa de Calor Temporal</strong>, a partir dos rastreios do <strong>mouse</strong> e dos <strong>olhos</strong>, fornece uma visão geral dos padrões de comportamento, regiões de interesse e desinteresse do usuário, permitindo uma visão detalhada da usabilidade, eficácia e validação da interface.</p>
                                 </div>
                                 <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
                                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
                                 </div>
                             </div>
@@ -356,7 +371,7 @@
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
                          <!-- Button trigger modal -->
-                         <button type="button" class="btn btn-outline-info btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_2">
+                         <button type="button" style="border-color: #fff;" class="btn text-white btn-outline-secondary btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_2">
                             Saber mais
                         </button>
                         
@@ -372,7 +387,7 @@
                                     <p class="text-justify">A ferramenta também permite a <strong>captura das expressões faciais</strong> para a análise de emoções dos usuários durante a captura. Essa abordagem ajuda a identificar pontos específicos de engajamento ou de dificuldade, permitindo ajustes mais precisos em produtos, serviços ou processos.</p>
                                 </div>
                                 <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
                                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
                                 </div>
                             </div>
@@ -391,7 +406,7 @@
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
                         <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-outline-info btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_3">
+                        <button type="button" style="border-color: #fff;" class="btn btn-outline-secondary text-white btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_3">
                            Saber mais
                        </button>
                        
@@ -407,7 +422,7 @@
                                    <p class="text-justify">Através da <strong>captura avançada da voz</strong> dos usuários, esta abordagem não só permite a <strong>análise dos sentimentos por meio de áudio</strong>, mas também busca enriquecer significativamente o entendimento sobre o comportamento, usabilidade e reações dos usuários durante a navegação.</p>
                                </div>
                                <div class="modal-footer">
-                               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
                                </div>
                            </div>

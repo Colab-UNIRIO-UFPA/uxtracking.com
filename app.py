@@ -456,14 +456,14 @@ def datafilter(username, metadata):
                 with zipfile.ZipFile(f"{username}_data.zip", "w") as zipf:
                     # filtragem dos dados utilizados
                     for date in session["dates"]:
-                        df = pd.read_csv(f"{datadir}/{date}/trace.csv")
+                        df = pd.read_csv(f"{datadir}/{date}/trace.csv", encoding='iso-8859-1')
                         df = df[df.site.isin(session["pages"])]
                         df.insert(0, "datetime", [date] * len(df.index), True)
                         tracefiltered = pd.concat(
                             [tracefiltered, df], ignore_index=False
                         )
                         try:
-                            df_audio = pd.read_csv(f"{datadir}/{date}/audio.csv")
+                            df_audio = pd.read_csv(f"{datadir}/{date}/audio.csv", encoding='iso-8859-1')
                             df_audio = df_audio[df_audio.site.isin(session["pages"])]
                             df_audio.insert(
                                 0, "datetime", [date] * len(df_audio.index), True
@@ -559,7 +559,7 @@ def datafilter(username, metadata):
                 pages = []
                 for date in dates:
                     # Lendo as páginas no csv
-                    df = pd.read_csv(f"{datadir}/{date}/trace.csv")
+                    df = pd.read_csv(f"{datadir}/{date}/trace.csv", encoding='iso-8859-1')
                     for page in df.site.unique():
                         if page not in pages:
                             pages.append(page)

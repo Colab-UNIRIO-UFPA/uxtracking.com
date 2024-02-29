@@ -560,7 +560,7 @@ def datafilter(username, metadata):
                 for date in dates:
                     # Lendo as páginas no csv
                     df = pd.read_csv(f"{datadir}/{date}/trace.csv")
-                    for page in df.site.unique():
+                    for page in df.site.unique(): 
                         if page not in pages:
                             pages.append(page)
 

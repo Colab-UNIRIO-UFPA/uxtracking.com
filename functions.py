@@ -588,7 +588,7 @@ def make_heatmap(folder):
 
 
 def make_recording(folder, **kwargs):
-    df_trace = pd.read_csv(f"{folder}/trace.csv")
+    df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
     plots = []
 
     im = Image.open(f"{folder}/{df_trace.image[0]}")

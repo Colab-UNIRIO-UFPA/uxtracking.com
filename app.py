@@ -1000,7 +1000,7 @@ def receiver():
         return "received"
 
     # se for um dado de voz
-    elif str(metadata["type"]) == 'voice':
+    elif (str(metadata["type"]) == 'voice'):
         if not os.path.exists(os.path.join(path_dateTime, "audio.csv")):
             # se a base não existe, cria o csv
             fields = [
@@ -1054,7 +1054,7 @@ def receiver():
         return "received"
     
     # se for um dado de expressão facial
-    elif str(metadata["type"]) == 'face':
+    elif (str(metadata["type"]) == 'face'):
         if not os.path.exists(os.path.join(path_dateTime, "emotions.csv")):
             # se a base não existe, cria o csv
             fields = [
@@ -1118,7 +1118,6 @@ def receiver():
 
         with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
             f.write(str(metadata["dateTime"]))
-
         return "received"
     
     else:
@@ -1179,9 +1178,19 @@ def faceExpression():
     with torch.no_grad():
         outputs = model(image_transformed)
         outputs = F.softmax(outputs, dim=1)
-        _, predicted = torch.max(outputs, 1)
+    result = outputs.tolist()
 
-    return predicted.tolist()
+    labels = ['anger',
+    'contempt', 
+    'disgust', 
+    'fear', 
+    'happy', 
+    'neutral', 
+    'sad', 
+    'surprise']
+
+    result_dict = {label: prob for label, prob in zip(labels, result[0])}
+    return jsonify(result_dict)
 
 
 def send_email(subject, body):

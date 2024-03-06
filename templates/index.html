@@ -79,8 +79,12 @@
         animation: 2.5s cubic-bezier(.25, 1, .30, 1) square-in-bottom-right both;
       }
 
+      .btn-outline-secondary{
+        border-color: #fff;
+      }
+
       .btn-outline-secondary:hover{
-        color: #ffff;
+        color: #fff;
         border-color: #fd7e14;
       }
 
@@ -113,7 +117,7 @@
                     <p class="lead text-justify">Realize avaliações de UX rastreando múltiplas interações do usuário com a ferramenta UX-Tracking: User eXperience Tracking. Com a nossa solução é possível coletar dados de interação do usuário em tempo real, mapear jornadas do usuário, identificar pontos de interesse e fornecer insights relacionados e Experiência do Usuário em Ambientes Web e Mobile.</p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start py-3">
                         <a href="{{ url_for('login') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-primary text-white btn-lg px-4 me-md-2">Entrar</button></a>
-                        <a href="{{ url_for('register') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-outline-secondary btn-lg px-4">Obter acesso</button></a>
+                        <a href="{{ url_for('register') }}"><button type="button" transition-style="in:square:bottom-right" class="btn text-white btn-outline-secondary btn-lg px-4">Obter acesso</button></a>
                     </div>
                 </div>
             </div>
@@ -327,7 +331,7 @@
             <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
                 
                 <div class="feature col">
-                    <div class="feature-icon align-items-center justify-content-center fs-2 mb-3">
+                    <div class="feature-icon align-items-center justify-content-center fs-2 mb-3"  style="display: flex; justify-content: center; align-items: center;">
                         <img src="{{ url_for('static', filename='mapa-de-calor.png')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
                     </div>
 
@@ -337,7 +341,7 @@
 
                     <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
                         <!-- Button trigger modal -->
-                        <button type="button" style="border-color: #fff;" class="btn text-white btn-outline-secondary btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <button type="button" class="btn text-white btn-outline-secondary btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
                             Saber mais
                         </button>
                         
@@ -350,11 +354,46 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="text-justify">O <strong>Mapa de Calor Temporal</strong>, a partir dos rastreios do <strong>mouse</strong> e dos <strong>olhos</strong>, fornece uma visão geral dos padrões de comportamento, regiões de interesse e desinteresse do usuário, permitindo uma visão detalhada da usabilidade, eficácia e validação da interface.</p>
+                                    <p class="text-justify">O recurso de Mapa de Calor Temporal oferece <strong>insights valiosos</strong> sobre como os visitantes navegam e interagem com o seu site. Utilizando dados avançados de <strong>rastreamento do mouse e do olhar</strong>, este recurso ilustra visualmente as áreas que capturam mais atenção e aquelas que são frequentemente ignoradas. </p>
+                                    <p class="text-justify"><strong>Veja um video demostrativo:</strong></p>
+                                    
+                                    <div class="d-flex justify-content-center" style="height: 100%;"><!-- Altura opcional -->
+                                        <video controls width="400" height="auto" loading="lazy">
+                                          <source src="{{ url_for('static', filename='mapa-de-calor.mp4') }}" type="video/mp4">
+                                          Seu navegador não suporta o elemento de vídeo.
+                                    </video>
+                                    
+                                    </div>
+                                      <p class="mt-4 text-justify">Com esta poderosa ferramenta, você pode:</p>
+                                      <ul class="text-justify">
+                                          <li>
+                                              <strong>Identificar Padrões de Comportamento:</strong> Entenda os caminhos mais comuns que os usuários seguem, revelando o fluxo natural da experiência no seu site.
+                                          </li>
+                                          <li>
+                                              <strong>Destacar Regiões de Interesse:</strong> Descubra quais elementos ou seções atraem mais atenção, permitindo otimizações focadas naquilo que realmente importa para o seu público.
+                                          </li>
+                                          <li>
+                                              <strong>Revelar Áreas de Desinteresse:</strong> Identifique seções menos engajadoras para aprimorar ou reestruturar, garantindo uma experiência de usuário mais envolvente.
+                                          </li>
+                                          <li>
+                                              <strong>Aprimorar Usabilidade e Eficiência:</strong> Faça ajustes informados na sua interface para melhorar a navegação, aumentar a satisfação do usuário e otimizar conversões.
+                                          </li>
+                                      </ul>
+
+                                    <p class="text-justify">Além disso, são oferecidas outras imagens que destacam o rastreio usuário durante o sitem veja:</p>
+
+                                    <div class="d-flex justify-content-center">
+                                        <img src="{{ url_for('static', filename='rastreio.png') }}" width="400px" height="auto" loading="lazy">
+                                    </div>
+
+                                    <p class="mt-4 text-justify">Este recurso é essencial para quem busca aprimorar a experiência do usuário, melhorar a usabilidade do site e validar eficazmente o design da interface. A análise desses insights permitem a <strong>tomada de decisões estratégicas</strong> que conduzem às melhorias do seu site.</p>
+                                      
+                                    
+                                    
                                 </div>
                                 <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
-                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                                <button type="button" class="btn btn-outline-secondary text-white" data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn text-white btn-primary" data-bs-dismiss="modal">Entendido</button>
                                 </div>
                             </div>
                             </div>
@@ -363,7 +402,55 @@
                 </div>
 
                 <div class="feature col">
-                    <div class="feature-icon  align-items-center justify-content-center fs-2 mb-3">
+                    <div class="feature-icon align-items-center justify-content-center fs-2 mb-3"  style="display: flex; justify-content: center; align-items: center;">
+                        <img src="{{ url_for('static', filename='processamento-de-linguagem-natural.png')}}" class="d-block mx-lg-auto img-fluid" width="100vh" height="auto" loading="lazy">    
+                    </div>
+                    <h3 class="fs-2 text-body-emphasis text-center">BERTimbal</h3>
+                    <p class="text-center ">A análise dos sentimentos por meio da coleta de <strong>áudio</strong> dos usuários propõe enriquecer ainda mais os insigts de Usabilidade</p>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-outline-secondary text-white btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_3">
+                           Saber mais
+                       </button>
+                       
+                       <!-- Modal -->
+                       <div class="modal fade modal-dialog-scrollable" id="exampleModal_3" tabindex="-1" aria-labelledby="exampleModalLabel_3" aria-hidden="true">
+                           <div class="modal-dialog">
+                           <div class="modal-content">
+                               <div class="modal-header">
+                               <h1 class="modal-title fs-5" id="exampleModalLabel_3">Análise BERTimbal</h1>
+                               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                               </div>
+                               <div class="modal-body">
+
+                                   <p class="text-justify">Explore uma nova dimensão dos <strong>insights</strong> de usabilidade a partir da <strong>análise de sentimentos através da coleta de aúdio</strong>. Ao coletar e analisar a voz dos usuários, oferecemos uma compreensão mais profunda da interação com o seu site a partir da seguintes emoções:</p>
+
+                                   <div class="d-flex justify-content-center">
+                                    <img src="{{ url_for('static', filename='result-bertimbal2.jpeg') }}" width="500px" height="auto" loading="lazy">
+                                    </div>
+
+                                   <p  class="text-justify mt-3">Essa abordagem não só permite a <strong>análise dos sentimentos por meio de áudio</strong>, mas também busca enriquecer significativamente o entendimento sobre o comportamento, usabilidade e reações dos usuários durante a navegação.</p>
+                                   
+                                   <p class="text-justify">Para uma representação mais visual das emoções obtidas durante a coleta dos usuários, oferecemos um dashboard completo com um <strong>gráfico radar</strong> das emoções, veja: </p>
+
+                                   <div class="d-flex justify-content-center">
+                                    <img src="{{ url_for('static', filename='result-bertimbal.jpeg') }}" width="450px" height="auto" loading="lazy">
+                                    </div>
+
+                                </div>
+                               <div class="modal-footer">
+                               <button type="button" class="btn btn-outline-secondary text-white" data-bs-dismiss="modal">Fechar</button>
+                               <button type="button" class="btn text-white btn-primary" data-bs-dismiss="modal">Entendido</button>
+                               </div>
+                           </div>
+                           </div>
+                       </div>
+                   </div>
+                </div>
+
+                <div class="feature col">
+                    <div class="feature-icon  align-items-center justify-content-center fs-2 mb-3" style="display: flex; justify-content: center; align-items: center;">
                         <img src="{{ url_for('static', filename='comentarios.png')}}" class="d-block mx-lg-auto img-fluid" width="80vh" height="auto" loading="lazy">
                     </div>
                     <h3 class="fs-2 text-body-emphasis text-center">Análise de Expressões Faciais</h3>
@@ -371,7 +458,7 @@
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
                          <!-- Button trigger modal -->
-                         <button type="button" style="border-color: #fff;" class="btn text-white btn-outline-secondary btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_2">
+                         <button type="button" class="btn text-white btn-outline-secondary btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_2">
                             Saber mais
                         </button>
                         
@@ -387,8 +474,8 @@
                                     <p class="text-justify">A ferramenta também permite a <strong>captura das expressões faciais</strong> para a análise de emoções dos usuários durante a captura. Essa abordagem ajuda a identificar pontos específicos de engajamento ou de dificuldade, permitindo ajustes mais precisos em produtos, serviços ou processos.</p>
                                 </div>
                                 <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
-                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                                <button type="button" class="btn btn-outline-secondary text-white" data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn text-white btn-primary" data-bs-dismiss="modal">Entendido</button>
                                 </div>
                             </div>
                             </div>
@@ -396,43 +483,8 @@
                     </div>
 
                 </div>
-                <div class="feature col">
-                    <div class="feature-icon align-items-center justify-content-center fs-2 mb-3">
-                        <img src="{{ url_for('static', filename='processamento-de-linguagem-natural.png')}}" class="d-block mx-lg-auto img-fluid" width="100vh" height="auto" loading="lazy">
-                        
-                    </div>
-                    <h3 class="fs-2 text-body-emphasis text-center">BERTimbal</h3>
-                    <p class="text-center">A análise dos sentimentos por meio da coleta de <strong>áudio</strong> dos usuários propõe enriquecer ainda mais os insigts de Usabilidade</p>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-center py-1">
-                        <!-- Button trigger modal -->
-                        <button type="button" style="border-color: #fff;" class="btn btn-outline-secondary text-white btn-lg  me-md-1" data-bs-toggle="modal" data-bs-target="#exampleModal_3">
-                           Saber mais
-                       </button>
-                       
-                       <!-- Modal -->
-                       <div class="modal fade modal-dialog-scrollable" id="exampleModal_3" tabindex="-1" aria-labelledby="exampleModalLabel_3" aria-hidden="true">
-                           <div class="modal-dialog">
-                           <div class="modal-content">
-                               <div class="modal-header">
-                               <h1 class="modal-title fs-5" id="exampleModalLabel_3">Análise BERTimbal</h1>
-                               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                               </div>
-                               <div class="modal-body">
-                                   <p class="text-justify">Através da <strong>captura avançada da voz</strong> dos usuários, esta abordagem não só permite a <strong>análise dos sentimentos por meio de áudio</strong>, mas também busca enriquecer significativamente o entendimento sobre o comportamento, usabilidade e reações dos usuários durante a navegação.</p>
-                               </div>
-                               <div class="modal-footer">
-                               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
-                               <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
-                               </div>
-                           </div>
-                           </div>
-                       </div>
-                   </div>
 
-                </div>
-
-                </div>
+            </div>
             
 
                   

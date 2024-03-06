@@ -70,6 +70,12 @@
           0 2px 4px rgba(0, 0, 0, .25),
           0 0 0 3px #c8dafc;
       }
+      .minha-div {
+        position: relative;
+        width: 80%;        /* Define a largura para 80% da largura da tela */
+        margin: 0 auto;    /* Margem automática para centralizar */
+        padding-top:65px;
+    }
   
       &:disabled {
         filter: grayscale(100%);
@@ -82,13 +88,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="container col-xxl-8 px-5 py-5" style="min-height: 80vh;">
-  <div class="row flex-lg-row align-items-center g-5 py-4">
-      <div class="col-10 col-sm-8 col-lg-6">
-        <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Obtenha o acesso a todas as funcionalides do UX-Tracking</h1>
-          <p class="lead">Realize seu cadastro para obter a extensão de captura de dados multimodal da UX-Tracking e uma variedade de funcionalidades para aprimorar sua avaliação de UX. Preencha suas informações para obter acesso imediato a nossa plataforma e o download da extensão.</p>
+<div class="container minha-div mt-5" style="width: 78%">
+  <div class="row mt-5">
+    <div class="col-sm-7 mt-5" >
+      <div class="justify-content-center mt-2 align-items-center">
+        <h1 class="display-6 fw-bold text-body-emphasis justify-content-center lh-1 mb-3" >Obtenha o acesso a todas as funcionalides do UX-Tracking</h1>
+        <p class="lead">Realize seu cadastro para obter a extensão de captura de dados multimodal da UX-Tracking e uma variedade de funcionalidades para aprimorar sua avaliação de UX. Preencha suas informações para obter acesso imediato a nossa plataforma e o download da extensão.</p>
       </div>
-      <div class="col-lg-6">
+    </div>
+    <div class="col-sm-4">
         <div class="form-signup justify-content-center w-100 m-auto">    
           <form method="POST">
             {% with messages = get_flashed_messages() %}
@@ -139,7 +147,6 @@
               <a href="{{ url_for('login') }}">Já tem conta?</a>
             </p>
           </form>
-        </div>
       </div>
     </div>
   </div>

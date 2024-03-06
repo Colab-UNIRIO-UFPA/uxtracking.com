@@ -382,6 +382,7 @@ def index():
             figdata = {}
             i = 0
 
+
             # pegar o nome dos arquivos
             for pasta in userfound["data"]:
                 if pasta in os.listdir(datadir):
@@ -390,6 +391,12 @@ def index():
             folder_reverse = folder[::-1]
 
             try:
+                                #pegar o nome dos arquivos
+                for pasta in userfound["data"]:
+                    if pasta in os.listdir(datadir):
+                        folder.append(pasta)
+
+                folder_reverse = folder[::-1]
                 for folder in userfound["data"]:
                     # print(folder)
                     date = userfound["data"][folder]["date"]
@@ -427,6 +434,23 @@ def index():
             )
         else:
             return render_template("index.html", session=False, title="Home")
+        
+@app.route('/equipe')
+def equipe():
+    return render_template('equipe.html', title="Equipe")
+
+@app.route('/lancamentos')
+def lancamentos():
+    return render_template('lancamentos.html', title="Lancamentos")
+
+@app.route('/publicacoes')
+def publicacoes():
+    return render_template('publicacoes.html', title="Publicacoes")
+
+@app.route('/guia')
+def guia(name=None):
+    return render_template('guia.html', name=name, title="Guia")
+
 
 
 @app.route("/datafilter/<username>/<metadata>", methods=["GET", "POST"])
@@ -1217,7 +1241,7 @@ def send_email(subject, body):
 
 if __name__ == "__main__":
     try:
-        app.run(debug=False, host="0.0.0.0")
+        app.run(debug=True, host="0.0.0.0")
     except BaseException as e:
         dt = datetime.datetime.today()
         dt = f"{dt.day}/{dt.month}/{dt.year}"

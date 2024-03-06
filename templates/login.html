@@ -73,16 +73,16 @@
 
 
 {% block content %}
-<div class="container col-xxl-8 px-5 py-5" style="min-height: 80vh;">
-  <div class="row flex-lg-row align-items-center g-5 py-4">
-    <div class="col-10 col-sm-8 col-lg-6">
+<div class="container minha-div mt-5" style="width: 78%">
+  <div class="row mt-5">
+    <div class="col-sm-7 mt-5">
       <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Acesse uma variedade de funcionalides para avaliação de
         UX</h1>
       <p class="lead">Entre na sua conta para acessar seus dados coletados com a extensão UX-Tracking, realizar o
         processamento dos traços coletados e avaliações visuais das interações dos usuários. E se ainda tiver dúvidas,
         basta acessar nossa documentação disponível na nossa plataforma.</p>
     </div>
-    <div class="col-lg-6">
+    <div class="col-sm-4">
       <div class="form-signin justify-content-center w-100 m-auto">
         <form method="POST">
           {% with messages = get_flashed_messages() %}
@@ -104,7 +104,7 @@
             <label for="floatingPassword">Senha</label>
           </div>
 
-          <button class="btn btn-primary w-100 py-2 my-3" type="submit">Login</button>
+          <button class="btn btn-primary w-100 py-2 my-3 text-white" type="submit">Login</button>
 
           <h1 class="h5 mb-3 fw-normal" style="text-align: center;">ou</h1>
 
@@ -121,10 +121,8 @@
             <a href="{{ url_for('register') }}">Não tem uma conta?</a>
           </p>
         </form>
-
       </div>
     </div>
   </div>
-</div>
 
 {% endblock %}

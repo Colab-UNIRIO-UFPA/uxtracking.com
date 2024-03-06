@@ -19,6 +19,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from flask import Response
 from scipy.ndimage import gaussian_filter
+from io import BytesIO
 
 folderBert = "bertimbau-finetuned"
 
@@ -47,7 +48,7 @@ def format_ISO(dates):
 
 
 def nlpBertimbau(folder):
-    df_audio = pd.read_csv(f"{folder}/audio.csv")
+    df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
     texts = []
     sentiment_dict = {sentiment: [] for sentiment in id2label.values()}
     for text in df_audio["text"]:
@@ -289,7 +290,7 @@ def list_dates(dir):
     dates = []
     folders = sorted(os.listdir(dir))
     for item in folders:
-        df = pd.read_csv(f"{dir}/{item}/trace.csv")
+        df = pd.read_csv(f"{dir}/{item}/trace.csv", encoding='iso-8859-1')
         pages = df.site.unique()
         items = item.split("-")
         items.append(pages)
@@ -331,9 +332,9 @@ def id_generator():
 ###############
 # plot functions
 def make_heatmap(folder):
-    df_trace = pd.read_csv(f"{folder}/trace.csv")
+    df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
     try:
-        df_audio = pd.read_csv(f"{folder}/audio.csv")
+        df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
     except:
         df_audio = pd.DataFrame(
             columns=[
@@ -363,26 +364,26 @@ def make_heatmap(folder):
     width, height = im.size
     frames = []
     colorscale = [
-        [0, 'rgba(255, 255, 255, 0)'],
-        [0.15, 'rgba(180, 180, 255, 0.45)'],
-        [0.25, 'rgba(160, 255, 160, 0.55)'],
-        [0.45, 'rgba(255, 255, 90, 0.65)'],
-        [0.65, 'rgba(255, 200, 100, 0.75)'],
-        [0.85, 'rgba(255, 90, 50, 0.85)'],
-        [1, 'rgba(255, 1, 0, 1)']
+        [0, "rgba(255, 255, 255, 0)"],
+        [0.15, "rgba(180, 180, 255, 0.45)"],
+        [0.25, "rgba(160, 255, 160, 0.55)"],
+        [0.45, "rgba(255, 255, 90, 0.65)"],
+        [0.65, "rgba(255, 200, 100, 0.75)"],
+        [0.85, "rgba(255, 90, 50, 0.85)"],
+        [1, "rgba(255, 1, 0, 1)"],
     ]
     for time in range(df_trace["time"].max()):
         filtered_df = df_trace[df_trace["time"] == time]
         for image in filtered_df.image.unique():
             plot_df = filtered_df[filtered_df["image"] == image]
-            
+
             x_bins = np.linspace(0, width, 250)
             y_bins = np.linspace(0, height, 250)
 
             x = plot_df["x"]
             y = (abs(plot_df["y"] - plot_df["scroll"])).values
 
-            #filtro gaussiano
+            # filtro gaussiano
             histogram, x_edges, y_edges = np.histogram2d(x, y, bins=[x_bins, y_bins])
             sigma = 12
             data_smoothed = gaussian_filter(histogram, sigma=sigma)
@@ -398,7 +399,7 @@ def make_heatmap(folder):
                                 y=y_edges,
                                 colorscale=colorscale,
                                 showscale=False,
-                                hovertemplate="Posição X: %{x}<br>Posição Y: %{y}"
+                                hovertemplate="Posição X: %{x}<br>Posição Y: %{y}",
                             ),
                             name=time,
                             layout=dict(
@@ -444,7 +445,7 @@ def make_heatmap(folder):
                                 y=y_edges,
                                 colorscale=colorscale,
                                 showscale=False,
-                                hovertemplate="Posição X: %{x}<br>Posição Y: %{y}"
+                                hovertemplate="Posição X: %{x}<br>Posição Y: %{y}",
                             ),
                             name=time,
                             layout=dict(
@@ -587,283 +588,135 @@ def make_heatmap(folder):
 
 
 def make_recording(folder, **kwargs):
-    df_trace = pd.read_csv(f"{folder}/trace.csv")
-    try:
-        df_audio = pd.read_csv(f"{folder}/audio.csv")
-    except:
-        df_audio = pd.DataFrame(
-            columns=[
-                "site",
-                "time",
-                "text",
-                "image",
-                "class",
-                "id",
-                "mouseClass",
-                "mouseId",
-                "x",
-                "y",
-                "scroll",
-                "height",
-            ]
-        )
+    df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
+    plots = []
 
-    for i in range(df_trace.shape[0]):
-        try:
-            im = Image.open(f"{folder}/{df_trace.image[i]}")
-            im0 = base64.b64encode(open(f"{folder}/{df_trace.image[i]}", "rb").read())
-            break
-        except:
-            None
-
+    im = Image.open(f"{folder}/{df_trace.image[0]}")
     width, height = im.size
-    key_list = {"mouse": ["move", "click", "freeze", "wheel"], "eye": ["eye"]}
-    frames = []
-    colorscale = [
-        [0, 'rgba(255, 255, 255, 0)'],
-        [0.15, 'rgba(180, 180, 255, 0.45)'],
-        [0.25, 'rgba(160, 255, 160, 0.55)'],
-        [0.45, 'rgba(255, 255, 90, 0.65)'],
-        [0.65, 'rgba(255, 200, 100, 0.75)'],
-        [0.85, 'rgba(255, 90, 50, 0.85)'],
-        [1, 'rgba(255, 1, 0, 1)']
-    ]
-    for time in range(df_trace["time"].max()):
-        filtered_df = df_trace[df_trace["time"] == time]
-        filtered_df = filtered_df[filtered_df["type"].isin(key_list[kwargs["type"]])]
-        for image in filtered_df.image.unique():
-            plot_df = filtered_df[filtered_df["image"] == image]
-            
-            x_bins = np.linspace(0, width, 500)  # ajuste conforme necessário
-            y_bins = np.linspace(0, height, 500)
 
-            x = filtered_df["x"]
-            y = (abs(filtered_df["y"] - filtered_df["scroll"])).values
+    frames = {}
 
-            #filtro gaussiano
-            histogram, x_edges, y_edges = np.histogram2d(x, y, bins=[x_bins, y_bins])
-            sigma = 12  # ajuste este valor conforme necessário
-            data_smoothed = gaussian_filter(histogram, sigma=sigma)
+    # verificar as primeiras ocorrencias dos frames
+    for site, group in df_trace.groupby("site"):
+        images = group["image"].unique()
+        frames[site] = {}
+        for frame in images:
+            id0 = group[group["image"] == frame].index[0]
+            columns = group.loc[id0, ["scroll", "height"]]
+            frames[site][frame] = columns.to_dict()
 
-            if time in df_audio.time.values:
-                audio2text = df_audio.query(f"time == {time}")["text"].values
-                try:
-                    img = base64.b64encode(open(f"{folder}/{image}", "rb").read())
-                    frames.append(
-                        go.Frame(
-                            data=go.Heatmap(
-                                z=data_smoothed,
-                                x=x_edges,
-                                y=y_edges,
-                                colorscale=colorscale,
-                                showscale=False
-                            ),
-                            name=time,
-                            layout=dict(
-                                images=[
-                                    dict(
-                                        source="data:image/jpg;base64,{}".format(
-                                            img.decode()
-                                        )
-                                    )
-                                ],
-                                annotations=[
-                                    dict(
-                                        x=0.5,
-                                        y=0.04,
-                                        xref="paper",
-                                        yref="paper",
-                                        text=f"Falado: {audio2text[0]}",
-                                        font=dict(
-                                            family="Courier New, monospace",
-                                            size=18,
-                                            color="#ffffff",
-                                        ),
-                                        bordercolor="#c7c7c7",
-                                        borderwidth=2,
-                                        borderpad=8,
-                                        bgcolor="rgb(36, 36, 36)",
-                                        opacity=1,
-                                    )
-                                ],
-                            ),
-                        )
+    full_ims = gen_fullpage(folder, width, height, frames)
+
+    # Definindo os ícones para cada tipo de interação (ref: https://plotly.com/python/marker-style/)
+    type_icon = {
+        "freeze": "hourglass",
+        "eye": "circle",
+        "click": "circle",
+        "move": "arrow",
+        "keyboard": "hash",
+    }
+
+    for site in full_ims.keys():
+        fig = go.Figure()
+        filtered_df = df_trace[df_trace["site"] == site]
+
+        width, height = full_ims[site].size
+        imagem = full_ims[site]
+        buffer = BytesIO()
+        imagem.save(buffer, format="PNG")  # Ou o formato apropriado da sua imagem
+        imagem_base64 = base64.b64encode(buffer.getvalue()).decode()
+        image_src = "data:image/png;base64," + imagem_base64
+
+        for type, group in filtered_df.groupby("type"):
+            if type in type_icon:
+                x = group["x"].values
+                y = group["y"].values + group["scroll"].values
+                time = group["time"].values
+                mode = "lines+markers" if type != "click" else "markers"
+                fig.add_trace(
+                    go.Scatter(
+                        x=x,
+                        y=y,
+                        mode=mode,
+                        name=type,
+                        text=[
+                            f"Time: {(t // 3600):02d}:{((t % 3600) // 60):02d}:{(t % 60):02d}"
+                            for t in time
+                        ],
+                        hovertemplate=f"Interaction: {type}<br>Site: {site}<br>%{{text}}<br>X: %{{x}}<br>Y: %{{y}}</br>",
+                        marker=dict(
+                            symbol=type_icon[type],
+                            size=10 if type != "click" else 35,
+                            angleref="previous",
+                        ),
                     )
-                except:
-                    None
+                )
             else:
-                try:
-                    img = base64.b64encode(open(f"{folder}/{image}", "rb").read())
-                    frames.append(
-                        go.Frame(
-                            data=go.Heatmap(
-                                z=data_smoothed,
-                                x=x_edges,
-                                y=y_edges,
-                                colorscale=colorscale,
-                                showscale=False
-                            ),
-                            name=time,
-                            layout=dict(
-                                images=[
-                                    dict(
-                                        source="data:image/jpg;base64,{}".format(
-                                            img.decode()
-                                        )
-                                    )
-                                ]
-                            ),
-                        )
-                    )
-                except:
-                    None
-    fig = go.Figure(
-        data=frames[0].data,
-        layout=go.Layout(
+                pass
+        fig.update_layout(
+            title=f"Site: {site}",
             xaxis=dict(
                 range=[0, width], autorange=False, rangeslider=dict(visible=False)
             ),
-            yaxis=dict(range=[0, height], autorange=False),
+            yaxis=dict(range=[height, 0], autorange=False),
+            legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.01,
+                        xanchor="right",
+                        x=1,
+                        font = dict(color="blue", size=18)
+                        ),
             images=[
                 dict(
-                    source="data:image/jpg;base64,{}".format(im0.decode()),
-                    xref="x",
-                    yref="y",
-                    x=0,
-                    y=height,
-                    sizex=width,
-                    sizey=height,
-                    sizing="fill",
-                    opacity=1,
-                    layer="below",
+                    source=image_src,
+                    xref="paper",  # Usa o sistema de coordenadas relativo ao papel/gráfico
+                    yref="paper",
+                    x=0,  # Posição no canto inferior esquerdo
+                    y=1,  # Posição no canto superior esquerdo
+                    sizex=1,  # Estender a imagem para cobrir toda a largura do gráfico
+                    sizey=1,  # Estender a imagem para cobrir toda a altura do gráfico
+                    sizing="stretch",  # Esticar a imagem para preencher o espaço (alternativas: "contain", "cover")
+                    opacity=1,  # Ajustar a opacidade conforme necessário
+                    layer="below",  # Colocar a imagem abaixo dos dados do gráfico
                 )
             ],
-        ),
-        frames=frames,
-    )
+            width=width * 0.6,
+            height=height * 0.6,
+            margin=dict(l=0, r=0, t=0, b=0),
+            paper_bgcolor="rgba(0, 0, 0, 0)",
+            plot_bgcolor="rgba(0, 0, 0, 0)",
+        )
+        fig.update_xaxes(showgrid=False, zeroline=False, visible=False)
 
-    # Configure axes
-    fig.update_xaxes(visible=False)
-
-    fig.update_yaxes(
-        visible=False,
-        # the scaleanchor attribute ensures that the aspect ratio stays constant
-        scaleanchor="x",
-    )
-    fig.update_traces(
-        marker=dict(
-            size=32,
-            color="rgba(255, 255, 0, 0)",
-            line=dict(color="rgba(0, 0, 255, 0.003)", width=6),
-        ),
-        marker_gradient=dict(color="rgba(255, 0, 0, 0.35)", type="radial"),
-        selector=dict(type="scatter"),
-    )
-
-    # Configure other layout
-    fig.update_layout(
-        # iterate over frames to generate steps... NB frame name...
-        sliders=[
-            {
-                "steps": [
-                    {
-                        "args": [
-                            [f.name],
-                            {
-                                "frame": {"duration": 0, "redraw": True},
-                                "mode": "immediate",
-                            },
-                        ],
-                        "label": f.name,
-                        "method": "animate",
-                    }
-                    for f in frames
-                ],
-                "x": 0,
-                "y": -0.07,
-                "font": {"size": 12},
-                "ticklen": 4,
-                "currentvalue": {"prefix": "Time(s):", "visible": True},
-            }
-        ],
-        width=width * 0.5,
-        height=height * 0.5,
-        margin={"l": 0, "r": 0, "t": 0, "b": 140},
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-    )
-
-    fig["layout"]["updatemenus"] = [
-        {
-            "buttons": [
-                {
-                    "args": [
-                        None,
-                        {
-                            "frame": {"duration": 300, "redraw": True},
-                            "fromcurrent": True,
-                            "transition": {
-                                "duration": 300,
-                                "easing": "quadratic-in-out",
-                            },
-                        },
-                    ],
-                    "label": "Play",
-                    "method": "animate",
-                },
-                {
-                    "args": [
-                        [None],
-                        {
-                            "frame": {"duration": 0, "redraw": True},
-                            "mode": "immediate",
-                            "transition": {"duration": 0},
-                        },
-                    ],
-                    "label": "Pause",
-                    "method": "animate",
-                },
-            ],
-            "direction": "left",
-            "pad": {"r": 0, "t": 0, "b": 0, "l": 0},
-            "showactive": False,
-            "type": "buttons",
-            "x": 0.12,
-            "xanchor": "right",
-            "y": -0.02,
-            "yanchor": "top",
-            "bgcolor": "rgb(190, 190, 190)",
-            "font": {"color": "rgb(0, 0, 0)"},
-        }
-    ]
-    fig.update_xaxes(rangeslider_thickness=0.1)
-    fig.show()
+        fig.update_yaxes(
+            showgrid=False,
+            zeroline=False,
+            visible=False,
+            scaleanchor="x",
+        )
+        plots.append(fig.to_html(div_id="plotDiv"))
+    
+    return plots
 
 
-def gen_fullpage(folder):
-    stitcher = Stitcher()
-    df_trace = pd.read_csv(f"{folder}/trace.csv")
-    images = df_trace.image.unique()
-    scrolls = []
-    sites = []
-    for image in images:
-        scrolls.append(df_trace["scroll"][df_trace["image"] == image].iloc[0])
-        sites.append(df_trace["site"][df_trace["image"] == image].iloc[0])
-    # Criar séries
-    images = pd.Series(images, name="image")
-    scrolls = pd.Series(scrolls, name="scroll")
-    sites = pd.Series(sites, name="site")
-    data = pd.DataFrame({"image": images, "scroll": scrolls, "site": sites})
-    data = data.dropna(subset=["scroll"])
+def gen_fullpage(folder, width, height, frames):
+    full_ims = {}
 
-    data = data.sort_values(by="scroll")
-    # Iterar sobre as linhas do DataFrame
-    for index, row in data.iterrows():
-        try:
-            image = cv.imread(f"{folder}/{row.image}")
-            height, width, _ = image.shape
-        except:
-            return
+    for site, image in frames.items():
+        height = int(height + max(item["scroll"] for item in image.values()))
+        compose_im = Image.new("RGB", (width, height), "white")
+
+        for image, item in image.items():
+            try:
+                img = Image.open(f"{folder}/{str(image)}")
+                compose_im.paste(img, (0, int(item["scroll"])))
+            except:
+                pass
+
+        full_ims[site] = compose_im
+
+    return full_ims
 
 
 def plot_image(img, figsize_in_inches=(5, 5)):

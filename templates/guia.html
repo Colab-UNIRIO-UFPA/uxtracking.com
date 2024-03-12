@@ -103,8 +103,9 @@
                       </nav>
                       <a class="nav-link" href="#item-4">4. Métodos de Análise dos Resultados</a>
                       <nav class="nav nav-pills flex-column">
-                        <a class="nav-link ms-3 my-1" href="#item-4-1">4.1 Item 1</a>
-                        <a class="nav-link ms-3 my-1" href="#item-4-2">4.2 Item 2</a>
+                        <a class="nav-link ms-3 my-1" href="#item-4-1">4.1 BERTimbal</a>
+                        <a class="nav-link ms-3 my-1" href="#item-4-2">4.2 Mapa de Calor</a>
+                        <a class="nav-link ms-3 my-1" href="#item-4-3">4.2 Análise de Expressões Faciais (BETA)</a>
                       </nav>
                     </nav>
                   </nav>
@@ -186,7 +187,9 @@
                     </div>
                     <div id="item-3">
                       <h4>Como Usar?</h4>
-                      <p style="text-align: justify;">Para utilizar a extensão, você deve acessar a página de extensões do seu navegador através do caminho demonstrado na Figura.</p>
+                      <div id="item-3-1">
+                        <h5>Versão Web</h5>
+                        <p style="text-align: justify;">Para utilizar a extensão, você deve acessar a página de extensões do seu navegador através do caminho demonstrado na Figura.</p>
                         <div class="img-guia  mt-3 mb-3">
                           <figure style="text-align: center; font-style: italic;">
                             <img src="static/imagens-guia/ativar-extensao.png" alt="Descrição alternativa da imagem" style="width: 70%; height: auto;">
@@ -247,25 +250,122 @@
 
                       </p>
                     </div>
-                    <div id="item-3-1">
-                      <h5>Versão Web</h5>
-                      <p>...</p>
                     </div>
+                      
                     <div id="item-3-2">
                       <h5>Versão Mobile</h5>
-                      <p>...</p>
+                      <p>Em construção...</p>
                     </div>
-                    <div id="item-3">
+                    <div id="item-4">
                       <h4>Métodos de Análise dos Resultados</h4>
-                      <p>...</p>
                     </div>
-                    <div id="item-3-1">
-                      <h5>Item 1</h5>
-                      <p>...</p>
+                    <div id="item-4-1">
+                      <h5>Bertimbal</h5>
+                      <p>Para analisar os dados obtidos através da captura multimodal, clique em "Análise" no menu lateral à esquerda, conforme a Figura abaixo</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/menu-lateral-com-seta.png" alt="Descrição alternativa da imagem" style="width: 25%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Etapa 1 para analisar os dados</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Ao acessar a página de análise, você encontrará algumas opções para analisar os dados. Dentre elas, no momento, apenas está disponível a BERTimbau, conforme a figura a seguir.</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/tipos-analise-com-seta.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Etapa 2 para analisar os dados</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Selecione o tipo de análise BERTimbau e escolha a coleta de dados que será analisada, conforme a Figura abaixo</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/selecionar-coleta-dados-com-seta.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Etapa 3 para analisar os dados</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Para que a análise seja realizada, os dados coletados devem incluir áudio. Caso contrário, a análise através do modelo BERTimbau não será possível e uma mensagem será exibida, conforme a Figura abaixo</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/bertimbau-dados-sem-audio.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Mensagem de erro - BERTimbau</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Caso haja áudios em sua coleta de dados, a ferramenta irá processá-los, gerando como resultado gráficos semelhantes aos das próximas duas Figuras </p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/resultado1-bertimbau.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Gráficos de resultado do BERTimbau</figcaption>
+                        </figure>  
+                      </div>
+                      
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/resultado2-bertimbau.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Gráficos de resultado do BERTimbau</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Além disso, é possível baixar os dados de voz, se desejar. Basta clicar em "Baixar" ao final da página de resultados do BERTimbau. Um arquivo csv será baixado contendo informações sobre a coleta de dados de voz, conforme a Figura abaixo</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/csv-bertimbau.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Dados de voz em CSV</figcaption>
+                        </figure>  
+                      </div>
+
                     </div>
-                    <div id="item-3-2">
-                      <h5>Item 2</h5>
-                      <p>...</p>
+                    <div id="item-4-2">
+                      <h5>Mapa de Calor</h5>
+                      <p style="text-align: justify;">Outras aplicações através das quais é possível fazer análises são encontradas em "Visualização" no menu lateral à esquerda, conforme a Figura a seguir. Nesta página, é possível encontrar aplicações que indicam e demonstram a interação do usuário.</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/menu-lateral-com-seta-visualização.png" alt="Descrição alternativa da imagem" style="width: 25%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Etapa 1 para visualização das interações do usuário</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Ao colocar o <i>mouse</i> sobre cada item do menu, uma breve descrição será mostrada, conforme a Figura abaixo.</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/caixa-explicacao-menu.png" alt="Descrição alternativa da imagem" style="width: 45%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Descrição de página apresentada no menu</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p>Na página de visualização, clique em "Mapa de calor temporal", indicado na Figura abaixo.</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/pagina-visualizacao-com-seta.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Página Visualização</figcaption>
+                        </figure>  
+                      </div>
+
+                      <p style="text-align: justify;">Clique na aplicação de mapa de calor indicada na figura anterior e selecione os dados sobre os quais deseja criar um mapa de calor. Após isso, aguarde a plotagem terminar. Concluída a plotagem, será apresentado um temporizador mostrando a interação do usuário e os pontos de interação, bem como as falas ditas nos momentos exatos, conforme a Figura abaixo.</p>
+
+                      <div class="img-guia  mt-3 mb-3">
+                        <figure style="text-align: center; font-style: italic;">
+                          <img src="static/imagens-guia/temporizador-mapa-de-calor.png" alt="Descrição alternativa da imagem" style="width: 80%; height: auto;">
+                          <figcaption style="margin-top: 15px;">Resultado do mapa de calor</figcaption>
+                        </figure>  
+                      </div>
+
+                    </div>
+
+                    <div id="item-4-3">
+                      <h5>Reconhecimento e Análise de Expressões Faciais (BETA)</h5>
+                      <p style="text-align: justify;"> A funcionalidade de Reconhecimento e Análise de Expressões Faciais encontra-se em fase de desenvolvimento e faz parte dos estudos futuros para ser implementada em nossa plataforma. Esta característica, que permitirá uma interação mais avançada e personalizada, está sendo cuidadosamente planejada para atender aos mais altos padrões de qualidade e eficiência.</p>
                     </div>
                   </div>
                 </div>

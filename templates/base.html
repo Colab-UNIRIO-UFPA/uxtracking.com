@@ -258,8 +258,8 @@
           <h5 class="modal-title w-100" id="logoutModalLabel">Você deseja sair?</h5>
           </div>
           <div class="modal-footer align-items-center justify-content-center gap-3">
-            <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Continuar</button>
-            <a type="button" class="btn btn-danger px-5" href="{{ url_for('logout') }}">Sair</a>
+            <button type="button" class="btn btn-outline-secondary px-3 text-white" data-bs-dismiss="modal">Continuar</button>
+            <a type="button" class="btn btn-primary px-5" href="{{ url_for('logout') }}">Sair</a>
           </div>
         </div>
         </div>
@@ -288,7 +288,7 @@
           <ul class="nav nav-pills flex-column mb-auto px-2">
             <li class="nav-item  {{ 'border border-secondary-subtle rounded' if title == 'Home'}}">
               <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Página inicial" data-bs-content="Acesse suas últimas coletas, seu histórico de atividades, o link para a nossa extensão de coleta e a documentação oficial do UX-Tracking.">
-              <a href="{{ url_for('index') }}" class="nav-link link-body-emphasis">
+              <a href="{{ url_for('index') }}" class="nav-link link-body-emphasis" >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-house" viewBox="0 0 16 16">
                   <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
                 </svg>
@@ -457,7 +457,7 @@
       {% if not session %}
         <footer class="d-flex flex-wrap justify-content-between align-items-center py-2 border-top" style="height: 10vh; background-color: rgba(0, 0, 0, .1);">
           <div class="col-md-4 d-flex align-items-center">
-            <span class="ms-4 mb-0 mb-md-0 text-body-secondary">&copy; 2023 UX-Tracking: User eXperience Tracking</span>
+            <span class="ms-4 mb-0 mb-md-0 text-body-secondary">&copy; 2024 UX-Tracking: User eXperience Tracking</span>
           </div>
       
           <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">

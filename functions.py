@@ -696,7 +696,6 @@ def make_recording(folder, **kwargs):
             scaleanchor="x",
         )
         plots.append(fig.to_html(div_id="plotDiv"))
-    
     return plots
 
 

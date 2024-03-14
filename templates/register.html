@@ -89,7 +89,7 @@
 
 {% block content %}
 <div class="mt-5">
-  <div class="container minha-div mt-5" style="width: 78%">
+  <div class="container minha-div mt-5" style="width: 78%; min-height:77vh">
     <div class="row mt-5">
       <div class="col-sm-7 mt-5" >
         <div class="justify-content-center mt-2 align-items-center">
@@ -133,6 +133,7 @@
 
               <button class="btn btn-primary w-100 py-2 my-3 text-white" type="submit">Registrar</button>
 
+              <!-- desativado
               <h1 class="h4 mb-3 fw-normal" style="text-align: center;">ou</h1>
               
               <div style="text-align:center">
@@ -142,7 +143,7 @@
                   </button>
                 </a>
               </div>
-
+            -->
               <p style="text-align: center;"><br>
                 <a href="{{ url_for('forgot_pass') }}">Esqueceu sua senha?</a><br>
                 <a href="{{ url_for('login') }}">Já tem conta?</a>

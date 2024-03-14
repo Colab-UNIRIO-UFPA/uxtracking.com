@@ -437,19 +437,31 @@ def index():
         
 @app.route('/equipe')
 def equipe():
-    return render_template('equipe.html', title="Equipe")
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('equipe.html', session=False, title="Equipe")
 
 @app.route('/lancamentos')
 def lancamentos():
-    return render_template('lancamentos.html', title="Lancamentos")
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('lancamentos.html', session=False, title="Lancamentos")
 
 @app.route('/publicacoes')
 def publicacoes():
-    return render_template('publicacoes.html', title="Publicacoes")
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('publicacoes.html', session=False, title="Publicacoes")
 
 @app.route('/guia')
 def guia(name=None):
-    return render_template('guia.html', name=name, title="Guia")
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('guia.html', name=name, session=False, title="Guia")
 
 
 

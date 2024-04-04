@@ -11,11 +11,14 @@
     color: #ffffff;
     background: #676767 !important;
   }
+  .adjust-side-menu {
+        margin-left: 30vh;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="form-signin w-100 m-auto pe-1 pt-0" style="text-align: center; min-height: 100vh">
+<div class="form-signin w-100 pe-1 pt-0 adjust-side-menu" style="text-align: center; min-height: 100vh">
   {% if metadata == 'datetime' %}
   <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary">Selecione as coletas que deseja baixar</p>
   {% with messages = get_flashed_messages() %}

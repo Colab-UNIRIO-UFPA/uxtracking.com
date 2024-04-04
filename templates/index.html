@@ -12,8 +12,12 @@
     }
 
     .list-group {
-    width: 100%;
-    margin-inline: 0rem;
+        width: 100%;
+        margin-inline: 0rem;
+    }
+
+    .adjust-side-menu {
+        margin-left: 30vh;
     }
 
     .text-justify {
@@ -500,7 +504,7 @@
         </div>
 
     {% else %}
-        <div class="d-flex flex-column w-100 pt-0 gap-2 align-items-between justify-content-start pe-1" style="min-height: 100vh;">
+        <div class="d-flex flex-column w-100 pt-0 gap-2 align-items-between justify-content-start pe-1 adjust-side-menu" style="min-height: 100vh;">
             <div class="list-group w-100 border-0 rounded-0" fill="currentColor">
                 <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-custom">Histórico de atividades</p>
                 <div class="list-group-item">
@@ -511,7 +515,7 @@
                         </div>
                         <div id="output-date-range"></div>
                     </div>
-                    <div id="graph-line"></div>
+                    <div id="graph-line" style="margin-left: 5vh;"></div>
 
                     <script>
                         // Dados de exemplo
@@ -564,36 +568,81 @@
                                 type: 'bar',
                                 textposition: 'inside',
                                 marker:{
+                                    color: 'rgb(252, 126, 23)',
                                     line:{
                                         width: 0.1
                                     }
                                 }, 
                             };
-                
+                            
                             const layout = {
                                 xaxis: {
                                     title: 'Data',
                                     showline: true,
+                                    tickmode: 'auto',
                                     linecolor: '#969696',
                                     showgrid: true,
                                     gridcolor: 'rgba(0,0,0,0)',
                                     mirror: true,
                                     tickformat: "%d/%m/%Y",
+                                    dtick: 30 * 24 * 60 * 60 * 1000 ,
                                     tickvals: dadosFiltrados,
-                                    tickangle:-90, 
+                                    //tickangle:-90, 
                                     tickfont: {
                                         size: 10
                                     },
+                                    
+                                    
+
+                                    tickformatstops: [{
+        "dtickrange": [null, 1000],
+        "value": "%H:%M:%S.%L ms"
+      },
+      {
+        "dtickrange": [1000, 60000],
+        "value": "%H:%M:%S s"
+      },
+      {
+        "dtickrange": [60000, 3600000],
+        "value": "%H:%M m"
+      },
+      {
+        "dtickrange": [3600000, 86400000],
+        "value": "%e. %b %Y"
+      },
+      {
+        "dtickrange": [86400000, 604800000],
+        "value": "%e. %b %Y"
+      },
+      {
+        "dtickrange": [604800000, "M1"],
+        "value": "%e. %b %Y"
+      },
+      {
+        "dtickrange": ["M1", "M1"],
+        "value": "%b '%y M"
+      },
+      {
+        "dtickrange": ["M2", 'M24'],
+        "value": "%Y"
+      }
+    ]
+  
+
+
+
                                 },
                                 yaxis: {
                                     title: 'Coletas',
+                                    tickmode: 'array',
+                                    range: [0, Math.max(...valoresFiltrados) + 1],
                                     showline: true,
-                                    linecolor: '#969696',
-                                    gridcolor: '#969696',
+                                    linecolor: 'rgb(150, 150, 150)',
+                                    gridcolor: 'rgba(150, 150, 150,0.1)',
                                     mirror: true,
                                     showgrid: true,
                                     gridwidth: 1,
-                                    dtick: 1
+                                    dtick: 1,
                                 },
                                 barmode: 'group',
                                 bargap: 0.1,
@@ -606,8 +655,18 @@
                             Plotly.newPlot('graph-line', [trace], layout);
                         }
                     </script>
+
+                        
                 </div>
             </div>
+            
+
+
+
+
+
+
+
             
             <div class="list-group flex-lg-column">
                 <p class="fs-4 fw-semibold my-0 py-1 ps-3 text-bg-custom ">Últimas coletas</p>

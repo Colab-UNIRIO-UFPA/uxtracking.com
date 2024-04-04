@@ -48,7 +48,7 @@ def format_ISO(dates):
 
 
 def nlpBertimbau(folder):
-    df_audio = pd.read_csv(f"{folder}/audio.csv")
+    df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
     texts = []
     sentiment_dict = {sentiment: [] for sentiment in id2label.values()}
     for text in df_audio["text"]:
@@ -290,7 +290,7 @@ def list_dates(dir):
     dates = []
     folders = sorted(os.listdir(dir))
     for item in folders:
-        df = pd.read_csv(f"{dir}/{item}/trace.csv")
+        df = pd.read_csv(f"{dir}/{item}/trace.csv", encoding='iso-8859-1')
         pages = df.site.unique()
         items = item.split("-")
         items.append(pages)
@@ -332,9 +332,9 @@ def id_generator():
 ###############
 # plot functions
 def make_heatmap(folder):
-    df_trace = pd.read_csv(f"{folder}/trace.csv")
+    df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
     try:
-        df_audio = pd.read_csv(f"{folder}/audio.csv")
+        df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
     except:
         df_audio = pd.DataFrame(
             columns=[
@@ -588,7 +588,7 @@ def make_heatmap(folder):
 
 
 def make_recording(folder, **kwargs):
-    df_trace = pd.read_csv(f"{folder}/trace.csv")
+    df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
     plots = []
 
     im = Image.open(f"{folder}/{df_trace.image[0]}")
@@ -696,7 +696,6 @@ def make_recording(folder, **kwargs):
             scaleanchor="x",
         )
         plots.append(fig.to_html(div_id="plotDiv"))
-    
     return plots
 
 

@@ -35,6 +35,12 @@ from unidecode import unidecode
 import plotly.io as pio
 from django.core.paginator import Paginator
 from werkzeug.exceptions import HTTPException
+from PIL import Image
+import io
+from torchvision import models, transforms
+import torch.nn as nn
+import torch.nn.functional as F
+import torch
 
 # delete se estiver utilizando windows
 load_dotenv()
@@ -72,30 +78,54 @@ app.config.update(
 )
 mail = Mail(app)
 
+# modelo de inferência MobileNet
+model = models.MobileNetV2()
+num_ftrs = model.classifier[1].in_features
+model.classifier = nn.Sequential(
+    nn.Dropout(0.1),
+    nn.Linear(num_ftrs, 512),
+    nn.ReLU(),
+    nn.BatchNorm1d(512),
+    nn.Dropout(0.1),
+    nn.Linear(512, 8),
+)
+model.load_state_dict(
+    torch.load(
+        "MobileNet.pth",
+        map_location=torch.device("cpu"),
+    )
+)
+model.to(torch.device("cpu"))
+model.eval()
+
 # manipuladores de erro
 @app.errorhandler(404)
 def page_not_found(error):
-    message='A página que você está tentando acessar não foi encontrada neste servidor. Isso pode ocorrer devido a uma URL incorreta, uma página removida ou um link desatualizado.'
-    return render_template('erro.html', erro=404, message=message), 404
+    message = "A página que você está tentando acessar não foi encontrada neste servidor. Isso pode ocorrer devido a uma URL incorreta, uma página removida ou um link desatualizado."
+    return render_template("erro.html", erro=404, message=message), 404
+
 
 @app.errorhandler(500)
 def internal_server_error(error):
     message = "O servidor encontrou um erro interno e não pôde atender à sua solicitação. Isso pode ser devido a uma sobrecarga no servidor ou a um erro na aplicação."
-    return render_template('erro.html', erro=500, message=message), 500
+    return render_template("erro.html", erro=500, message=message), 500
+
 
 @app.errorhandler(403)
 def forbidden(error):
-    message = 'Você não tem permissão para acessar o recurso solicitado. Ele está protegido contra leitura ou não é legível pelo servidor.'
-    return render_template('erro.html', erro=403, message=message), 403
+    message = "Você não tem permissão para acessar o recurso solicitado. Ele está protegido contra leitura ou não é legível pelo servidor."
+    return render_template("erro.html", erro=403, message=message), 403
+
 
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
-        message='Ops! Parece que encontramos um problema ao processar sua solicitação. Por favor, tente novamente mais tarde.'
+        message = "Ops! Parece que encontramos um problema ao processar sua solicitação. Por favor, tente novamente mais tarde."
         return render_template("erro.html", message=message)
 
     message = "O servidor encontrou um erro interno e não pôde atender à sua solicitação. Isso pode ser devido a uma sobrecarga no servidor ou a um erro na aplicação."
-    return render_template('erro.html', erro=500, message=message), 500
+    return render_template("erro.html", erro=500, message=message), 500
+
 
 # Define a rota para a página de registro
 @app.route("/register", methods=["GET", "POST"])
@@ -149,45 +179,46 @@ def login():
         else:
             return render_template("login.html", session=False, title="Login")
 
+
 # autenticação google
-@app.route('/google/')
+@app.route("/google/")
 def google():
 
     GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
     GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
 
-    CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
+    CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
     oauth.register(
-        name='google',
+        name="google",
         client_id=GOOGLE_CLIENT_ID,
         client_secret=GOOGLE_CLIENT_SECRET,
         server_metadata_url=CONF_URL,
-        client_kwargs={
-            'scope': 'openid email profile'
-        }
+        client_kwargs={"scope": "openid email profile"},
     )
 
     # Redirect to google_auth function
-    redirect_uri = url_for('google_auth', _external=True)
-    session['nonce'] = generate_token()
-    return oauth.google.authorize_redirect(redirect_uri, nonce=session['nonce'])
+    redirect_uri = url_for("google_auth", _external=True)
+    session["nonce"] = generate_token()
+    return oauth.google.authorize_redirect(redirect_uri, nonce=session["nonce"])
 
-@app.route('/google/auth/')
+
+@app.route("/google/auth/")
 def google_auth():
     token = oauth.google.authorize_access_token()
-    user = oauth.google.parse_id_token(token, nonce=session['nonce'])
-    username = user['name']
-    email = user['email']
-    password = user['sub']
-    
+    user = oauth.google.parse_id_token(token, nonce=session["nonce"])
+    username = user["name"]
+    email = user["email"]
+    password = user["sub"]
+
     # Verifica se o usuário já existe
     userfound = db.users.find_one({"email": email})
     if userfound == None:
         db.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
-    session['username'] = username
-    return redirect('/')
+    session["username"] = username
+    return redirect("/")
+
 
 # Define a rota para o logout
 @app.route("/logout")
@@ -220,13 +251,15 @@ def forgot_pass():
                 recipients=[email],
             )
 
-            #estilizando a mensagem de e-mail
-            msg.html = render_template("email_forgot_pass.html", username= username, generatedPass = generatedPass)
+            # estilizando a mensagem de e-mail
+            msg.html = render_template(
+                "email_forgot_pass.html", username=username, generatedPass=generatedPass
+            )
 
             # Nova senha enviada
             mail.send(msg)
 
-            flash('E-mail enviado com sucesso!')
+            flash("E-mail enviado com sucesso!")
 
             # senha alterada
             _id = userfound["_id"]
@@ -234,11 +267,13 @@ def forgot_pass():
 
             # Redirecionar para o login após o envio do email e atualização da senha
             return redirect(url_for("login", title="Login", session=False))
-        
-        #Se as credenciais estiverem incorretas, retorna para a página de redefinir senha
-        else: 
-            flash('Usuário incorreto')
-            return render_template('forgot_pass.html', session=False, title='Esqueci a senha')
+
+        # Se as credenciais estiverem incorretas, retorna para a página de redefinir senha
+        else:
+            flash("Usuário incorreto")
+            return render_template(
+                "forgot_pass.html", session=False, title="Esqueci a senha"
+            )
     else:
         return render_template(
             "forgot_pass.html", session=False, title="Esqueci a senha"
@@ -301,19 +336,19 @@ def index():
             folder = request.form.getlist("dates[]")
             folder = folder[0]
 
-            #normalizando o caminho base
+            # normalizando o caminho base
             base_path = os.path.normpath(datadir)
 
-            #normalizando o caminho completo
+            # normalizando o caminho completo
             fullpath = os.path.normpath(os.path.join(base_path, folder))
 
-            #verificando se o caminho completo começa com o caminho base
+            # verificando se o caminho completo começa com o caminho base
             if not fullpath.startswith(base_path):
                 abort(403)
 
             # cria um zip para inserção dos dados selecionados
             with zipfile.ZipFile(f"{folder}_data.zip", "w") as zipf:
-                for file in os.listdir(fullpath): 
+                for file in os.listdir(fullpath):
                     shutil.copy(os.path.join(fullpath, file), file)
                     zipf.write(file)
                     os.remove(file)
@@ -347,7 +382,8 @@ def index():
             figdata = {}
             i = 0
 
-            #pegar o nome dos arquivos
+
+            # pegar o nome dos arquivos
             for pasta in userfound["data"]:
                 if pasta in os.listdir(datadir):
                     folder.append(pasta)
@@ -355,9 +391,15 @@ def index():
             folder_reverse = folder[::-1]
 
             try:
+                                #pegar o nome dos arquivos
+                for pasta in userfound["data"]:
+                    if pasta in os.listdir(datadir):
+                        folder.append(pasta)
+
+                folder_reverse = folder[::-1]
                 for folder in userfound["data"]:
                     # print(folder)
-                    date = userfound["data"][folder]["date"]         
+                    date = userfound["data"][folder]["date"]
                     if date not in figdata.keys():
                         figdata[date] = 1
                     else:
@@ -388,10 +430,40 @@ def index():
                 title="Home",
                 dates=dates,
                 datas=datas,
-                values=values
+                values=values,
             )
         else:
             return render_template("index.html", session=False, title="Home")
+        
+@app.route('/equipe')
+def equipe():
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('equipe.html', session=False, title="Equipe")
+
+@app.route('/lancamentos')
+def lancamentos():
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('lancamentos.html', session=False, title="Lancamentos")
+
+@app.route('/publicacoes')
+def publicacoes():
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('publicacoes.html', session=False, title="Publicacoes")
+
+@app.route('/guia')
+def guia(name=None):
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template('guia.html', name=name, session=False, title="Guia")
+
+
 
 @app.route("/datafilter/<username>/<metadata>", methods=["GET", "POST"])
 def datafilter(username, metadata):
@@ -404,7 +476,7 @@ def datafilter(username, metadata):
             if metadata == "datetime":
                 # adiciona as datas à seção
                 session["dates"] = request.form.getlist("dates[]")
-                
+
                 # refireciona pra seleção dos traços
                 return redirect(
                     url_for("datafilter", username=username, metadata="pages")
@@ -456,14 +528,14 @@ def datafilter(username, metadata):
                 with zipfile.ZipFile(f"{username}_data.zip", "w") as zipf:
                     # filtragem dos dados utilizados
                     for date in session["dates"]:
-                        df = pd.read_csv(f"{datadir}/{date}/trace.csv")
+                        df = pd.read_csv(f"{datadir}/{date}/trace.csv", encoding='iso-8859-1')
                         df = df[df.site.isin(session["pages"])]
                         df.insert(0, "datetime", [date] * len(df.index), True)
                         tracefiltered = pd.concat(
                             [tracefiltered, df], ignore_index=False
                         )
                         try:
-                            df_audio = pd.read_csv(f"{datadir}/{date}/audio.csv")
+                            df_audio = pd.read_csv(f"{datadir}/{date}/audio.csv", encoding='iso-8859-1')
                             df_audio = df_audio[df_audio.site.isin(session["pages"])]
                             df_audio.insert(
                                 0, "datetime", [date] * len(df_audio.index), True
@@ -532,14 +604,14 @@ def datafilter(username, metadata):
             userfound = db.users.find_one({"username": session["username"]})
             userid = userfound["_id"]
             datadir = f"./Samples/{userid}"
-            
+
             if metadata == "datetime":
                 data = dirs2data(userfound, datadir)
                 data = data[::-1]
 
-                #Paginação das coletas
+                # Paginação das coletas
                 paginator = Paginator(data, 5)
-                page_number = request.args.get('page_number', 1, type=int)
+                page_number = request.args.get("page_number", 1, type=int)
                 page_obj = paginator.get_page(page_number)
                 page_coleta = paginator.page(page_number).object_list
 
@@ -554,12 +626,12 @@ def datafilter(username, metadata):
 
             elif metadata == "pages":
                 dates = session["dates"]
-                
+
                 # verifica quais datas estão disponíveis
                 pages = []
                 for date in dates:
                     # Lendo as páginas no csv
-                    df = pd.read_csv(f"{datadir}/{date}/trace.csv")
+                    df = pd.read_csv(f"{datadir}/{date}/trace.csv", encoding='iso-8859-1')
                     for page in df.site.unique():
                         if page not in pages:
                             pages.append(page)
@@ -602,16 +674,18 @@ def dataanalysis(username, model=None):
             elif model == "bertimbau":
                 results = {}
                 try:
-                    df_audio = (nlpBertimbau(folder))
+                    df_audio = nlpBertimbau(folder)
                     fig = graph_sentiment(df_audio)
-                    results['result1'] = pio.to_json(fig)
-                    results['result2'] = True
+                    results["result1"] = pio.to_json(fig)
+                    results["result2"] = True
                 except:
-                    results['result1'] = "Não foi possível processar a coleta, áudio ausente!"  
-                    results['result2'] = False 
-                
+                    results["result1"] = (
+                        "Não foi possível processar a coleta, áudio ausente!"
+                    )
+                    results["result2"] = False
+
                 return results
-            
+
             else:
                 flash("404\nPage not found!")
                 return render_template(
@@ -639,9 +713,9 @@ def dataanalysis(username, model=None):
                 data = dirs2data(userfound, datadir)
                 data = data[::-1]
 
-                #Paginação das coletas
+                # Paginação das coletas
                 paginator = Paginator(data, 7)
-                page_number = request.args.get('page_number', 1, type=int)
+                page_number = request.args.get("page_number", 1, type=int)
                 page_obj = paginator.get_page(page_number)
                 page_coleta = paginator.page(page_number).object_list
 
@@ -662,7 +736,8 @@ def dataanalysis(username, model=None):
             flash("Faça o login para continuar!")
             return render_template("login.html", session=False, title="Login")
 
-@app.route("/downloadAudio", methods=['POST'])
+
+@app.route("/downloadAudio", methods=["POST"])
 def downloadAudio():
     userfound = db.users.find_one({"username": session["username"]})
     userid = userfound["_id"]
@@ -677,16 +752,17 @@ def downloadAudio():
     if not file_path.startswith(base_path):
         abort(403)
 
-    with open(file_path, 'rb') as file:
+    with open(file_path, "rb") as file:
         file_content = file.read()
-    
+
     return Response(
         file_content,
         headers={
             "Content-Type": "text/csv",
             "Content-Disposition": "attachment; filename=audio.csv",
-        }
+        },
     )
+
 
 @app.route("/dataview/<username>/", methods=["GET", "POST"])
 @app.route("/dataview/<username>/<plot>", methods=["GET", "POST"])
@@ -700,21 +776,21 @@ def dataview(username, plot=None):
 
             dir = request.form["dir"]
 
-            #normalizando caminho base
+            # normalizando caminho base
             base_path = os.path.normpath(datadir)
 
-            #normalizando caminho completo
+            # normalizando caminho completo
             folder = os.path.normpath(os.path.join(base_path, dir))
 
             if not folder.startswith(base_path):
                 abort(403)
-           
+
             if plot == "heatmap":
                 return make_heatmap(folder)
             elif plot == "recording":
                 return make_recording(folder, type="mouse")
             elif plot == "nlp":
-                return 
+                return
             else:
                 flash("404\nPage not found!")
                 return render_template(
@@ -757,6 +833,7 @@ def dataview(username, plot=None):
             flash("Faça o login para continuar!")
             return render_template("login.html", session=False, title="Login")
 
+
 @app.route("/external/", methods=["POST"])
 @app.route("/external/userAuth", methods=["POST"])
 def userAuth():
@@ -767,12 +844,13 @@ def userAuth():
     if userfound != None:
         userid = userfound["_id"]
         session["username"] = request.form["username"]
-        response = {"id": str(userid), 'status': 200}
-    #Credenciais incorretas
+        response = {"id": str(userid), "status": 200}
+    # Credenciais incorretas
     else:
-        response = {"id": None, 'status': 401}
+        response = {"id": None, "status": 401}
 
     return jsonify(response)
+
 
 @app.route("/external/userRegister", methods=["POST"])
 def userRegister():
@@ -787,11 +865,12 @@ def userRegister():
             {"username": username, "password": password, "email": email, "data": {}}
         )
         userfound = db.users.find_one({"username": username, "password": password})
-        response = {"id": str(userfound["_id"]), 'status': 200}
+        response = {"id": str(userfound["_id"]), "status": 200}
     else:
-        response = {"id": None, 'status': 401}
-        
+        response = {"id": None, "status": 401}
+
     return jsonify(response)
+
 
 @app.route("/external/userRecover", methods=["POST"])
 def userRecover():
@@ -810,8 +889,12 @@ def userRecover():
             recipients=[email],
         )
 
-        #estilizando a mensagem de e-mail
-        msg.html = render_template("email_forgot_pass.html", username= userfound["username"], generatedPass = generatedPass)
+        # estilizando a mensagem de e-mail
+        msg.html = render_template(
+            "email_forgot_pass.html",
+            username=userfound["username"],
+            generatedPass=generatedPass,
+        )
 
         # Nova senha enviada
         mail.send(msg)
@@ -820,13 +903,14 @@ def userRecover():
         _id = userfound["_id"]
         db.users.update_one({"_id": _id}, {"$set": {"password": generatedPass}})
 
-        response = {'status': 200}
-    
-    #Se as credenciais estiverem incorretas, retorna para a página de redefinir senha
-    else: 
-        response = {'status': 401}
-    
+        response = {"status": 200}
+
+    # Se as credenciais estiverem incorretas, retorna para a página de redefinir senha
+    else:
+        response = {"status": 401}
+
     return jsonify(response)
+
 
 # Define a rota para o envio dos dados pela ferramenta
 # Organização do patch:
@@ -834,7 +918,7 @@ def userRecover():
 @app.route("/external/receiver", methods=["POST"])
 def receiver():
     metadata = request.form["metadata"]
-    data = request.form["data"] 
+    data = request.form["data"]
     metadata = json.loads(metadata)
     userid = metadata["userId"]
     userfound = db.users.find_one({"_id": ObjectId(userid)})
@@ -847,7 +931,7 @@ def receiver():
     path_dateTime = os.path.normpath(os.path.join(datadir, dateTime))
     path_img = os.path.normpath(os.path.join(path_dateTime, data_img))
 
-    #verificando se o caminho completo começa com o caminho base
+    # verificando se o caminho completo começa com o caminho base
     if not path_img.startswith(datadir):
         abort(403)
 
@@ -872,34 +956,32 @@ def receiver():
     if not os.path.exists("Samples"):
         os.makedirs("Samples", exist_ok=True)
     else:
-        if not os.path.exists(datadir): 
+        if not os.path.exists(datadir):
             os.makedirs(datadir, exist_ok=True)
         else:
             if not os.path.exists(path_dateTime):
-                os.makedirs(
-                    path_dateTime, exist_ok=True
-                ) 
+                os.makedirs(path_dateTime, exist_ok=True)
 
     try:
-        if data["imageData"] != "NO": 
+        if data["imageData"] != "NO":
             if not os.path.exists(
                 path_img,
             ):
                 imageData = base64.b64decode(
                     re.sub("^data:image/\w+;base64,", "", data["imageData"])
                 )
-                with open( 
+                with open(
                     path_img,
                     "wb",
                 ) as fh:
-                    fh.write(imageData) 
+                    fh.write(imageData)
 
     except:
         None
 
     traceData = ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"]
     if str(metadata["type"]) in traceData:
-        if not os.path.exists(os.path.join(path_dateTime,"trace.csv")): 
+        if not os.path.exists(os.path.join(path_dateTime, "trace.csv")):
             # se a base não existe, cria o csv
             fields = [
                 "site",
@@ -917,16 +999,16 @@ def receiver():
                 "height",
             ]
 
-            file = Path(os.path.join(path_dateTime,"trace.csv"))
-            file.touch(exist_ok=True) 
+            file = Path(os.path.join(path_dateTime, "trace.csv"))
+            file.touch(exist_ok=True)
 
-            with open(os.path.join(path_dateTime,"trace.csv"), "w") as csvfile: 
+            with open(os.path.join(path_dateTime, "trace.csv"), "w") as csvfile:
                 # criando um objeto csv dict writer
                 csvwriter = csv.writer(csvfile)
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
 
-        with open(os.path.join(path_dateTime,"trace.csv"), "a", newline="") as csvfile: 
+        with open(os.path.join(path_dateTime, "trace.csv"), "a", newline="") as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
@@ -948,16 +1030,14 @@ def receiver():
                 ]
             )
 
-        with open(
-            os.path.join(path_dateTime,"lastTime.txt"), "w"
-        ) as f:
+        with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
             f.write(str(metadata["dateTime"]))
 
         return "received"
 
     # se for um dado de voz
-    else:
-        if not os.path.exists(os.path.join(path_dateTime, "audio.csv")): 
+    elif (str(metadata["type"]) == 'voice'):
+        if not os.path.exists(os.path.join(path_dateTime, "audio.csv")):
             # se a base não existe, cria o csv
             fields = [
                 "site",
@@ -975,15 +1055,15 @@ def receiver():
             ]
 
             file = Path(os.path.join(path_dateTime, "audio.csv"))
-            file.touch(exist_ok=True) #
+            file.touch(exist_ok=True)  #
 
-            with open(os.path.join(path_dateTime, "audio.csv"), "w") as csvfile: 
+            with open(os.path.join(path_dateTime, "audio.csv"), "w") as csvfile:
                 # criando um objeto csv dict writer
                 csvwriter = csv.writer(csvfile)
                 # escrever cabeçalhos (nomes de campo)
                 csvwriter.writerow(fields)
 
-        with open(os.path.join(path_dateTime, "audio.csv"), "a", newline="") as csvfile: 
+        with open(os.path.join(path_dateTime, "audio.csv"), "a", newline="") as csvfile:
             # criando um objeto csv dict writer
             csvwriter = csv.writer(csvfile)
             # escrever linha (dados)
@@ -1004,12 +1084,80 @@ def receiver():
                 ]
             )
 
-        with open(
-            os.path.join(path_dateTime, "lastTime.txt"), "w" 
-        ) as f:
+        with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
             f.write(str(metadata["dateTime"]))
 
         return "received"
+    
+    # se for um dado de expressão facial
+    elif (str(metadata["type"]) == 'face'):
+        if not os.path.exists(os.path.join(path_dateTime, "emotions.csv")):
+            # se a base não existe, cria o csv
+            fields = [
+                "site",
+                "time",
+                "image",
+                "class",
+                "id",
+                "mouseClass",
+                "mouseId",
+                "x",
+                "y",
+                "scroll",
+                "height",
+                "anger",
+                "contempt", 
+                "disgust", 
+                "fear", 
+                "happy", 
+                "neutral", 
+                "sad", 
+                "surprise"
+            ]
+
+            file = Path(os.path.join(path_dateTime, "emotions.csv"))
+            file.touch(exist_ok=True)  #
+
+            with open(os.path.join(path_dateTime, "emotions.csv"), "w") as csvfile:
+                # criando um objeto csv dict writer
+                csvwriter = csv.writer(csvfile)
+                # escrever cabeçalhos (nomes de campo)
+                csvwriter.writerow(fields)
+
+        with open(os.path.join(path_dateTime, "emotions.csv"), "a", newline="") as csvfile:
+            # criando um objeto csv dict writer
+            csvwriter = csv.writer(csvfile)
+            # escrever linha (dados)
+            csvwriter.writerow(
+                [
+                    str(metadata["sample"]),
+                    str(metadata["time"]),
+                    str(data["imageName"]),
+                    str(data["Class"]),
+                    str(data["Id"]),
+                    str(data["mouseClass"]),
+                    str(data["mouseId"]),
+                    str(data["X"]),
+                    str(data["Y"]),
+                    str(metadata["scroll"]),
+                    str(metadata["height"]),
+                    str(data["anger"]),
+                    str(data["contempt"]),
+                    str(data["disgust"]),
+                    str(data["fear"]),
+                    str(data["happy"]),
+                    str(data["neutral"]),
+                    str(data["sad"]),
+                    str(data["surprise"])
+                ]
+            )
+
+        with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
+            f.write(str(metadata["dateTime"]))
+        return "received"
+    
+    else:
+        abort(403)
 
 
 # Define a rota para o envio dos dados pela ferramenta
@@ -1022,7 +1170,7 @@ def sample_checker():
         userid = request.form["userId"]
         datadir = f"Samples/{userid}/"
 
-        #normalizando caminho base
+        # normalizando caminho base
         base_path = os.path.normpath(datadir)
 
         directory_path = os.path.normpath(os.path.join(datadir, time))
@@ -1042,34 +1190,74 @@ def sample_checker():
         else:
             return "0"
 
+
+@app.route("/external/faceExpression", methods=["POST"])
+def faceExpression():
+    image_data = request.form["data"]
+    # Converte a Base64 para bytes
+    header, image_data = image_data.split(",", 1)
+    image_bytes = base64.b64decode(image_data)
+    # Abre a imagem com Pillow
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    # Define a sequência de transformações
+    transform = transforms.Compose([
+        transforms.Resize(96),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    # Aplica as transformações na imagem
+    image_transformed = transform(image).unsqueeze(0)
+
+    # Realiza a inferência
+    with torch.no_grad():
+        outputs = model(image_transformed)
+        outputs = F.softmax(outputs, dim=1)
+    result = outputs.tolist()
+
+    labels = ['anger',
+    'contempt', 
+    'disgust', 
+    'fear', 
+    'happy', 
+    'neutral', 
+    'sad', 
+    'surprise']
+
+    result_dict = {label: prob for label, prob in zip(labels, result[0])}
+    return jsonify(result_dict)
+
+
 def send_email(subject, body):
     # Configurar as informações de email
     sender_email = app.config.get("MAIL_USERNAME")
     sender_password = app.config.get("MAIL_PASSWORD")
-    receiver_email = 'flavio.moura@itec.ufpa.br'
+    receiver_email = "flavio.moura@itec.ufpa.br"
 
     # Criar o objeto de mensagem
     message = MIMEMultipart()
-    message['From'] = sender_email
-    message['To'] = receiver_email
-    message['Subject'] = subject
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = subject
 
     # Adicionar o corpo da mensagem
-    message.attach(MIMEText(body, 'plain'))
+    message.attach(MIMEText(body, "plain"))
 
     # Enviar o email usando SMTP
-    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.login(sender_email, sender_password)
     server.sendmail(sender_email, receiver_email, message.as_string())
     server.quit()
+
 
 if __name__ == "__main__":
     try:
         app.run(debug=False, host="0.0.0.0")
     except BaseException as e:
         dt = datetime.datetime.today()
-        dt = f'{dt.day}/{dt.month}/{dt.year}'
+        dt = f"{dt.day}/{dt.month}/{dt.year}"
         error_context = sys.exc_info()[1].__context__.strerror
         error_context = unidecode(error_context)
-        error_msg = f'The application failed to start in {dt}.\r The message of error is: {sys.exc_info()[0]}:{e} - {error_context}'
+        error_msg = f"The application failed to start in {dt}.\r The message of error is: {sys.exc_info()[0]}:{e} - {error_context}"
         send_email("UX-Tracking Initialization Failed.", error_msg)

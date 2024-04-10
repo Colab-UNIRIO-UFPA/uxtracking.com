@@ -1253,7 +1253,7 @@ def send_email(subject, body):
 
 if __name__ == "__main__":
     try:
-        app.run(debug=True, host="0.0.0.0")
+        app.run(debug=False, host="0.0.0.0")
     except BaseException as e:
         dt = datetime.datetime.today()
         dt = f"{dt.day}/{dt.month}/{dt.year}"

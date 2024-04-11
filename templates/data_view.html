@@ -46,7 +46,7 @@
   {% endif %}
   {% endwith %}
   <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
-    <a href="{{ url_for('dataview', username=username, plot='heatmap') }}" aria-current="true"
+    <a href="{{ url_for('data_bp.dataview_get', username=username, plot='heatmap') }}" aria-current="true"
       class="text-decoration-none" style="flex-basis: 33.33%;">
       <div
         class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
@@ -61,7 +61,7 @@
         </div>
       </div>
     </a>
-    <a href="{{ url_for('dataview', username=username, plot='recording') }}" aria-current="true"
+    <a href="{{ url_for('data_bp.dataview_get', username=username, plot='recording') }}" aria-current="true"
       class="text-decoration-none" style="flex-basis: 33.33%;">
       <div
         class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
@@ -154,7 +154,7 @@
       <script type="text/javascript">
         function submitdata(data, plot) {
           $("#resultModal").modal('show');
-          $.post("{{ url_for('dataview', username=username, plot=plot) }}",
+          $.post("{{ url_for('data_bp.dataview_post', username=username, plot=plot) }}",
             {
               dir: data
             },
@@ -223,7 +223,7 @@
           modalContent.appendChild(modalBody);
 
           //solicitação para a rota dataview
-          $.post("{{ url_for('dataview', username=username, plot=plot) }}",
+          $.post("{{ url_for('data_bp.dataview_post', username=username, plot=plot) }}",
           {
             dir: data
           },
@@ -355,17 +355,5 @@
         }
        </script>
     {% endif %}
-
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <p>{{ message }}</p>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-    <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary w-100">Selecione a coleta que irá visualizar pelo método
-      {{ plot|capitalize }}</p>
-  </div>
-  {% endif %}
 </div>
 {% endblock %}

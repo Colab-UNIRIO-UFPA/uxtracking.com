@@ -15,12 +15,15 @@
     text-align: center;
     width: 100%!important;
     position: relative;
-  } 
+  }
+  .adjust-side-menu {
+        margin-left: 30vh;
+    }
   </style>
 {% endblock %}
 
 {% block content %}
-  <div class="d-flex flex-column w-100 m-auto pe-1 align-items-center" style="text-align: center; min-height: 100vh">
+  <div class="d-flex flex-column w-100 pe-1 align-items-center adjust-side-menu" style="text-align: center; min-height: 100vh">
     <!-- menu inicial -->
     {% if not model %}
       <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary w-100">Escolha uma análise</p>

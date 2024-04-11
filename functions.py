@@ -1,5 +1,3 @@
-import hashlib
-import json
 import string
 import random
 import pandas as pd
@@ -697,8 +695,8 @@ def make_recording(folder, **kwargs):
             visible=False,
             scaleanchor="x",
         )
-        #plots.append(fig.to_html(div_id="plotDiv"))
         dict_site[site] = fig.to_html(div_id="plotDiv")
+        
     return dict_site
     
 

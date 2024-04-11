@@ -17,6 +17,16 @@
     width: 100% !important;
     position: relative;
   }
+
+  .clicked {
+    background-color: #343A40; /* Cor de fundo quando o botão é clicado */
+    color: white;
+  }
+
+  .scrollbar{
+    overflow-y: scroll;
+  }
+
 </style>
 {% endblock %}
 
@@ -34,48 +44,48 @@
   {% endwith %}
   <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
     <a href="{{ url_for('dataview', username=username, plot='heatmap') }}" aria-current="true"
-      class="text-decoration-none">
+      class="text-decoration-none" style="flex-basis: 33.33%;">
       <div
         class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
-        style="height: 65vh;">
+        style="height: 80vh;">
         <div class="my-3 p-3">
           <h2 class="display-5">Mapa de calor temporal</h2>
           <p class="lead">Visualize as interações do usuário de forma interativa ao longo do tempo, como um vídeo.</p>
         </div>
         <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto"
-          style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
-          <img src="{{ url_for('static', filename='heatmap.svg')}}" class="img-fluid p-2">
+          style="width: 100%; height: 37%; border-radius: 21px 21px 0 0;">
+          <img src="{{ url_for('static', filename='heatmap.svg')}}" class="img-fluid p-2" style="width: auto; height: 100%;">
         </div>
       </div>
     </a>
     <a href="{{ url_for('dataview', username=username, plot='recording') }}" aria-current="true"
-      class="text-decoration-none">
+      class="text-decoration-none" style="flex-basis: 33.33%;">
       <div
         class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
-        style="height: 65vh;">
+        style="height: 80vh;">
         <div class="my-3 p-3">
-          <h2 class="display-5">Recordings</h2>
-          <p class="lead">Fique atento às nossas atualizações.</p>
+          <h2 class="display-5">Explorador de Interações</h2>
+          <p class="lead">Visualize as diferentes interações dos usuários, como movimentos do mouse, cliques, entradas de teclado, fixações e movimentações visuais, de maneira consolidada e intuitiva.</p>
         </div>
-        <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto"
-          style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
-          <img src="{{ url_for('static', filename='coming-soon.png')}}" class="img-fluid p-2"
-            style="width: auto; height: 240px;">
+        <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center align-items-center mt-auto"
+          style="width: 100%; height: 37%; border-radius: 21px 21px 0 0;">
+          <img src="{{ url_for('static', filename='Interacao.png')}}" class="img-fluid p-2"
+            style="width: auto; height: 100%;">
         </div>
       </div>
     </a>
-    <a href="#" aria-current="true" class="text-decoration-none">
+    <a href="#" aria-current="true" class="text-decoration-none disabled" style="flex-basis: 33.33%;">
       <div
         class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled"
-        style="height: 65vh;">
+        style="height: 80vh;">
         <div class="my-3 p-3">
           <h2 class="display-5">Funcionalidade futura</h2>
           <p class="lead">Fique atento às nossas atualizações.</p>
         </div>
         <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto"
-          style="width: 100%; height: 240px; border-radius: 21px 21px 0 0;">
+          style="width: 100%; height: 37%; border-radius: 21px 21px 0 0;">
           <img src="{{ url_for('static', filename='coming-soon.png')}}" class="img-fluid p-2"
-            style="width: auto; height: 240px;">
+            style="width: auto; height: 100%;">
         </div>
       </div>
     </a>
@@ -83,26 +93,6 @@
 
   <!-- seleção do dado -->
   {% else %}
-  <!-- popup de resultado -->
-  <div class="modal fade" id="resultModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
-      <div class="modal-content">
-        <div class="modal-header text-center">
-          <h5 class="modal-title w-100" id="resultModalLabel">Plotagem</h5>
-          <button type="button" onclick="closePopupResult()" class="btn-close" data-bs-dismiss="modal"
-            aria-label="Close"></button>
-        </div>
-        <div class="list-group modal-body align-items-center justify-content-center gap-3" style="text-align: center;">
-          <div class="list-group-item">
-            <div class="spinner-border text-secondary" id="spinner" role="status"></div>
-            <div id="resultPlot"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="list-group flex-lg-column-reverse w-100">
     {% for data in items%}
     <a href="javascript:;" onclick="submitdata(this.getAttribute('data-value'), this.getAttribute('data-plot'))"
@@ -137,6 +127,232 @@
     </a>
     {% endfor %}
 
+    {% if plot == "heatmap" or   plot == "nlp" %}
+        <!-- popup de resultado -->
+      <div class="modal fade" id="resultModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+      role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
+        <div class="modal-content">
+          <div class="modal-header text-center">
+            <h5 class="modal-title w-100" id="resultModalLabel">Plotagem</h5>
+            <button type="button" onclick="closePopupResult()" class="btn-close" data-bs-dismiss="modal"
+              aria-label="Close"></button>
+          </div>
+          <div class="list-group modal-body align-items-center justify-content-center gap-3" style="text-align: center;">
+            <div class="list-group-item">
+              <div class="spinner-border text-secondary" id="spinner" role="status"></div>
+              <div id="resultPlot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      
+      <script type="text/javascript">
+        function submitdata(data, plot) {
+          $("#resultModal").modal('show');
+          $.post("{{ url_for('dataview', username=username, plot=plot) }}",
+            {
+              dir: data
+            },
+            function (result) {
+              document.getElementById("spinner").style.display = "none";
+              $('#resultPlot').html(result);
+            });
+        };
+        function closePopupResult() {
+          document.getElementById("spinner").style.display = "inline-flex";
+          $('#resultPlot').html('');
+        };
+      </script>
+    {% endif %}
+
+    {% if plot == "recording" %}
+       <!-- popup de resultado -->
+       <div class="modal fade" id="resultModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+      role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
+        <div class="modal-content" id="modalContent">
+          <!--header modal-->
+          <div class="modal-header text-center">
+            <h5 class="modal-title w-100" id="resultModalLabel">Plotagem</h5>
+            <button type="button" onclick="closePopupResult()" class="btn-close" data-bs-dismiss="modal"
+              aria-label="Close"></button>
+          </div>
+          <!--body Modal-->
+          <div class="modal-body d-flex flex-row align-items-start justify-content-between gap-3">
+              <!--coluna da parte do site-->
+              <div class="d-flex flex-column h-100" id="sites" style="width: 32%;">
+                <div class="w-100" style="text-align: left; padding-left: 10%;">
+                  <h4 id="sites_heading">Sites</h4>
+                </div>
+                <!--Botões do site-->
+                <div class="w-100 scrollbar" style="height: 50%;">
+                  <div class="list-group"  id="dropdown-list">  
+                </div>  
+                </div>
+              </div>
+              <!--plot-->
+              <div class="list-group w-100" style="max-height: 100%;" id="group">
+                <div class="list-group-item" >
+                    <!-- <div class="spinner-border text-secondary" id="spinner"  role="status" ></div> -->
+                    <div id="resultPlot"></div>
+                </div>
+              </div>
+            </div>
+           </div>
+        </div>
+      </div>
+       
+       <script type="text/javascript">
+         var result2;
+         function submitdata(data, plot) {
+          //Quando chama o model alguns elementos são configurados para serem ocultados 
+          $("#resultModal").modal('show'); 
+          document.getElementById("sites").style.display = "none"; 
+          $("#sites_heading").hide(); 
+          document.getElementById("group").style.display = "none"; 
+          
+          //criando o modal-body para o spinner
+          var modalBody = createModalBody();
+
+          var modalContent = document.querySelector('#modalContent');
+          modalContent.appendChild(modalBody);
+
+          //solicitação para a rota dataview
+          $.post("{{ url_for('dataview', username=username, plot=plot) }}",
+          {
+            dir: data
+          },
+          function (result) {
+              //Quando recebe o resultado os dados são exibidos seja gráfico ou texto
+              var result1 = result.result1;
+              result2 = result.result2;
+              
+              //Se `result2` for verdadeiro, o corpo do modelo do spinner desaparece e o resultado do gráfico é exibido.
+              if (result2 == true){
+                $("#sites_heading").show();
+                document.getElementById("modalBody").remove();
+                document.getElementById("group").style.display = "inline-flex"; 
+                document.getElementById("sites").style.display = "inline-flex";
+                botaoSites(result1);
+              }else{
+                $('#resultText').html(result1);
+                document.getElementById("spinner").style.display = "none";
+              }
+            });
+          };
+          function closePopupResult() {
+             //limpa os elementos da lista de botoes quando fecha o model
+            var nameSites = document.getElementById("dropdown-list");
+            nameSites.innerHTML = '';
+
+            //oculta o conteúdo do gráfico e lista de botoes
+            document.getElementById("group").style.display = "none"; 
+            document.getElementById("sites").style.display = "none";
+
+            //se `result2` for falso vai remover o modal-body do spinner para evitar duplicações
+            if (result2 == false){
+              document.getElementById("modalBody").remove();
+            }
+
+            //criando novamente o modal-body do spinner
+            var modalBody = createModalBody();
+
+            var modalContent = document.querySelector('#modalContent');
+            modalContent.appendChild(modalBody);
+
+            $('#resultPlot').html('');
+
+            // Aqui, definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
+            setTimeout(function() {
+                document.getElementById("modalBody").remove();
+            }, 1000);
+          };
+
+         //funcao para a lista de botoes
+         function botaoSites(result){
+            var nameSites = document.getElementById("dropdown-list");
+
+            //verificação para expor automaticamente o hover do primeiro site
+            var firstItem = true; 
+
+            // Define a função de clique
+            function handleClick(key) {
+              return function() {
+                // Remove a classe "clicked" de todos os botões
+                var buttons = document.querySelectorAll('.list-group-item');
+                buttons.forEach(function(button) {
+                  button.classList.remove("clicked");
+                });
+                
+                //mostra o conteúdo do ploty
+                $('#resultPlot').html(result[key]); 
+
+                // Adiciona a classe para alterar a cor de fundo quando o botao e clicado
+                this.classList.add("clicked");
+              };
+            }
+
+            //cria os elementos dentro da div com id ´dropdown-list´
+            for (var key in result){
+              if (result.hasOwnProperty(key)){
+                var link = document.createElement("a");
+                link.setAttribute("class", "list-group-item border border-0");
+                link.setAttribute("href",  "#");
+                
+                link.textContent = key;
+                nameSites.appendChild(link);
+
+                // Atribui o evento de clique usando a função handleClick
+                link.addEventListener("click", handleClick(key));
+
+                if (firstItem){
+                  link.click();
+                  firstItem = false;
+                }
+              }
+            };
+         };
+         // cria o elemento modal-body do spinner
+         function createModalBody() {
+          var modalBody = document.createElement('div');
+          modalBody.className = 'modal-body h-100 d-flex align-items-center justify-content-center gap-3';
+          modalBody.id = 'modalBody';
+
+          // Criação do elemento list-group
+          var listGroup = document.createElement('div');
+          listGroup.className = 'list-group';
+
+          // Criação do elemento list-group-item
+          var listGroupItem = document.createElement('div');
+          listGroupItem.className = 'list-group-item';
+
+          // Criação do elemento spinner
+          var spinner = document.createElement('div');
+          spinner.className = 'spinner-border text-secondary';
+          spinner.id = 'spinner';
+          spinner.setAttribute('role', 'status');
+
+          var resultText = document.createElement('div');
+          resultText.id = 'resultText';
+
+          // Adicionando o spinner e o resultText ao list-group-item
+          listGroupItem.appendChild(spinner);
+          listGroupItem.appendChild(resultText);
+
+          // Adicionando o list-group-item ao list-group
+          listGroup.appendChild(listGroupItem);
+
+          // Adicionando o list-group ao modal-body
+          modalBody.appendChild(listGroup);
+
+          // Retorna o modal-body para ser usado posteriormente
+          return modalBody;
+        }
+       </script>
+    {% endif %}
+
     {% with messages = get_flashed_messages() %}
     {% if messages %}
     {% for message in messages %}
@@ -149,22 +365,4 @@
   </div>
   {% endif %}
 </div>
-
-<script type="text/javascript">
-  function submitdata(data, plot) {
-    $("#resultModal").modal('show');
-    $.post("{{ url_for('dataview', username=username, plot=plot) }}",
-      {
-        dir: data
-      },
-      function (result) {
-        document.getElementById("spinner").style.display = "none";
-        $('#resultPlot').html(result);
-      });
-  };
-  function closePopupResult() {
-    document.getElementById("spinner").style.display = "inline-flex";
-    $('#resultPlot').html('');
-  };
-</script>
 {% endblock %}

@@ -616,6 +616,8 @@ def make_recording(folder, **kwargs):
         "keyboard": "hash",
     }
 
+    dict_site = {}
+
     for site in full_ims.keys():
         fig = go.Figure()
         filtered_df = df_trace[df_trace["site"] == site]
@@ -653,8 +655,8 @@ def make_recording(folder, **kwargs):
                 )
             else:
                 pass
+        
         fig.update_layout(
-            title=f"Site: {site}",
             xaxis=dict(
                 range=[0, width], autorange=False, rangeslider=dict(visible=False)
             ),
@@ -663,9 +665,9 @@ def make_recording(folder, **kwargs):
                         orientation="h",
                         yanchor="bottom",
                         y=1.01,
-                        xanchor="right",
-                        x=1,
-                        font = dict(color="blue", size=18)
+                        xanchor="left",
+                        x=0,
+                        font = dict(color="white", size=18)
                         ),
             images=[
                 dict(
@@ -695,9 +697,10 @@ def make_recording(folder, **kwargs):
             visible=False,
             scaleanchor="x",
         )
-        plots.append(fig.to_html(div_id="plotDiv"))
+        #plots.append(fig.to_html(div_id="plotDiv"))
+        dict_site[site] = fig.to_html(div_id="plotDiv")
+    return dict_site
     
-    return plots
 
 
 def gen_fullpage(folder, width, height, frames):

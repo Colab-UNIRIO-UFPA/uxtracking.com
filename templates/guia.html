@@ -20,8 +20,10 @@
         #navbar-example3 {
           position: fixed;
           top: 23%;
+          /*
           max-height: 100vh; /* Altura máxima para garantir o scroll */
           max-height: 400px;
+          */
           height: 100%;
           width: 320px;
           overflow-y: auto; /* Habilita a barra de rolagem vertical se necessário */
@@ -43,6 +45,20 @@
         @media (max-width: 780px) { #navbar-example3 {width: 180px; height:1000px; } }
         @media (max-width: 770px) { #navbar-example3 {width: 170px;  height:1000px;} }
         @media (max-width: 730px) { #navbar-example3 {width: 130px;  height:1000px; } }
+        
+        
+        /*
+        #navbar-example3 {
+          position: -webkit-sticky; /* Para o Safari */
+          position: sticky;
+          top: 0; /* Define o topo da barra de navegação como ponto de início do sticky */
+          max-height: 100vh;
+          overflow-y: auto;
+        }
+        .scrollspy-example-2 {
+          height: 450px; /* Altura fixa para demonstração */
+          overflow-y: scroll; /* Permite o scroll no conteúdo */
+        }
         @media (max-width: 992px) { /* Ajusta para telas menores */
           #navbar-example3 {
             max-height: 50vh; /* Ajusta a altura em telas menores */

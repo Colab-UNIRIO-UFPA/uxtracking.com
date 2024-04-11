@@ -83,7 +83,7 @@
               {% if page_obj.number != 1%}
               <li class="page-item">
                 <a class="page-link text-body-secondary"
-                  href="{{ url_for('data_bp.datafilter_get', username=username, metadata=metadata, page_number=1)}}">Início</a>
+                  href="{{ url_for('datafilter', username=username, metadata=metadata, page_number=1)}}">Início</a>
               </li>
               {% else %}
               <li class="page-link text-body-secondary disabled">Início</li>
@@ -93,7 +93,7 @@
               {% if i >= page_obj.number - 2 and i <= page_obj.number + 2 %} <li
                 class="page-item {% if page_obj.number == i %}active{% endif %}">
                 <a class="page-link text-body-secondary"
-                  href="{{ url_for('data_bp.datafilter_get', username=username, metadata=metadata, page_number=i) }}">{{ i }}</a>
+                  href="{{ url_for('datafilter', username=username, metadata=metadata, page_number=i) }}">{{ i }}</a>
                 </li>
                 {% endif %}
                 {% endfor %}
@@ -101,7 +101,7 @@
                 {% if page_obj.number != page_obj.paginator.num_pages%}
                 <li class="page-item">
                   <a class="page-link text-body-secondary"
-                    href="{{ url_for('data_bp.datafilter_get', username=username, metadata=metadata, page_number=page_obj.paginator.num_pages)}}">Final</a>
+                    href="{{ url_for('datafilter', username=username, metadata=metadata, page_number=page_obj.paginator.num_pages)}}">Final</a>
                 </li>
                 {% else %}
                 <li class="page-link text-body-secondary disabled">Final</li>

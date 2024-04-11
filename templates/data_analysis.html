@@ -35,7 +35,7 @@
         {% endif %}
       {% endwith %}
       <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
-        <a href="{{ url_for('data_bp.dataanalysis_get', username=username, model='bertimbau') }}" aria-current="true" class="text-decoration-none">
+        <a href="{{ url_for('dataanalysis', username=username, model='bertimbau') }}" aria-current="true" class="text-decoration-none">
           <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0" style="height: 70vh;">
             <div class="my-3 p-3 align-self-start">
               <h2 class="display-5">BERTimbau</h2>
@@ -46,7 +46,7 @@
             </div>
           </div>
         </a>
-        <a href="{{ url_for('data_bp.dataanalysis_get', username=username, model='kmeans') }}" aria-current="true" class="text-decoration-none">
+        <a href="{{ url_for('dataanalysis', username=username, model='kmeans') }}" aria-current="true" class="text-decoration-none">
           <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled" style="height: 70vh;">
             <div class="my-3 p-3 align-self-start">
               <h2 class="display-5">K-Means</h2>
@@ -57,7 +57,7 @@
             </div>
           </div>
         </a>
-        <a href="{{ url_for('data_bp.dataanalysis_get', username=username, model='meanshift') }}" aria-current="true" class="text-decoration-none">
+        <a href="{{ url_for('dataanalysis', username=username, model='meanshift') }}" aria-current="true" class="text-decoration-none">
           <div class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled" style="height: 70vh;">
             <div class="my-3 p-3 align-self-start">
               <h2 class="display-5">Meanshift</h2>
@@ -123,7 +123,7 @@
           <ul class="pagination">
               {% if page_obj.number != 1%}
                 <li class="page-item">
-                  <a class="page-link text-body-secondary" href="{{ url_for('data_bp.dataanalysis_get', username=username, model=model, page_number=1)}}">Início</a>
+                  <a class="page-link text-body-secondary" href="{{ url_for('dataanalysis', username=username, model=model, page_number=1)}}">Início</a>
                 </li>
               {% else %}
                 <li class="page-link text-body-secondary disabled">Início</li>
@@ -132,14 +132,14 @@
             {% for i in page_obj.paginator.page_range %}
               {% if i >= page_obj.number - 2 and i <= page_obj.number + 2 %}
                 <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                  <a class="page-link text-body-secondary" href="{{ url_for('data_bp.dataanalysis_get', username=username, model=model, page_number=i) }}">{{ i }}</a>
+                  <a class="page-link text-body-secondary" href="{{ url_for('dataanalysis', username=username, model=model, page_number=i) }}">{{ i }}</a>
                 </li>
               {% endif %}
             {% endfor %}
 
             {% if page_obj.number != page_obj.paginator.num_pages%}
               <li class="page-item">
-              <a class="page-link text-body-secondary" href="{{ url_for('data_bp.dataanalysis_get', username=username, model=model, page_number=page_obj.paginator.num_pages)}}">Final</a></li>
+              <a class="page-link text-body-secondary" href="{{ url_for('dataanalysis', username=username, model=model, page_number=page_obj.paginator.num_pages)}}">Final</a></li>
             {% else %}
               <li class="page-link text-body-secondary disabled">Final</li>
             {% endif %}
@@ -165,7 +165,7 @@
       valueData = data;
       document.getElementById("mybutton").style.display = "none";
       $("#resultModal").modal('show');
-      $.post("{{ url_for('data_bp.dataanalysis_post', username=username, model=model) }}",
+      $.post("{{ url_for('dataanalysis', username=username, model=model) }}",
       {
         dir: data
       },
@@ -195,7 +195,7 @@
       Plotly.newPlot(graphDiv, fig.data, fig.layout);
     }
     function clickbutton(){
-      $.post("{{ url_for('data_bp.downloadAudio')}}",
+      $.post("{{ url_for('downloadAudio')}}",
       {
         data: valueData
       },

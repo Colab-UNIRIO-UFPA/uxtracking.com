@@ -135,10 +135,6 @@ def datafilter_post(username, metadata):
                 data = f.readlines()
             os.remove(f"{username}_data.zip")
 
-            # limpar os dados da sessão para nova consulta
-            session.pop("dates", None)
-            session.pop("pages", None)
-
             # fornecendo o zip pra download
             return Response(
                 data,
@@ -347,7 +343,14 @@ def dataview_post(username, plot):
         if plot == "heatmap":
             return make_heatmap(folder)
         elif plot == "recording":
-            return make_recording(folder, type="mouse")
+            results = {}
+            try:
+                results['result1'] = make_recording(folder, type="mouse")
+                results['result2'] = True
+            except:
+                results['result1'] = 'Não foi possível carregar o conteúdo'
+                results['result2'] = False
+            return results
         elif plot == "nlp":
             return
         else:

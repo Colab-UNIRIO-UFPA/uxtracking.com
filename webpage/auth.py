@@ -10,22 +10,23 @@ auth_bp = Blueprint("auth_bp", "__name__", template_folder="templates", static_f
 # Define a rota para a página de registro
 @auth_bp.post("/register")
 def register_post():
-        # Obtém o usuário e a senha informados no formulário
+    # Obtém o usuário e a senha informados no formulário
     username = request.form["username"]
     password = request.form["password"]
     email = request.form["email"]
 
-    # Verifica se o usuário já existe
+    # Verifica se o email já existe
     userfound = db.users.find_one({"email": email})
     if userfound == None:
         db.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
+        # Redireciona para a página de login
+        flash("Faça o login para continuar")
+        return redirect(url_for("auth_bp.login_get", title="Login"))
     else:
         flash("Esse email já foi cadastrado")
-        return render_template("register.html", title="Registrar")
-    # Redireciona para a página de login
-    return redirect(url_for("auth_bp.login_get", title="Login"))
+        return render_template("register.html", session=False, title="Registrar")
 
 @auth_bp.get("/register")
 def register_get():

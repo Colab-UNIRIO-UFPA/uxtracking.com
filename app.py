@@ -35,8 +35,8 @@ def create_app():
     return app, mail, mail_username
 
 def load_fer():
-    # modelo de inferência MobileNet
-    model = models.MobileNetV2()
+    model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+    # Add classifier
     num_ftrs = model.classifier[1].in_features
     model.classifier = nn.Sequential(
         nn.Dropout(0.1),
@@ -48,7 +48,7 @@ def load_fer():
     )
     model.load_state_dict(
         torch.load(
-            "static/mobilenet.pth",
+            "static/efficientnet.pth",
             map_location=torch.device("cpu"),
         )
     )

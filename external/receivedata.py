@@ -10,7 +10,7 @@ from pathlib import Path
 from app import db, model
 from bson import ObjectId
 import torch.nn.functional as F
-from torchvision import transforms
+from torchvision.transforms import v2 as T
 from flask import abort, Blueprint, request, jsonify
 
 external_receivedata_bp = Blueprint(
@@ -308,11 +308,11 @@ def faceExpression():
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     # Define a sequência de transformações
-    transform = transforms.Compose(
+    transform = T.Compose(
         [
-            transforms.Resize(96),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            T.Resize(96),
+            T.ToTensor(),
+            T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
     )
 

@@ -128,8 +128,8 @@
                     <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Avaliação de UX em Interfaces Web e Mobile de Forma Automatizada</h1>
                     <p class="lead text-justify">Realize avaliações de UX rastreando múltiplas interações do usuário com a ferramenta UX-Tracking: User eXperience Tracking. Com a nossa solução é possível coletar dados de interação do usuário em tempo real, mapear jornadas do usuário, identificar pontos de interesse e fornecer insights relacionados e Experiência do Usuário em Ambientes Web e Mobile.</p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start py-3">
-                        <a href="{{ url_for('login') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-primary text-white btn-lg px-4 me-md-2">Entrar</button></a>
-                        <a href="{{ url_for('register') }}"><button type="button" transition-style="in:square:bottom-right" class="btn text-white btn-outline-secondary btn-lg px-4">Obter acesso</button></a>
+                        <a href="{{ url_for('auth_bp.login_get') }}"><button type="button" transition-style="in:square:bottom-right" class="btn btn-primary text-white btn-lg px-4 me-md-2">Entrar</button></a>
+                        <a href="{{ url_for('auth_bp.register_get') }}"><button type="button" transition-style="in:square:bottom-right" class="btn text-white btn-outline-secondary btn-lg px-4">Obter acesso</button></a>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
         <div class="b-example-divider" id="h-divider"></div>
 
         <div class="container px-5 py-5" id="featured-3">
-            <h2 style="" class="pb-2 border-bottom mb-2 border-primary border-1">O que nossa ferramenta captura?</h2>
+            <h2 class="pb-2 border-bottom mb-2 border-primary border-1">O que nossa ferramenta captura?</h2>
             
             <div class="row px-5 ">
 
@@ -657,7 +657,7 @@
             <div class="list-group flex-lg-column">
                 <p class="fs-4 fw-semibold my-0 py-1 ps-3 text-bg-custom ">Últimas coletas</p>
                 {% for date in dates %}
-                    <form action="{{ url_for('index') }}" method="POST">
+                    <form action="{{ url_for('index_bp.index_post') }}" method="POST">
                         <a href="javascript:;" onclick="parentNode.submit();"class="list-group-item align-items-center list-group-item-action d-flex gap-3 py-3" aria-current="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-calendar3" viewBox="0 0 16 16">
                                 <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857V3.857z"/>

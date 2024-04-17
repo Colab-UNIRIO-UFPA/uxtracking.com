@@ -123,7 +123,7 @@
 
             
             <div style="text-align:center">
-              <a href="{{ url_for('google') }}">
+              <a href="{{ url_for('auth_bp.google') }}">
                 <button type="button" class="login-with-google-btn">
                   Faça login com o Google
                 </button>
@@ -131,8 +131,8 @@
             </div> -->
 
             <p style="text-align: center;"><br>
-              <a href="{{ url_for('forgot_pass') }}">Esqueceu a senha?</a><br>
-              <a href="{{ url_for('register') }}">Não tem uma conta?</a>
+              <a href="{{ url_for('pass_bp.forgot_pass_get') }}">Esqueceu a senha?</a><br>
+              <a href="{{ url_for('auth_bp.register_get') }}">Não tem uma conta?</a>
             </p>
           </form>
         </div>

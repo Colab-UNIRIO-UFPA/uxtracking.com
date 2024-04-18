@@ -3,7 +3,7 @@
 {% block head %}
   <style type="text/css">
     .form-signup {
-      max-width: 350px;
+      max-width: 550px;
       padding: 1rem;
     }
     
@@ -89,7 +89,7 @@
 
 {% block content %}
 <div class="mt-5">
-  <div class="container minha-div mt-5" style="width: 78%; min-height:77vh">
+  <div class="container minha-div mt-5" style="width: 79%; min-height:77vh">
     <div class="row mt-5">
       <div class="col-sm-7 mt-5" >
         <div class="justify-content-center mt-2 align-items-center">
@@ -97,7 +97,7 @@
           <p class="lead" style="text-align: justify;">Realize seu cadastro para obter a extensão de captura de dados multimodal da UX-Tracking e uma variedade de funcionalidades para aprimorar sua avaliação de UX. Preencha suas informações para obter acesso imediato a nossa plataforma e o download da extensão.</p>
         </div>
       </div>
-      <div class="col-sm-4">
+      <div class="col-sm-5">
           <div class="form-signup justify-content-center w-100 m-auto">    
             <form method="POST">
               {% with messages = get_flashed_messages() %}
@@ -144,7 +144,7 @@
                 </a>
               </div>
             -->
-              <p style="text-align: center;"><br>
+              <p class="mt-n1" style="text-align: center;"><br>
                 <a href="{{ url_for('pass_bp.forgot_pass_get') }}">Esqueceu sua senha?</a><br>
                 <a href="{{ url_for('auth_bp.login_get') }}">Já tem conta?</a>
               </p>

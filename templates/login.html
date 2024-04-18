@@ -2,7 +2,7 @@
 {% block head %}
 <style type="text/css">
   .form-signin {
-    max-width: 350px;
+    max-width: 550px;
     padding: 1rem;
   }
 
@@ -67,24 +67,32 @@
       box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .25);
       cursor: not-allowed;
     }
-  }
+
+    @media (max-width: 767.98px) { /* Para telas pequenas */
+      .custom-col-center {
+        display: block; /* garante que a coluna se comporta como um bloco */
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%; /* ajusta a largura para ocupar todo o espaço disponível */
+      }
+    }
+  
 </style>
 {% endblock %}
 
 
 {% block content %} 
 <div class="mt-5">
-  <div class="container minha-div mt-5" style="width: 78%; min-height:77vh">
-    <div class="row mt-5">
+  <div class="container mt-5" style="width: 79%; min-height:77vh">
+    <div class="row mt-5 gx-5">
       <div class="col-sm-7 mt-5">
-        <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Acesse uma variedade de funcionalides para avaliação de
-          UX</h1>
+        <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3">Acesse uma variedade de funcionalides para avaliação de UX</h1>
         <p class="lead" style="text-align: justify;">Entre na sua conta para acessar seus dados coletados com a extensão UX-Tracking, realizar o
           processamento dos traços coletados e avaliações visuais das interações dos usuários. E se ainda tiver dúvidas,
           basta acessar nossa documentação disponível na nossa plataforma.</p>
       </div>
-      <div class="col-sm-4">
-        <div class="form-signin justify-content-center w-100 m-auto">
+      <div class="col-sm-5 ms-auto custom-col-center">
+        <div class="form-signin justify-content-end w-100 ">
           <form method="POST">
             {% with messages = get_flashed_messages() %}
             {% if messages %}

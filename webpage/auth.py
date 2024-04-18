@@ -10,47 +10,59 @@ auth_bp = Blueprint("auth_bp", "__name__", template_folder="templates", static_f
 # Define a rota para a página de registro
 @auth_bp.post("/register")
 def register_post():
-    # Obtém o usuário e a senha informados no formulário
-    username = request.form["username"]
-    password = request.form["password"]
-    email = request.form["email"]
+    if request.method == "POST":
+        # Obtém o usuário e a senha informados no formulário
+        username = request.form.get("username")
+        password = request.form.get("password")
+        email = request.form.get("email")
 
-    # Verifica se o email já existe
-    userfound = db.users.find_one({"email": email})
-    if userfound == None:
-        db.users.insert_one(
-            {"username": username, "password": password, "email": email, "data": {}}
-        )
-        # Redireciona para a página de login
-        flash("Faça o login para continuar")
-        return redirect(url_for("auth_bp.login_get", title="Login"))
+        # Verifica se o usuário já existe na coleção de usuários
+        userfound = db.users.find_one({"email": email})
+        if userfound is None:
+            # Insere o novo usuário na coleção de usuários
+            db.users.insert_one({"username": username, "password": password, "email": email})
+
+            # Cria uma nova coleção para o usuário. Inserimos um documento inicial para garantir que a coleção seja criada.
+            user_collection_name = f"user_data_{username}"  # Nomeia a coleção de forma única para o usuário
+            db[user_collection_name].insert_one({"message": "Coleção criada para o usuário."})
+        else:
+            flash("Esse email já foi cadastrado")
+            return render_template("register.html", title="Registrar")
+        
+        # Redireciona para a página de login após o registro bem-sucedido
+        return redirect(url_for("login", title="Login"))
+
     else:
-        flash("Esse email já foi cadastrado")
-        return render_template("register.html", session=False, title="Registrar")
-
-@auth_bp.get("/register")
-def register_get():
-    if "username" in session:
-        return redirect(url_for("index_bp.index_get"))
-    else:
-        return render_template("register.html", session=False, title="Registrar")
-
+        # Se a requisição for GET, exibe a página de registro
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template("register.html", session=False, title="Registrar")
 
 # Define a rota para a página de login
 @auth_bp.post("/login")
 def login_post():
-    # Obtém o usuário e a senha informados no formulário
-    username = request.form["username"]
-    password = request.form["password"]
-    userfound = db.users.find_one({"username": username, "password": password})
+    if request.method == "POST":
+        # Obtém o usuário e a senha informados no formulário
+        username = request.form["username"]
+        password = request.form["password"]
+        userfound = db.users.find_one({"username": username, "password": password})
 
-    if userfound != None:
-        session["username"] = request.form["username"]
-        return redirect(url_for("index_bp.index_get"))
+        if userfound != None:
+            session["username"] = request.form["username"]
+            return redirect(url_for("index"))
+        else:
+            # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
+            flash("Usuário ou senha incorretos.")
+            return render_template("login.html", session=False, title="Login")
     else:
-        # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
-        flash("Usuário ou senha incorretos.")
-        return render_template("login.html", session=False, title="Login")
+        # Se a requisição for GET, exibe a página de login
+        if "username" in session:
+            return redirect(url_for("index"))
+        else:
+            return render_template("login.html", session=False, title="Login")
+
+
         
 @auth_bp.get("/login")
 def login_get():

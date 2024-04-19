@@ -1,4 +1,4 @@
-from flask_pymongo import pymongo
+from flask_pymongo import PyMongo
 from flask import Flask
 from authlib.integrations.flask_client import OAuth
 import os
@@ -27,6 +27,7 @@ def create_app():
         MAIL_USE_SSL=True,
         MAIL_USERNAME=os.environ["MAIL_NAME"],
         MAIL_PASSWORD=os.environ["MAIL_PASSWORD"],
+        MONGO_URI=os.environ["MONGO_URI"]
     )
     mail_username = app.config.get("MAIL_USERNAME")
     mail = Mail(app)
@@ -81,13 +82,25 @@ def send_email(subject, body):
 # delete se estiver utilizando windows
 load_dotenv()
 
-# conexão com a base
-CONNECTION_STRING = os.environ["URI_DATABASE"]
-client = pymongo.MongoClient(CONNECTION_STRING)
-db = client.get_database("users")
-
 app, mail, mail_username = create_app()
+
+# conexão com a base
+mongo = PyMongo(app)
+if mongo.db.users.count_documents({}) == 0:
+    # Não há usuários, então crie um novo teste
+    new_user = {
+        "name": "admin",
+        "email": "uxtracking.service@gmail.com",
+        "role": "admin",
+        "password": "ux12tracking"
+    }
+    mongo.db.users.insert_one(new_user)
+    mongo.db["user_data_admin"].insert_one(
+            {"message": "Coleção criada para o usuário admin-teste."}
+        )
+# facial expression model
 model = load_fer()
+
 # autenticação google
 oauth = OAuth(app)
 

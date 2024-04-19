@@ -20,7 +20,7 @@
 {% block content %}
 <div class="form-signin w-100 pe-1 pt-0 adjust-side-menu" style="text-align: center; min-height: 100vh">
   {% if metadata == 'datetime' %}
-  <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary">Selecione as coletas que deseja baixar</p>
+  <p class="fs-3 fw-bold my-0 py-2 ps-3 text-white text-bg-secondary">Selecione as coletas que deseja baixar</p>
   {% with messages = get_flashed_messages() %}
   {% if messages %}
   {% for message in messages %}
@@ -64,7 +64,7 @@
                 </svg><span class="mb-0 opacity-75">Às {{ data['hour'] }}</span>
               </div>
               <div class="d-flex flex-wrap justify-content-end align-items-center">
-                <h6 class="mb-2 w-100" style="text-align: end;">Páginas coletadas</h6>
+                <h6 class="mb-2 w-100 text-white" style="text-align: end;">Páginas coletadas</h6>
                 {% for site in data['pages'] %}
                 <small class="text-bg-light opacity-100 text-nowrap border px-2 py-1 ms-1 rounded-pill">{{ site
                   }}</small>
@@ -82,11 +82,11 @@
             <ul class="pagination">
               {% if page_obj.number != 1%}
               <li class="page-item">
-                <a class="page-link text-body-secondary"
+                <a class="page-link text-white text-body-secondary"
                   href="{{ url_for('data_bp.datafilter_get', username=username, metadata=metadata, page_number=1)}}">Início</a>
               </li>
               {% else %}
-              <li class="page-link text-body-secondary disabled">Início</li>
+              <li class="page-link text-body-secondary text-white disabled">Início</li>
               {% endif %}
 
               {% for i in page_obj.paginator.page_range %}
@@ -112,14 +112,14 @@
           </div>
         </div>
         <div class="col-md-4 offset-md-4" style="text-align: end;">
-          <button class="btn btn-secondary w-50 my-4 mx-5" type="submit" value="Enviar">Próximo</button>
+          <button class="btn btn-secondary w-50 my-4 mx-5 text-white" type="submit" value="Enviar">Próximo</button>
         </div>
       </div>
     </div>
   </form>
 
   {% elif metadata == 'pages' %}
-  <h1 class="h2 mb-4 mt-5 fw-normal" style="text-align: center;">Selecione as páginas que deseja baixar</h1>
+  <h1 class="h2 mb-4 mt-5 fw-normal text-white" style="text-align: center;">Selecione as páginas que deseja baixar</h1>
 
   {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -141,7 +141,7 @@
       {% endfor %}
     </div>
 
-    <button class="btn btn-secondary w-25 py-2 my-4" type="submit" value="Enviar">Baixar</button>
+    <button class="btn btn-secondary w-25 py-2 my-4 text-white" type="submit" value="Enviar">Baixar</button>
   </form>
   {% endif %}
 </div>

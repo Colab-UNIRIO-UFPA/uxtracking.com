@@ -115,9 +115,13 @@
         }
         to{
           transform: translateY(0%);
-        }}
+        }
+      }
       .navbar {
           z-index: 1000; /* Um valor alto para garantir que esteja acima de outros elementos */
+      }
+      .nav-link.text-primary, .nav-link.text-primary:focus {
+        color: #fd7e14 !important; /* Cor laranja */
       }
     </style>
     {% block head %}{% endblock %}
@@ -140,7 +144,7 @@
               </button>
 
               <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                <ul class="navbar-nav mx-auto ms-5 mb-2 mb-lg-0 d-flex justify-content-end">
                   <li class="nav-item-active">
                     <a href="{{ url_for('index_bp.index_get') }}" class="nav-link link-press {{ 'text-primary' if title == 'Home' else ''}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-house" viewBox="0 0 16 16">
@@ -149,16 +153,17 @@
                       Página inicial
                     </a>
                   </li>
-                  <li class="nav-item">
+                  <!--<div class="vr ms-3 me-3 "></div>-->
+                  <li class="nav-item ms-1">
                     <a href="{{ url_for('infos_bp.publicacoes') }}" class="nav-link link-press {{ 'text-primary' if title == 'Publicacoes' else 'text-white'}}">
                       Publicações
                     </a>
                   </li>
-                  <li class="nav-item dropdown">
-                    <a class="nav-link text-white link-press dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <li class="nav-item dropdown ms-1">
+                    <a class="nav-link text-white link-press dropdown-toggle {{ 'text-primary' if title in ['Guia', 'Tutoriais e Exemplos'] else '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       Documentação
-                    </a>
-                    <ul class="dropdown-menu">
+                    </a> 
+                    <ul class="dropdown-menu ms-1">
                       <li>
                         <a href="{{ url_for('infos_bp.guia') }}" class=" dropdown-item nav-link {{ 'text-secondary' if title == 'Guia' else 'text-white'}}">
                           Guia
@@ -171,24 +176,20 @@
                       </li>
                     </ul>
                   </li>
-                  <li class="nav-item dropdown">
-                    <a class="nav-link text-white link-press dropdown-toggle" {{ 'text-primary' if title == 'Home' else 'text-white'}} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <li class="nav-item dropdown  ms-1">
+                    <a class="nav-link text-white link-press dropdown-toggle {{ 'text-primary' if title in ['Equipe', 'Lancamentos'] else '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       Sobre
                     </a>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu ms-1">
                       <li><a href="{{ url_for('infos_bp.equipe') }}" class="dropdown-item nav-link {{ 'text-secondary' if title == 'Equipe' else 'text-white'}}">
                           Equipe</a>
                       </li>
                       <li><a href="{{ url_for('infos_bp.lancamentos') }}" class="dropdown-item nav-link {{ 'text-secondary' if title == 'Lancamentos' else 'text-white'}}">
                           Lançamentos</a>
                       </li>
-                      <!--
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item" href="#">Guia da Comunidade</a></li>
-                      -->
                     </ul>
                   </li>
-                  <li class="nav-item">
+                  <li class="nav-item ms-1">
                     <a href="{{ url_for('auth_bp.login_get') }}" class="nav-link link-press {{ 'text-primary' if title == 'Login' else 'text-white'}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-person" viewBox="0 0 16 16">
                         <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
@@ -196,7 +197,7 @@
                       Login
                     </a>
                   </li>
-                  <li class="nav-item">
+                  <li class="nav-item ms-1">
                     <a href="{{ url_for('auth_bp.register_get') }}" class="nav-link link-press {{ 'text-primary' if title == 'Registrar' else 'text-white'}}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-1 bi-person-add" viewBox="0 0 16 16">
                         <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
@@ -255,8 +256,8 @@
           <h5 class="modal-title w-100" id="logoutModalLabel">Você deseja sair?</h5>
           </div>
           <div class="modal-footer align-items-center justify-content-center gap-3">
-            <button type="button" class="btn btn-outline-secondary px-3 text-white" data-bs-dismiss="modal">Continuar</button>
-            <a type="button" class="btn btn-primary px-5" href="{{ url_for('auth_bp.logout') }}">Sair</a>
+            <button type="button" class="btn btn-outline-secondary px-3 text-white" style="border-color: white;" data-bs-dismiss="modal">Continuar</button>
+            <a type="button" class="btn btn-primary text-white px-5" href="{{ url_for('auth_bp.logout') }}">Sair</a>
           </div>
         </div>
         </div>
@@ -345,7 +346,7 @@
             </ul>
           </div>
         </div>
-
+        
         <div class="b-example-divider b-example-vr"></div>
 
         <!--
@@ -452,7 +453,7 @@
 
       
       {% if not session %}
-        <footer class="d-flex flex-wrap justify-content-between align-items-center py-2 border-top" style="height: 10vh; background-color: rgba(0, 0, 0, .1);">
+        <footer class="d-flex flex-wrap justify-content-between align-items-center py-2 border-top" style="height: 8vh; background-color: rgba(0, 0, 0, .1);">
           <div class="col-md-4 d-flex align-items-center">
             <span class="ms-4 mb-0 mb-md-0 text-body-secondary">&copy; 2024 UX-Tracking: User eXperience Tracking</span>
           </div>

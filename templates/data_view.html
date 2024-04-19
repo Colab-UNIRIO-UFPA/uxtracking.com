@@ -31,6 +31,11 @@
   .adjust-side-menu {
     margin-left: 30vh;
   }
+
+  .text-with-shadow {
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.9);  /* Sombra horizontal, vertical, blur, cor */
+  }
+
 </style>
 {% endblock %}
 
@@ -39,7 +44,7 @@
   style="text-align: center; min-height: 100vh">
   <!-- menu inicial -->
   {% if not plot %}
-  <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary w-100">Escolha um tipo de visualização</p>
+  <p class="fs-3 fw-bold  my-0 py-2 ps-3 text-bg-secondary text-white w-100" >Escolha um tipo de visualização</p>
   {% with messages = get_flashed_messages() %}
   {% if messages %}
   {% for message in messages %}
@@ -51,14 +56,14 @@
     <a href="{{ url_for('data_bp.dataview_get', username=username, plot='heatmap') }}" aria-current="true"
       class="text-decoration-none" style="flex-basis: 33.33%;">
       <div
-        class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
-        style="height: 80vh;">
+        class="btn text-with-shadow d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
+        style="height: 80vh; ">
         <div class="my-3 p-3">
           <h2 class="display-5">Mapa de calor temporal</h2>
           <p class="lead">Visualize as interações do usuário de forma interativa ao longo do tempo, como um vídeo.</p>
         </div>
         <div class="d-flex bg-dark shadow-sm mx-auto justify-content-center mt-auto"
-          style="width: 100%; height: 37%; border-radius: 21px 21px 0 0;">
+          style="width: 100%; height: 37%; border-radius: 21px 21px 0 0; ">
           <img src="{{ url_for('static', filename='heatmap.svg')}}" class="img-fluid p-2"
             style="width: auto; height: 100%;">
         </div>
@@ -67,7 +72,7 @@
     <a href="{{ url_for('data_bp.dataview_get', username=username, plot='recording') }}" aria-current="true"
       class="text-decoration-none" style="flex-basis: 33.33%;">
       <div
-        class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
+        class="btn text-with-shadow d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0"
         style="height: 80vh;">
         <div class="my-3 p-3">
           <h2 class="display-5">Explorador de Interações</h2>
@@ -83,7 +88,7 @@
     </a>
     <a href="#" aria-current="true" class="text-decoration-none disabled" style="flex-basis: 33.33%;">
       <div
-        class="btn d-flex flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled"
+        class="btn d-flex text-with-shadow flex-column bg-body-tertiary me-md-3 my-0 py-0 pt-3 px-3 px-md-3 text-center overflow-hidden border-0 disabled"
         style="height: 80vh;">
         <div class="my-3 p-3">
           <h2 class="display-5">Funcionalidade futura</h2>
@@ -368,7 +373,7 @@
     {% endfor %}
     {% endif %}
     {% endwith %}
-    <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-bg-secondary w-100">Selecione a coleta que irá visualizar pelo método
+    <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-white text-bg-secondary w-100">Selecione a coleta que irá visualizar pelo método
       {{ plot|capitalize }}</p>
   </div>
   {% endif %}

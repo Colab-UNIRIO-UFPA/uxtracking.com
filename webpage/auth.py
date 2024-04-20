@@ -1,69 +1,82 @@
 import os
-from app import oauth, db
+from app import oauth, mongo
 from authlib.common.security import generate_token
 from authlib.integrations.flask_client import OAuth
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import render_template, Blueprint, request, flash, redirect, url_for, session
 
-auth_bp = Blueprint("auth_bp", "__name__", template_folder="templates", static_folder="static")
+auth_bp = Blueprint(
+    "auth_bp", "__name__", template_folder="templates", static_folder="static"
+)
 
 
 # Define a rota para a página de registro
 @auth_bp.post("/register")
 def register_post():
-    if request.method == "POST":
-        # Obtém o usuário e a senha informados no formulário
-        username = request.form.get("username")
-        password = request.form.get("password")
-        email = request.form.get("email")
+    # Obtém o usuário, a senha e o email informados no formulário
+    username = request.form.get("username")
+    password = request.form.get("password")
+    email = request.form.get("email")
 
-        # Verifica se o usuário já existe na coleção de usuários
-        userfound = db.users.find_one({"email": email})
-        if userfound is None:
-            # Insere o novo usuário na coleção de usuários
-            db.users.insert_one({"username": username, "password": password, "email": email})
+    # Verifica se o email já existe na coleção de usuários
+    email_found = mongo.db.users.find_one({"email": email})
+    username_found = mongo.db.users.find_one({"username": username})
 
-            # Cria uma nova coleção para o usuário. Inserimos um documento inicial para garantir que a coleção seja criada.
-            user_collection_name = f"user_data_{username}"  # Nomeia a coleção de forma única para o usuário
-            db[user_collection_name].insert_one({"message": "Coleção criada para o usuário."})
-        else:
-            flash("Esse email já foi cadastrado")
-            return render_template("register.html", title="Registrar")
-        
-        # Redireciona para a página de login após o registro bem-sucedido
-        return redirect(url_for("login", title="Login"))
+    if email_found is not None:
+        flash("Esse email já foi cadastrado.")
+        return render_template("register.html", title="Registrar")
 
+    if username_found is not None:
+        flash("Esse nome de usuário já está em uso.")
+        return render_template("register.html", title="Registrar")
+
+    hashed_password = generate_password_hash(password)
+    # Insere o novo usuário na coleção de usuários, se nome de usuário e email estão disponíveis
+    mongo.db.users.insert_one(
+        {
+            "username": username,
+            "password": hashed_password,
+            "email": email,
+            "role": "user",
+        }
+    )
+
+    # Cria uma coleção específica para o usuário com um documento inicial
+    user_collection_name = f"user_data_{username}"  # Nomeia a coleção de forma única
+    mongo.db[user_collection_name].insert_one(
+        {"message": f"Coleção criada para o usuário {username}."}
+    )
+
+    # Redireciona para a página de login após o registro bem-sucedido
+    flash("Registro bem-sucedido! Faça o login para continuar.")
+    return redirect(url_for("auth_bp.login_get", title="Login"))
+
+
+@auth_bp.get("/register")
+def register_get():
+    if "username" in session:
+        return redirect(url_for("index_bp.index_get"))
     else:
-        # Se a requisição for GET, exibe a página de registro
-        if "username" in session:
-            return redirect(url_for("index"))
-        else:
-            return render_template("register.html", session=False, title="Registrar")
+        return render_template("register.html", session=False, title="Registrar")
+
 
 # Define a rota para a página de login
 @auth_bp.post("/login")
 def login_post():
-    if request.method == "POST":
-        # Obtém o usuário e a senha informados no formulário
-        username = request.form["username"]
-        password = request.form["password"]
-        userfound = db.users.find_one({"username": username, "password": password})
+    # Obtém o usuário e a senha informados no formulário
+    username = request.form["username"]
+    password = request.form["password"]
+    userfound = mongo.db.users.find_one({"username": username})
 
-        if userfound != None:
-            session["username"] = request.form["username"]
-            return redirect(url_for("index"))
-        else:
-            # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
-            flash("Usuário ou senha incorretos.")
-            return render_template("login.html", session=False, title="Login")
+    if userfound and check_password_hash(userfound["password"], password):
+        session["username"] = username
+        return redirect(url_for("index_bp.index_get"))
     else:
-        # Se a requisição for GET, exibe a página de login
-        if "username" in session:
-            return redirect(url_for("index"))
-        else:
-            return render_template("login.html", session=False, title="Login")
+        # Se as credenciais estiverem incorretas, exibe uma mensagem de erro
+        flash("Usuário ou senha incorretos.")
+        return render_template("login.html", session=False, title="Login")
 
 
-        
 @auth_bp.get("/login")
 def login_get():
     # Se a requisição for GET, exibe a página de login
@@ -104,9 +117,9 @@ def google_auth():
     password = user["sub"]
 
     # Verifica se o usuário já existe
-    userfound = db.users.find_one({"email": email})
+    userfound = mongo.db.users.find_one({"email": email})
     if userfound == None:
-        db.users.insert_one(
+        mongo.db.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
     session["username"] = username
@@ -116,6 +129,5 @@ def google_auth():
 # Define a rota para o logout
 @auth_bp.route("/logout")
 def logout():
-    # remove the username from the session if it's there
-    session.pop("username", None)
+    session.clear()
     return redirect(url_for("index_bp.index_get"))

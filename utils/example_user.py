@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash
 
-def gen_example(mongo):
+def gen_example(mongo, fs):
     # Não há usuários, então crie um novo teste
     new_user = {
         "username": "admin",

@@ -17,6 +17,7 @@ import torch.nn as nn
 import torch
 from utils.example_user import gen_example
 
+
 # declarando o servidor
 def create_app():
     app = Flask(__name__)
@@ -36,8 +37,7 @@ def create_app():
     return app, mail, mail_username
 
 def load_fer():
-    model = models.efficientnet_b0(weights=None)
-    
+    model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
     # Add classifier
     num_ftrs = model.classifier[1].in_features
     model.classifier = nn.Sequential(
@@ -83,8 +83,6 @@ def send_email(subject, body):
 # delete se estiver utilizando windows
 load_dotenv()
 
-app, mail, mail_username = create_app()
-
 # conexão com a base
 mongo = MongoClient(os.environ["MONGO_URI"]).uxtracking
 
@@ -92,6 +90,8 @@ mongo = MongoClient(os.environ["MONGO_URI"]).uxtracking
 # facial expression model
 model = load_fer()
 
+app, mail, mail_username = create_app()
+model = load_fer()
 # autenticação google
 oauth = OAuth(app)
 

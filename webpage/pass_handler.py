@@ -1,4 +1,4 @@
-from app import mongo, mail, mail_username
+from app import db, mail, mail_username
 from flask_mail import Message
 from utils.functions import id_generator
 from werkzeug.security import generate_password_hash, check_password_hash

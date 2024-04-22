@@ -7,7 +7,7 @@ import torch
 import base64
 from PIL import Image
 from pathlib import Path
-from app import db, model
+from app import mongo, model
 from bson import ObjectId
 import torch.nn.functional as F
 from torchvision.transforms import v2 as T
@@ -27,7 +27,7 @@ def receiver():
     data = request.form["data"]
     metadata = json.loads(metadata)
     userid = metadata["userId"]
-    userfound = db.users.find_one({"_id": ObjectId(userid)})
+    userfound = mongo.users.find_one({"_id": ObjectId(userid)})
     dateTime = str(metadata["dateTime"])
     date = f"{dateTime[6:8]}/{dateTime[4:6]}/{dateTime[0:4]}"
     hour = f"{dateTime[9:11]}:{dateTime[11:13]}:{dateTime[13:15]}"
@@ -50,12 +50,12 @@ def receiver():
                 "date": date,
                 "hour": hour,
             }
-            db.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
+            mongo.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
         else:
             # se for o primeiro traço coletado em um site
             if metadata["sample"] not in userfound["data"][dateTime]["sites"]:
                 userfound["data"][dateTime]["sites"].append(metadata["sample"])
-                db.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
+                mongo.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
     else:
         return "ERROR: Usuário não autenticado"
 

@@ -19,8 +19,8 @@ def register_post():
     email = request.form.get("email")
 
     # Verifica se o email já existe na coleção de usuários
-    email_found = db.users.find_one({"email": email})
-    username_found = db.users.find_one({"username": username})
+    email_found = mongo.users.find_one({"email": email})
+    username_found = mongo.users.find_one({"username": username})
 
     if email_found is not None:
         flash("Esse email já foi cadastrado.")
@@ -32,7 +32,7 @@ def register_post():
 
     hashed_password = generate_password_hash(password)
     # Insere o novo usuário na coleção de usuários, se nome de usuário e email estão disponíveis
-    db.users.insert_one(
+    mongo.users.insert_one(
         {
             "username": username,
             "password": hashed_password,
@@ -42,8 +42,9 @@ def register_post():
     )
 
     # Cria uma coleção específica para o usuário com um documento inicial
-    user_collection_name = f"user_data_{username}"  # Nomeia a coleção de forma única
-    db[user_collection_name].insert_one(
+    userfound = mongo.users.find_one({"username": username})
+    user_collection_name=f"data_{userfound['_id']}"
+    mongo[user_collection_name].insert_one(
         {"message": f"Coleção criada para o usuário {username}."}
     )
 
@@ -66,7 +67,7 @@ def login_post():
     # Obtém o usuário e a senha informados no formulário
     username = request.form["username"]
     password = request.form["password"]
-    userfound = db.users.find_one({"username": username})
+    userfound = mongo.users.find_one({"username": username})
 
     if userfound and check_password_hash(userfound["password"], password):
         session["username"] = username
@@ -117,9 +118,9 @@ def google_auth():
     password = user["sub"]
 
     # Verifica se o usuário já existe
-    userfound = db.users.find_one({"email": email})
+    userfound = mongo.users.find_one({"email": email})
     if userfound == None:
-        db.users.insert_one(
+        mongo.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
     session["username"] = username

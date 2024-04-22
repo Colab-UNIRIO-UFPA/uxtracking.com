@@ -1,5 +1,5 @@
 from flask_mail import Message
-from app import db, mail, mail_username
+from app import mongo, mail, mail_username
 from utils.functions import id_generator
 from flask import render_template, Blueprint, request, session, jsonify
 
@@ -12,7 +12,7 @@ external_auth_bp = Blueprint(
 def userAuth():
     username = request.form["username"]
     password = request.form["password"]
-    userfound = db.users.find_one({"username": username, "password": password})
+    userfound = mongo.users.find_one({"username": username, "password": password})
 
     if userfound != None:
         userid = userfound["_id"]
@@ -32,12 +32,12 @@ def userRegister():
     email = request.form["email"]
 
     # Verifica se o usuário já existe
-    userfound = db.users.find_one({"$or": [{"email": email}, {"username": username}]})
+    userfound = mongo.users.find_one({"$or": [{"email": email}, {"username": username}]})
     if userfound == None:
-        db.users.insert_one(
+        mongo.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
-        userfound = db.users.find_one({"username": username, "password": password})
+        userfound = mongo.users.find_one({"username": username, "password": password})
         response = {"id": str(userfound["_id"]), "status": 200}
     else:
         response = {"id": None, "status": 401}
@@ -49,7 +49,7 @@ def userRegister():
 def userRecover():
     # Obtém o usuário e email informados no formulário
     email = request.form["email"]
-    userfound = db.users.find_one({"email": email})
+    userfound = mongo.users.find_one({"email": email})
 
     if userfound != None:
         # Nova senha gerada
@@ -74,7 +74,7 @@ def userRecover():
 
         # senha alterada
         _id = userfound["_id"]
-        db.users.update_one({"_id": _id}, {"$set": {"password": generatedPass}})
+        mongo.users.update_one({"_id": _id}, {"$set": {"password": generatedPass}})
 
         response = {"status": 200}
 

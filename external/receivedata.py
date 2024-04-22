@@ -7,295 +7,73 @@ import torch
 import base64
 from PIL import Image
 from pathlib import Path
-from app import mongo, model
+import dateutil.parser
+from app import mongo, model, fs
 from bson import ObjectId
+from datetime import datetime
 import torch.nn.functional as F
 from torchvision.transforms import v2 as T
 from flask import abort, Blueprint, request, jsonify
 
 external_receivedata_bp = Blueprint(
-    "external_receivedata_bp", "__name__", template_folder="templates", static_folder="static"
+    "external_receivedata_bp",
+    "__name__",
+    template_folder="templates",
+    static_folder="static",
 )
 
-
 # Define a rota para o envio dos dados pela ferramenta
-# Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(YYYYMMDD-HHMMSS da coleta)/(dados da coleta)
 @external_receivedata_bp.post("/receiver")
 def receiver():
-    metadata = request.form["metadata"]
-    data = request.form["data"]
-    metadata = json.loads(metadata)
-    userid = metadata["userId"]
-    userfound = mongo.users.find_one({"_id": ObjectId(userid)})
-    dateTime = str(metadata["dateTime"])
-    date = f"{dateTime[6:8]}/{dateTime[4:6]}/{dateTime[0:4]}"
-    hour = f"{dateTime[9:11]}:{dateTime[11:13]}:{dateTime[13:15]}"
-    data = json.loads(data)
-    data_img = str(data["imageName"])
-    datadir = os.path.normpath(os.path.join("Samples", userid))
-    path_dateTime = os.path.normpath(os.path.join(datadir, dateTime))
-    path_img = os.path.normpath(os.path.join(path_dateTime, data_img))
-
-    # verificando se o caminho completo começa com o caminho base
-    if not path_img.startswith(datadir):
+    content = request.get_json(silent=True)
+    metadata, data = content["metadata"], content["data"]
+    userfound = mongo.users.find_one({"username": metadata["userID"]})
+    if not userfound:
         abort(403)
+    collection_name = f"data_{userfound['_id']}"
 
-    # armazena metadata da coleta ao mongodb
-    if userfound:
-        # se for o primeiro traço coletado
-        if dateTime not in userfound["data"]:
-            userfound["data"][dateTime] = {
-                "sites": [metadata["sample"]],
-                "date": date,
-                "hour": hour,
-            }
-            mongo.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
-        else:
-            # se for o primeiro traço coletado em um site
-            if metadata["sample"] not in userfound["data"][dateTime]["sites"]:
-                userfound["data"][dateTime]["sites"].append(metadata["sample"])
-                mongo.users.update_one({"_id": userfound["_id"]}, {"$set": userfound})
+    result = mongo[collection_name].find_one(
+        {"datetime": {"$date": metadata["dateTime"]}}
+    )
+
+    # inserção no mongo gridFS (id retornado)
+    image_id = fs.put(
+        base64.b64decode(re.sub("^data:image/\w+;base64,", "", metadata["image"]))
+    )
+
+    interactions = []
+    for i in range(len(data["type"])):
+        interactions.append({
+            'type': data["type"][i],
+            'time': data["time"][i],
+            'image': image_id,
+            'class': data["class"][i],
+            'id': data["id"][i],
+            'mouseClass': data["mouseClass"][i],
+            'mouseID': data["mouseID"][i],
+            'x': data["x"][i],
+            'y': data["y"][i],
+            'scroll': data["scroll"][i],
+            'height': metadata["height"],
+            'value': data["value"][i]
+        })
+
+    document = {
+        'datetime': metadata["dateTime"],
+        'sites': [metadata['site']],
+        'data': [{
+            'site': metadata['site'],
+            'images': [image_id],
+            'interactions': interactions
+        }]
+    }
+
+    if result:
+        mongo[collection_name].update_one({'_id': result["_id"]}, {'$set': document}, upsert=True)
     else:
-        return "ERROR: Usuário não autenticado"
+        mongo[collection_name].insert_one(document)
 
-    if not os.path.exists("Samples"):
-        os.makedirs("Samples", exist_ok=True)
-    else:
-        if not os.path.exists(datadir):
-            os.makedirs(datadir, exist_ok=True)
-        else:
-            if not os.path.exists(path_dateTime):
-                os.makedirs(path_dateTime, exist_ok=True)
-
-    try:
-        if data["imageData"] != "NO":
-            if not os.path.exists(
-                path_img,
-            ):
-                imageData = base64.b64decode(
-                    re.sub("^data:image/\w+;base64,", "", data["imageData"])
-                )
-                with open(
-                    path_img,
-                    "wb",
-                ) as fh:
-                    fh.write(imageData)
-
-    except:
-        None
-
-    traceData = ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"]
-    if str(metadata["type"]) in traceData:
-        if not os.path.exists(os.path.join(path_dateTime, "trace.csv")):
-            # se a base não existe, cria o csv
-            fields = [
-                "site",
-                "type",
-                "time",
-                "image",
-                "class",
-                "id",
-                "mouseClass",
-                "mouseId",
-                "x",
-                "y",
-                "keys",
-                "scroll",
-                "height",
-            ]
-
-            file = Path(os.path.join(path_dateTime, "trace.csv"))
-            file.touch(exist_ok=True)
-
-            with open(os.path.join(path_dateTime, "trace.csv"), "w") as csvfile:
-                # criando um objeto csv dict writer
-                csvwriter = csv.writer(csvfile)
-                # escrever cabeçalhos (nomes de campo)
-                csvwriter.writerow(fields)
-
-        with open(os.path.join(path_dateTime, "trace.csv"), "a", newline="") as csvfile:
-            # criando um objeto csv dict writer
-            csvwriter = csv.writer(csvfile)
-            # escrever linha (dados)
-            csvwriter.writerow(
-                [
-                    str(metadata["sample"]),
-                    str(metadata["type"]),
-                    str(metadata["time"]),
-                    str(data["imageName"]),
-                    str(data["Class"]),
-                    str(data["Id"]),
-                    str(data["mouseClass"]),
-                    str(data["mouseId"]),
-                    str(data["X"]),
-                    str(data["Y"]),
-                    str(data["Typed"]),
-                    str(metadata["scroll"]),
-                    str(metadata["height"]),
-                ]
-            )
-
-        with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
-            f.write(str(metadata["dateTime"]))
-
-        return "received"
-
-    # se for um dado de voz
-    elif str(metadata["type"]) == "voice":
-        if not os.path.exists(os.path.join(path_dateTime, "audio.csv")):
-            # se a base não existe, cria o csv
-            fields = [
-                "site",
-                "time",
-                "text",
-                "image",
-                "class",
-                "id",
-                "mouseClass",
-                "mouseId",
-                "x",
-                "y",
-                "scroll",
-                "height",
-            ]
-
-            file = Path(os.path.join(path_dateTime, "audio.csv"))
-            file.touch(exist_ok=True)  #
-
-            with open(os.path.join(path_dateTime, "audio.csv"), "w") as csvfile:
-                # criando um objeto csv dict writer
-                csvwriter = csv.writer(csvfile)
-                # escrever cabeçalhos (nomes de campo)
-                csvwriter.writerow(fields)
-
-        with open(os.path.join(path_dateTime, "audio.csv"), "a", newline="") as csvfile:
-            # criando um objeto csv dict writer
-            csvwriter = csv.writer(csvfile)
-            # escrever linha (dados)
-            csvwriter.writerow(
-                [
-                    str(metadata["sample"]),
-                    str(metadata["time"]),
-                    str(data["Spoken"]),
-                    str(data["imageName"]),
-                    str(data["Class"]),
-                    str(data["Id"]),
-                    str(data["mouseClass"]),
-                    str(data["mouseId"]),
-                    str(data["X"]),
-                    str(data["Y"]),
-                    str(metadata["scroll"]),
-                    str(metadata["height"]),
-                ]
-            )
-
-        with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
-            f.write(str(metadata["dateTime"]))
-
-        return "received"
-
-    # se for um dado de expressão facial
-    elif str(metadata["type"]) == "face":
-        if not os.path.exists(os.path.join(path_dateTime, "emotions.csv")):
-            # se a base não existe, cria o csv
-            fields = [
-                "site",
-                "time",
-                "image",
-                "class",
-                "id",
-                "mouseClass",
-                "mouseId",
-                "x",
-                "y",
-                "scroll",
-                "height",
-                "anger",
-                "contempt",
-                "disgust",
-                "fear",
-                "happy",
-                "neutral",
-                "sad",
-                "surprise",
-            ]
-
-            file = Path(os.path.join(path_dateTime, "emotions.csv"))
-            file.touch(exist_ok=True)  #
-
-            with open(os.path.join(path_dateTime, "emotions.csv"), "w") as csvfile:
-                # criando um objeto csv dict writer
-                csvwriter = csv.writer(csvfile)
-                # escrever cabeçalhos (nomes de campo)
-                csvwriter.writerow(fields)
-
-        with open(
-            os.path.join(path_dateTime, "emotions.csv"), "a", newline=""
-        ) as csvfile:
-            # criando um objeto csv dict writer
-            csvwriter = csv.writer(csvfile)
-            # escrever linha (dados)
-            csvwriter.writerow(
-                [
-                    str(metadata["sample"]),
-                    str(metadata["time"]),
-                    str(data["imageName"]),
-                    str(data["Class"]),
-                    str(data["Id"]),
-                    str(data["mouseClass"]),
-                    str(data["mouseId"]),
-                    str(data["X"]),
-                    str(data["Y"]),
-                    str(metadata["scroll"]),
-                    str(metadata["height"]),
-                    str(data["anger"]),
-                    str(data["contempt"]),
-                    str(data["disgust"]),
-                    str(data["fear"]),
-                    str(data["happy"]),
-                    str(data["neutral"]),
-                    str(data["sad"]),
-                    str(data["surprise"]),
-                ]
-            )
-
-        with open(os.path.join(path_dateTime, "lastTime.txt"), "w") as f:
-            f.write(str(metadata["dateTime"]))
-        return "received"
-
-    else:
-        abort(403)
-
-
-# Define a rota para o envio dos dados pela ferramenta
-# Organização do patch:
-# (Diretório de samples)/(ID do usuário, gerado pela função generate_user_id em functions.py)/(data+hora da coleta)/(dados da coleta)
-@external_receivedata_bp.post("/sample_checker")
-def sample_checker():
-    time = request.form["dateTime"]
-    userid = request.form["userId"]
-    datadir = f"Samples/{userid}/"
-
-    # normalizando caminho base
-    base_path = os.path.normpath(datadir)
-
-    directory_path = os.path.normpath(os.path.join(datadir, time))
-
-    if not directory_path.startswith(base_path):
-        abort(403)
-
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path, mode=0o777, exist_ok=True)
-
-    fullpath = os.path.join(directory_path, "lastTime.txt")
-
-    if os.path.exists(fullpath):
-        with open(fullpath, "r") as file:
-            content = file.read()
-            return content
-    else:
-        return "0"
+    return "Received"
 
 
 @external_receivedata_bp.post("/faceExpression")

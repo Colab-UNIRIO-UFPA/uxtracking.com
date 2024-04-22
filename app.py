@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash
 from flask import Flask
 from authlib.integrations.flask_client import OAuth
 import os
+import gridfs
 from flask_mail import Mail
 from simple_colors import *
 import datetime
@@ -85,7 +86,7 @@ load_dotenv()
 
 # conexão com a base
 mongo = MongoClient(os.environ["MONGO_URI"]).uxtracking
-
+fs = gridfs.GridFS(mongo)
 
 # facial expression model
 model = load_fer()

@@ -1,7 +1,8 @@
 import os
+import io
 import shutil
 import zipfile
-from app import db
+from app import mongo
 import pandas as pd
 import plotly.io as pio
 from django.core.paginator import Paginator
@@ -31,7 +32,7 @@ data_bp = Blueprint("data_bp", "__name__", template_folder="templates", static_f
 def datafilter_post(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = db.users.find_one({"username": session["username"]})
+        userfound = mongo.users.find_one({"username": session["username"]})
         userid = userfound["_id"]
         datadir = f"./Samples/{userid}"
         if metadata == "datetime":
@@ -143,6 +144,74 @@ def datafilter_post(username, metadata):
                     "Content-Disposition": f"attachment; filename={username}_data.zip;",
                 },
             )
+        
+        if request.form['metadata'] == "pages":
+            session["pages"] = request.form.getlist("pages[]")
+            username = session.get("username")
+            dates = session.get("dates")  # Supondo que as datas também estejam armazenadas na sessão
+
+            # Preparando o DataFrame vazio com colunas definidas
+            columns_trace = [
+                "datetime", "site", "type", "time", "image", "class", "id",
+                "mouseClass", "mouseId", "x", "y", "keys", "scroll", "height"
+            ]
+            tracefiltered = pd.DataFrame(columns=columns_trace)
+            
+            columns_audio = [
+                "datetime", "site", "time", "text", "image", "class", "id",
+                "mouseClass", "mouseId", "x", "y", "scroll", "height"
+            ]
+            audiofiltered = pd.DataFrame(columns=columns_audio)
+
+            # Preparando o DataFrame vazio com colunas definidas
+            columns_emotions = [
+                "datetime", "site", "type", "time", "image", "class", "id",
+                "mouseClass", "mouseId", "x", "y", "keys", "scroll", "height"
+
+                "datetime", "site", "time", "image", "class", "id", "mouseClass",
+                "mouseId", "x", "y", "scroll", "height",
+                "anger", "contempt", "disgust", "fear", "happy", "neutral", "sad", "surprise"
+            ]
+            tracefiltered = pd.DataFrame(columns=columns_trace)
+
+            # Criando o arquivo ZIP em memória
+            memory_zip = io.BytesIO()
+            with zipfile.ZipFile(memory_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+
+                # Filtrar dados para cada data especificada
+                for date in dates:
+                    query = {'site': {'$in': session["pages"]}, 'datetime': date}
+                    trace_data = list(mongo.users.traces.find(query))
+                    audio_data = list(mongo.mongo.audio.find(query))
+
+                    # Convertendo dados do MongoDB para DataFrame
+                    if trace_data:
+                        df_trace = pd.DataFrame(trace_data)
+                        tracefiltered = pd.concat([tracefiltered, df_trace])
+                    if audio_data:
+                        df_audio = pd.DataFrame(audio_data)
+                        audiofiltered = pd.concat([audiofiltered, df_audio])
+
+                    # Exportando DataFrames para CSV em memória e adicionando ao ZIP
+                    csv_buffer = io.StringIO()
+                    tracefiltered.to_csv(csv_buffer, index=False)
+                    csv_buffer.seek(0)  # Voltar ao início do stream
+                    zipf.writestr('trace.csv', csv_buffer.read())
+
+                    csv_buffer = io.StringIO()
+                    audiofiltered.to_csv(csv_buffer, index=False)
+                    csv_buffer.seek(0)
+                    zipf.writestr('audio.csv', csv_buffer.read())
+
+            # Preparar o arquivo para download
+            memory_zip.seek(0)
+            return Response(
+                memory_zip,
+                headers={
+                    "Content-Type": "application/zip",
+                    "Content-Disposition": f"attachment; filename={username}_data.zip;"
+                }
+            )
 
         else:
             flash("404\nPage not found!")
@@ -159,7 +228,7 @@ def datafilter_post(username, metadata):
 def datafilter_get(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = db.users.find_one({"username": session["username"]})
+        userfound = mongo.users.find_one({"username": session["username"]})
         userid = userfound["_id"]
         datadir = f"./Samples/{userid}"
 
@@ -217,7 +286,7 @@ def datafilter_get(username, metadata):
 def dataanalysis_post(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = db.users.find_one({"username": session["username"]})
+        userfound = mongo.users.find_one({"username": session["username"]})
         userid = userfound["_id"]
         datadir = f"./Samples/{userid}"
 
@@ -258,7 +327,7 @@ def dataanalysis_post(username, model):
 def dataanalysis_get(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = db.users.find_one({"username": session["username"]})
+        userfound = mongo.users.find_one({"username": session["username"]})
         userid = userfound["_id"]
         datadir = f"./Samples/{userid}"
         models = ["kmeans", "meanshift", "bertimbau"]
@@ -296,7 +365,7 @@ def dataanalysis_get(username, model):
 
 @data_bp.post("/downloadAudio")
 def downloadAudio():
-    userfound = db.users.find_one({"username": session["username"]})
+    userfound = mongo.users.find_one({"username": session["username"]})
     userid = userfound["_id"]
     datadir = f"./Samples/{userid}"
 
@@ -325,7 +394,7 @@ def downloadAudio():
 def dataview_post(username, plot):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = db.users.find_one({"username": session["username"]})
+        userfound = mongo.users.find_one({"username": session["username"]})
         userid = userfound["_id"]
         datadir = f"./Samples/{userid}"
 
@@ -369,7 +438,7 @@ def dataview_post(username, plot):
 def dataview_get(username, plot):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = db.users.find_one({"username": session["username"]})
+        userfound = mongo.users.find_one({"username": session["username"]})
         userid = userfound["_id"]
         datadir = f"./Samples/{userid}"
         plots = ["heatmap", "recording"]

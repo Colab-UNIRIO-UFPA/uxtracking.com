@@ -7,10 +7,9 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: rootuser
       MONGO_INITDB_ROOT_PASSWORD: rootpass
+      MONGO_INITDB_DATABASE: uxtracking
     ports:
       - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
 
   mongo-express:
     image: mongo-express:latest
@@ -21,7 +20,6 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: rootuser
       ME_CONFIG_MONGODB_ADMINPASSWORD: rootpass
       ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
     ports:
       - "8081:8081"
 

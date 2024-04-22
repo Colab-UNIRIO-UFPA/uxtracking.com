@@ -1,4 +1,5 @@
-from flask_pymongo import PyMongo
+from pymongo import MongoClient
+from werkzeug.security import generate_password_hash
 from flask import Flask
 from authlib.integrations.flask_client import OAuth
 import os
@@ -14,6 +15,7 @@ from unidecode import unidecode
 from torchvision import models
 import torch.nn as nn
 import torch
+from utils.example_user import gen_example
 
 # declarando o servidor
 def create_app():
@@ -26,8 +28,7 @@ def create_app():
         MAIL_PORT=465,
         MAIL_USE_SSL=True,
         MAIL_USERNAME=os.environ["MAIL_NAME"],
-        MAIL_PASSWORD=os.environ["MAIL_PASSWORD"],
-        MONGO_URI=os.environ["MONGO_URI"]
+        MAIL_PASSWORD=os.environ["MAIL_PASSWORD"]
     )
     mail_username = app.config.get("MAIL_USERNAME")
     mail = Mail(app)
@@ -85,19 +86,9 @@ load_dotenv()
 app, mail, mail_username = create_app()
 
 # conexão com a base
-mongo = PyMongo(app)
-if mongo.db.users.count_documents({}) == 0:
-    # Não há usuários, então crie um novo teste
-    new_user = {
-        "name": "admin",
-        "email": "uxtracking.service@gmail.com",
-        "role": "admin",
-        "password": "ux12tracking"
-    }
-    mongo.db.users.insert_one(new_user)
-    mongo.db["user_data_admin"].insert_one(
-            {"message": "Coleção criada para o usuário admin-teste."}
-        )
+mongo = MongoClient(os.environ["MONGO_URI"]).uxtracking
+
+
 # facial expression model
 model = load_fer()
 
@@ -105,6 +96,16 @@ model = load_fer()
 oauth = OAuth(app)
 
 if __name__ == "__main__":
+    try:
+        mongo.command('ping')
+        print("Conexão com o MongoDB foi bem-sucedida.")
+    except Exception as e:
+        print(f"Falha ao conectar ao MongoDB: {e}")
+    
+    # verifica se não há nenhum usuário no banco, então cria um usuário exemplo
+    if mongo.users.count_documents({}) == 0:
+        gen_example(mongo)
+
     # load blueprints
     from webpage.blueprints import webpage_bps
     from external.blueprints import external_bps

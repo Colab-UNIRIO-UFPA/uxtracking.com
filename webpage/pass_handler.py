@@ -12,7 +12,7 @@ def forgot_pass_post():
     # Obtém o usuário e email informados no formulário
     username = request.form["username"]
     email = request.form["email"]
-    userfound = mongo.db.users.find_one({"username": username, "email": email})
+    userfound = mongo.users.find_one({"username": username, "email": email})
 
     if userfound != None:
         # Se as credenciais estiverem corretas, envia um email para o usuário
@@ -41,7 +41,7 @@ def forgot_pass_post():
         # senha alterada
         new_password_hash = generate_password_hash(generatedPass)
         _id = userfound["_id"]
-        mongo.db.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
+        mongo.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
 
         # Redirecionar para o login após o envio do email e atualização da senha
         return redirect(url_for("auth_bp.login_get", title="Login", session=False))
@@ -70,12 +70,12 @@ def change_pass():
         newpassword2 = request.form["confirm_newpassword"]
 
         # Verifica se as credenciais estão corretas
-        userfound = mongo.db.users.find_one({"username": username})
+        userfound = mongo.users.find_one({"username": username})
         if userfound and check_password_hash(userfound["password"], password):
             if newpassword == newpassword2:
                 _id = userfound["_id"]
                 new_password_hash = generate_password_hash(newpassword)
-                mongo.db.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
+                mongo.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
                 # Usuário logado
                 return redirect(
                     url_for(

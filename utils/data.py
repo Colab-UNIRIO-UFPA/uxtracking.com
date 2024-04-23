@@ -100,25 +100,29 @@ def userdata2frame(mongo_db, collection_name, id, data_type):
 def userdata_summary(documents):
     data = []
     date_arr = []
-    for doc in documents:
-        # Obtenha a string de data e hora do documento
-        date_str = doc["datetime"]["$date"]
+    try:
+        for doc in documents:
+            # Obtenha a string de data e hora do documento
+            date_str = doc["datetime"]["$date"]
 
-        # Converter para data e hora
-        date_obj = datetime.fromisoformat(date_str.rstrip("Z"))
-        date_part = date_obj.date().strftime('%d/%m/%Y')
-        time_part = date_obj.time()
+            # Converter para data e hora
+            date_obj = datetime.fromisoformat(date_str.rstrip("Z"))
+            date_part = date_obj.date().strftime("%d/%m/%Y")
+            time_part = date_obj.time()
 
-        date_arr.append(date_part)
-        # Criando o objeto data com todas as informações da coleta
-        data.append(
-            {
-                "id": doc["_id"],  # id do documento
-                "date": date_part,  # data do documento
-                "time": time_part,  # hora do documento
-                "sites": doc["sites"],  # sites presentes no documento
-            }
-        )
+            date_arr.append(date_part)
+            # Criando o objeto data com todas as informações da coleta
+            data.append(
+                {
+                    "id": doc["_id"],  # id do documento
+                    "date": date_part,  # data do documento
+                    "time": time_part,  # hora do documento
+                    "sites": doc["sites"],  # sites presentes no documento
+                }
+            )
+
+    except:
+        None
 
     # Contar as ocorrências de cada data
     date_counts = Counter(date_arr)

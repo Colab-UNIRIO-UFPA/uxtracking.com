@@ -1,7 +1,6 @@
 import os
 from app import oauth, mongo
 from authlib.common.security import generate_token
-from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import render_template, Blueprint, request, flash, redirect, url_for, session
 

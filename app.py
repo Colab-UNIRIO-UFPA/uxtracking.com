@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-from werkzeug.security import generate_password_hash
 from flask import Flask
 from authlib.integrations.flask_client import OAuth
 import os

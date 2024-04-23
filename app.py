@@ -104,7 +104,7 @@ if __name__ == "__main__":
     
     # verifica se não há nenhum usuário no banco, então cria um usuário exemplo
     if mongo.users.count_documents({}) == 0:
-        gen_example(mongo)
+        gen_example(mongo, fs)
 
     # load blueprints
     from webpage.blueprints import webpage_bps

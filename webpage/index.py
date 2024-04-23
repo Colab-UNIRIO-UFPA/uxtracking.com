@@ -1,11 +1,9 @@
 import io
 import zipfile
-from datetime import datetime
 from app import mongo
 import gridfs
 from bson import ObjectId
-from utils.data import userdata2frame
-from collections import Counter
+from utils.data import userdata2frame, userdata_summary
 from flask import render_template, Blueprint, request, session, abort, send_file
 
 index_bp = Blueprint(
@@ -106,33 +104,10 @@ def index_get():
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"
-        documents = mongo[collection_name].find({})
+        documents = mongo[collection_name].find({}).limit(5)
 
-        data = []
-        date_arr = []
-        for doc in documents:
-            # Obtenha a string de data e hora do documento
-            date_str = doc["datetime"]["$date"]
-
-            # Converter para data e hora
-            date_obj = datetime.fromisoformat(date_str.rstrip("Z"))
-            date_part = date_obj.date()
-            time_part = date_obj.time()
-
-            date_arr.append(date_part)
-            # Criando o objeto data com todas as informações da coleta
-            data.append(
-                {
-                    "id": doc["_id"],  # id do documento
-                    "date": date_part,  # data do documento
-                    "time": time_part,  # hora do documento
-                    "sites": doc["sites"],  # sites presentes no documento
-                }
-            )
-
-        # Contar as ocorrências de cada data
-        date_counts = Counter(date_arr)
-
+        data, date_counts = userdata_summary(documents)
+        
         # Separar as datas e suas contagens
         dates = list(date_counts.keys())
         values = list(date_counts.values())

@@ -5,6 +5,7 @@ import zipfile
 from app import mongo
 import pandas as pd
 import plotly.io as pio
+from utils.data import userdata_summary
 from django.core.paginator import Paginator
 from utils.functions import (
     nlpBertimbau,
@@ -439,8 +440,12 @@ def dataview_get(username, plot):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        userid = userfound["_id"]
-        datadir = f"./Samples/{userid}"
+        if not userfound:
+            abort(404)
+
+        collection_name = f"data_{userfound['_id']}"
+        documents = mongo[collection_name].find({})
+
         plots = ["heatmap", "recording"]
 
         if plot == 'default':
@@ -448,7 +453,7 @@ def dataview_get(username, plot):
                 "data_view.html", username=username, title="Visualização"
             )
         elif plot in plots:
-            data = dirs2data(userfound, datadir)
+            data, _ = userdata_summary(documents)
             return render_template(
                 "data_view.html",
                 username=username,

@@ -5,6 +5,9 @@ import zipfile
 from app import mongo
 import pandas as pd
 import plotly.io as pio
+from io import StringIO
+from bson import ObjectId
+from datetime import datetime
 from utils.data import userdata_summary
 from django.core.paginator import Paginator
 from utils.functions import (
@@ -13,6 +16,9 @@ from utils.functions import (
     dirs2data,
     make_heatmap,
     make_recording,
+)
+from utils.data import(
+    userdata2frame
 )
 from flask import (
     render_template,
@@ -34,8 +40,8 @@ def datafilter_post(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        userid = userfound["_id"]
-        datadir = f"./Samples/{userid}"
+        collection_name = f"data_{userfound['_id']}" #pasta dos documentos
+
         if metadata == "datetime":
             # adiciona as datas à seção
             session["dates"] = request.form.getlist("dates[]")
@@ -44,169 +50,88 @@ def datafilter_post(username, metadata):
             return redirect(url_for("data_bp.datafilter_get", username=username, metadata="pages"))
 
         elif metadata == "pages":
-            # adiciona as páginas à seção
-            session["pages"] = request.form.getlist("pages[]")
-
-            # cria csv para dados de traços
-            tracefiltered = pd.DataFrame(
-                columns=[
-                    "datetime",
-                    "site",
-                    "type",
-                    "time",
-                    "image",
-                    "class",
-                    "id",
-                    "mouseClass",
-                    "mouseId",
-                    "x",
-                    "y",
-                    "keys",
-                    "scroll",
-                    "height",
-                ]
-            )
-
-            # cria csv para dados de audio
-            audiofiltered = pd.DataFrame(
-                columns=[
-                    "site",
-                    "time",
-                    "text",
-                    "image",
-                    "class",
-                    "id",
-                    "mouseClass",
-                    "mouseId",
-                    "x",
-                    "y",
-                    "scroll",
-                    "height",
-                ]
-            )
-
-            # cria um zip para inserção dos dados filtrados
-            with zipfile.ZipFile(f"{username}_data.zip", "w") as zipf:
-                # filtragem dos dados utilizados
-                for date in session["dates"]:
-                    df = pd.read_csv(
-                        f"{datadir}/{date}/trace.csv", encoding="iso-8859-1"
-                    )
-                    df = df[df.site.isin(session["pages"])]
-                    df.insert(0, "datetime", [date] * len(df.index), True)
-                    tracefiltered = pd.concat([tracefiltered, df], ignore_index=False)
-                    try:
-                        df_audio = pd.read_csv(
-                            f"{datadir}/{date}/audio.csv", encoding="iso-8859-1"
-                        )
-                        df_audio = df_audio[df_audio.site.isin(session["pages"])]
-                        df_audio.insert(
-                            0, "datetime", [date] * len(df_audio.index), True
-                        )
-                        audiofiltered = pd.concat(
-                            [audiofiltered, df_audio], ignore_index=False
-                        )
-                    except:
-                        None
-                    for image in df.image.unique():
-                        try:
-                            # adiciona as imagens ao zip
-                            shutil.copy(f"{datadir}/{date}/{image}", image)
-                            zipf.write(image)
-                            os.remove(image)
-                        except:
-                            pass
-
-                # Criar diretório temporário
-                temp_dir = "/temp"
-                os.makedirs(temp_dir, exist_ok=True)
-                tracefiltered.to_csv(f"{temp_dir}/trace.csv", index=False)
-                audiofiltered.to_csv(f"{temp_dir}/audio.csv", index=False)
-
-                # escreve o traço concatenado
-                zipf.write(f"{temp_dir}/trace.csv", "trace.csv")
-                try:
-                    zipf.write(f"{temp_dir}/audio.csv", "audio.csv")
-                except:
-                    None
-                # Remover diretório temporário
-                shutil.rmtree(temp_dir)
-
-            # limpando o zip criado
-            with open(f"{username}_data.zip", "rb") as f:
-                data = f.readlines()
-            os.remove(f"{username}_data.zip")
-
-            # fornecendo o zip pra download
-            return Response(
-                data,
-                headers={
-                    "Content-Type": "application/zip",
-                    "Content-Disposition": f"attachment; filename={username}_data.zip;",
-                },
-            )
-        
-        if request.form['metadata'] == "pages":
             session["pages"] = request.form.getlist("pages[]")
             username = session.get("username")
             dates = session.get("dates")  # Supondo que as datas também estejam armazenadas na sessão
 
             # Preparando o DataFrame vazio com colunas definidas
             columns_trace = [
-                "datetime", "site", "type", "time", "image", "class", "id",
-                "mouseClass", "mouseId", "x", "y", "keys", "scroll", "height"
+                "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height", "keys",
             ]
             tracefiltered = pd.DataFrame(columns=columns_trace)
             
             columns_audio = [
-                "datetime", "site", "time", "text", "image", "class", "id",
-                "mouseClass", "mouseId", "x", "y", "scroll", "height"
+                "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height", "text"
             ]
             audiofiltered = pd.DataFrame(columns=columns_audio)
 
             # Preparando o DataFrame vazio com colunas definidas
             columns_emotions = [
-                "datetime", "site", "type", "time", "image", "class", "id",
-                "mouseClass", "mouseId", "x", "y", "keys", "scroll", "height"
-
-                "datetime", "site", "time", "image", "class", "id", "mouseClass",
-                "mouseId", "x", "y", "scroll", "height",
-                "anger", "contempt", "disgust", "fear", "happy", "neutral", "sad", "surprise"
+                "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height",
+                "anger", "contempt", "disgust", "fear", "happy", "neutral", "sad", "surprise",
             ]
-            tracefiltered = pd.DataFrame(columns=columns_trace)
+            facefiltered = pd.DataFrame(columns=columns_trace)
 
             # Criando o arquivo ZIP em memória
             memory_zip = io.BytesIO()
             with zipfile.ZipFile(memory_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
 
-                # Filtrar dados para cada data especificada
+                # Filtyrar dados para cada data especificada
                 for date in dates:
-                    query = {'site': {'$in': session["pages"]}, 'datetime': date}
-                    trace_data = list(mongo.users.traces.find(query))
-                    audio_data = list(mongo.mongo.audio.find(query))
+                    
+                    #preparando dataframes
+                    trace_df = userdata2frame(
+                        mongo,
+                        collection_name,
+                        date,
+                        ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"],
+                    )
+                    voice_df = userdata2frame(mongo, collection_name, date, "voice")
+                    face_df = userdata2frame(mongo, collection_name, date, "face")
 
-                    # Convertendo dados do MongoDB para DataFrame
-                    if trace_data:
-                        df_trace = pd.DataFrame(trace_data)
-                        tracefiltered = pd.concat([tracefiltered, df_trace])
-                    if audio_data:
-                        df_audio = pd.DataFrame(audio_data)
-                        audiofiltered = pd.concat([audiofiltered, df_audio])
+                    #data da coleta
+                    doc = mongo[collection_name].find_one({"_id": ObjectId(date)})
+                    date = doc["datetime"]["$date"]
+                    date_obj = datetime.fromisoformat(date.rstrip("Z"))
+                    date_part = date_obj.date().strftime("%d/%m/%Y")
 
-                    # Exportando DataFrames para CSV em memória e adicionando ao ZIP
-                    csv_buffer = io.StringIO()
-                    tracefiltered.to_csv(csv_buffer, index=False)
-                    csv_buffer.seek(0)  # Voltar ao início do stream
-                    zipf.writestr('trace.csv', csv_buffer.read())
+                    #tratando os dados de acordo com as pages
+                    df_site_trace = trace_df[trace_df.site.isin(session["pages"])]
+                    df_site_voice = voice_df[voice_df.site.isin(session["pages"])]
+                    df_site_face = face_df[face_df.site.isin(session["pages"])]
 
-                    csv_buffer = io.StringIO()
-                    audiofiltered.to_csv(csv_buffer, index=False)
-                    csv_buffer.seek(0)
-                    zipf.writestr('audio.csv', csv_buffer.read())
+                    # Adiciona a coluna 'data' no início de todos os DataFrames
+                    df_site_trace.insert(0, "data", [date_part]*len(df_site_trace.index), True)
+                    df_site_voice.insert(0, "data", [date_part]*len(df_site_voice.index), True)
+                    df_site_face.insert(0, "data", [date_part]*len(df_site_face.index), True)
+
+
+                    #tratando os dados
+                    tracefiltered = pd.concat([df_site_trace, tracefiltered])
+                    audiofiltered = pd.concat([df_site_voice, audiofiltered])
+                    facefiltered = pd.concat([df_site_face, facefiltered])
+
+                    #verifica se os arquivos estão vazios 
+                    if not tracefiltered.empty:
+                        csv_buffer = io.StringIO()
+                        tracefiltered.to_csv(csv_buffer, index=False)
+                        csv_buffer.seek(0)
+                        zipf.writestr('trace.csv', csv_buffer.read())
+                    if not audiofiltered.empty:
+                        csv_buffer = io.StringIO()
+                        audiofiltered.to_csv(csv_buffer, index=False)
+                        csv_buffer.seek(0)
+                        zipf.writestr('voice.csv', csv_buffer.read())
+
+                    if not facefiltered.empty:
+                        csv_buffer = io.StringIO()
+                        facefiltered.to_csv(csv_buffer, index=False)
+                        csv_buffer.seek(0)
+                        zipf.writestr('face.csv', csv_buffer.read())
 
             # Preparar o arquivo para download
             memory_zip.seek(0)
-            return Response(
+            return Response(    
                 memory_zip,
                 headers={
                     "Content-Type": "application/zip",
@@ -230,13 +155,12 @@ def datafilter_get(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        userid = userfound["_id"]
-        datadir = f"./Samples/{userid}"
+        collection_name = f"data_{userfound['_id']}" #pasta dos documentos
+        documents = mongo[collection_name].find({})
+
+        data, date_counts = userdata_summary(documents) #informações documentos
 
         if metadata == "datetime":
-            data = dirs2data(userfound, datadir)
-            data = data[::-1]
-
             # Paginação das coletas
             paginator = Paginator(data, 5)
             page_number = request.args.get("page_number", 1, type=int)
@@ -257,10 +181,12 @@ def datafilter_get(username, metadata):
 
             # verifica quais datas estão disponíveis
             pages = []
+
             for date in dates:
-                # Lendo as páginas no csv
-                df = pd.read_csv(f"{datadir}/{date}/trace.csv", encoding="iso-8859-1")
-                for page in df.site.unique():
+                #procurando os sites dos documentos pelo id
+                document = mongo[collection_name].find_one({"_id": ObjectId(date)})
+                site = document['sites']
+                for page in site:
                     if page not in pages:
                         pages.append(page)
 
@@ -288,19 +214,19 @@ def dataanalysis_post(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        userid = userfound["_id"]
-        datadir = f"./Samples/{userid}"
+        collection_name = f"data_{userfound['_id']}" #pasta dos documentos
 
         dir = request.form["dir"]
-        folder = f"{datadir}/{dir}"
+        
         if model == "kmeans":
             return
         elif model == "meanshift":
             return
         elif model == "bertimbau":
             results = {}
+            df_voice = userdata2frame(mongo, collection_name, dir, "voice")
             try:
-                df_audio = nlpBertimbau(folder)
+                df_audio = nlpBertimbau(df_voice)
                 fig = graph_sentiment(df_audio)
                 results["result1"] = pio.to_json(fig)
                 results["result2"] = True
@@ -329,19 +255,19 @@ def dataanalysis_get(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        userid = userfound["_id"]
-        datadir = f"./Samples/{userid}"
+        collection_name = f"data_{userfound['_id']}"
+        documents = mongo[collection_name].find({})
+
+        data, date_counts = userdata_summary(documents)
+
         models = ["kmeans", "meanshift", "bertimbau"]
         if model == 'default':
             return render_template(
                 "data_analysis.html", username=username, title="Análise"
             )
         elif model in models:
-            data = dirs2data(userfound, datadir)
-            data = data[::-1]
-
             # Paginação das coletas
-            paginator = Paginator(data, 7)
+            paginator = Paginator(data, 5)
             page_number = request.args.get("page_number", 1, type=int)
             page_obj = paginator.get_page(page_number)
             page_coleta = paginator.page(page_number).object_list
@@ -367,26 +293,25 @@ def dataanalysis_get(username, model):
 @data_bp.post("/downloadAudio")
 def downloadAudio():
     userfound = mongo.users.find_one({"username": session["username"]})
-    userid = userfound["_id"]
-    datadir = f"./Samples/{userid}"
+    collection_name = f"data_{userfound['_id']}"
 
     valueData = request.form["data"]
 
-    base_path = os.path.normpath(datadir)
+    df_voice = userdata2frame(mongo, collection_name, valueData, "voice")
+    df_nlBertimbau = nlpBertimbau(df_voice)
 
-    file_path = os.path.normpath(os.path.join(datadir, valueData, "audio.csv"))
+    # Convertendo o DataFrame em um buffer de texto
+    csv_buffer = StringIO()
+    df_nlBertimbau.to_csv(csv_buffer, index=False)
 
-    if not file_path.startswith(base_path):
-        abort(403)
-
-    with open(file_path, "rb") as file:
-        file_content = file.read()
-
+    # Obtendo o conteúdo do buffer como uma string
+    file_content = csv_buffer.getvalue()
+    
     return Response(
         file_content,
         headers={
             "Content-Type": "text/csv",
-            "Content-Disposition": "attachment; filename=audio.csv",
+            "Content-Disposition": "attachment; filename=voice.csv",
         },
     )
 

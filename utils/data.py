@@ -125,6 +125,6 @@ def userdata_summary(documents):
         None
 
     # Contar as ocorrências de cada data
-    date_counts = Counter(date_arr)
+    date_counts = Counter(date_arr) 
 
     return data, date_counts

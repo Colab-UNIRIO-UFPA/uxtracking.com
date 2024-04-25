@@ -11,6 +11,7 @@
     color: #ffffff;
     background: #676767 !important;
   }
+
   .adjust-side-menu {
         margin-left: 30vh;
     }
@@ -35,7 +36,7 @@
       <label
         class="d-flex gap-2 w-100 py-0 rounded-0 border-bottom justify-content-between border-secondary-subtle align-items-center">
 
-        <input class="btn-check" type="checkbox" name="dates[]" value="{{ data['dir'] }}" autocomplete="off">
+        <input class="btn-check" type="checkbox" name="dates[]" value="{{ data['id'] }}" autocomplete="off">
 
         {% if loop.first %}
         <div class="d-flex btn list-group-item w-100 p-2 rounded-0 justify-content-between border-0" for="btn-check">
@@ -61,11 +62,11 @@
                   <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z" />
                   <path
                     d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z" />
-                </svg><span class="mb-0 opacity-75">Às {{ data['hour'] }}</span>
+                </svg><span class="mb-0 opacity-75">Às {{ data['time'] }}</span>
               </div>
               <div class="d-flex flex-wrap justify-content-end align-items-center">
                 <h6 class="mb-2 w-100 text-white" style="text-align: end;">Páginas coletadas</h6>
-                {% for site in data['pages'] %}
+                {% for site in data['sites'] %}
                 <small class="text-bg-light opacity-100 text-nowrap border px-2 py-1 ms-1 rounded-pill">{{ site
                   }}</small>
                 {% endfor %}
@@ -134,8 +135,8 @@
       {% for page in items%}
       <label class="d-flex gap-2 w-50 py-1">
         <input class="btn-check" type="checkbox" name="pages[]" value="{{ page }}" autocomplete="off">
-        <div class="btn btn-secondary w-100 p-2 rounded-0" for="btn-check">
-          <span>{{ page }}</span>
+        <div class="btn btn-secondary w-100 p-2 rounded-0 text-white" for="btn-check">
+          <span >{{ page }}</span>
         </div>
       </label>
       {% endfor %}

@@ -45,11 +45,14 @@ def format_ISO(dates):
     return iso_format_dates
 
 
-def nlpBertimbau(folder):
-    df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
+def nlpBertimbau(df):
+
+    if df.empty or len(df.columns) == 0:
+        raise ValueError("O DataFrame está vazio ou possui apenas os cabeçalhos das colunas.")
+
     texts = []
     sentiment_dict = {sentiment: [] for sentiment in id2label.values()}
-    for text in df_audio["text"]:
+    for text in df["text"]:
         inputs = tokenizer(text, return_tensors="pt")
         with torch.no_grad():
             logits = modelBert(**inputs).logits
@@ -64,11 +67,11 @@ def nlpBertimbau(folder):
             )
         texts.append(output)
 
-    df_audio["feeling"] = texts
+    df["feeling"] = texts
     for value in id2label.values():
-        df_audio[value.lower()] = sentiment_dict[value]
+        df[value.lower()] = sentiment_dict[value]
 
-    return df_audio
+    return df
 
 
 def graph_sentiment(df):

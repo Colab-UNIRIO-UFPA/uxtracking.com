@@ -11,20 +11,24 @@ def gen_example(mongo, fs):
     mongo.users.insert_one(new_user)
     userfound = mongo.users.find_one({"username": "admin"})
     user_collection_name=f"data_{userfound['_id']}"
-    mongo[user_collection_name].insert_one(data_admin)
+    
+    with open("UX-Tracking Banner.png", 'rb') as f:
+        contents = f.read()
 
-data_admin = {
+    image_id = fs.put(contents, filename="default")
+
+    data_admin = {
     "datetime": {"$date": "2024-02-01T14:50:24Z"},
     "sites": ["site1", "site2"],
     "data": [
         {
             "site": "site1",
-            "images": [{"$ref": "fs.files", "$id": "id1_gridfs"}],
+            "images": [image_id],
             "interactions": [
                 {
                     "type": "eye",
                     "time": 1,
-                    "image": "id1_gridfs",
+                    "image": image_id,
                     "class": "classe1",
                     "id": "id1",
                     "mouseClass": "classe1",
@@ -38,7 +42,7 @@ data_admin = {
                 {
                     "type": "mouse",
                     "time": 2,
-                    "image": "id1_gridfs",
+                    "image": image_id,
                     "class": "classe2",
                     "id": "id2",
                     "mouseClass": "classe2",
@@ -52,7 +56,7 @@ data_admin = {
                 {
                     "type": "keyboard",
                     "time": 3,
-                    "image": "id1_gridfs",
+                    "image": image_id,
                     "class": "classe3",
                     "id": "id3",
                     "mouseClass": "classe3",
@@ -68,7 +72,7 @@ data_admin = {
                 {
                     "type": "freeze",
                     "time": 4,
-                    "image": "id1_gridfs",
+                    "image": image_id,
                     "class": "classe4",
                     "id": "id4",
                     "mouseClass": "classe4",
@@ -83,12 +87,12 @@ data_admin = {
         },
         {
             "site": "site2",
-            "images": [{"$ref": "fs.files", "$id": "id2_gridfs"}, {"$ref": "fs.files", "$id": "id3_gridfs"}],
+            "images": [image_id],
             "interactions": [
                 {
                     "type": "click",
                     "time": 5,
-                    "image": "id2_gridfs",
+                    "image": image_id,
                     "class": "classe5",
                     "id": "id5",
                     "mouseClass": "classe5",
@@ -102,7 +106,7 @@ data_admin = {
                 {
                     "type": "wheel",
                     "time": 6,
-                    "image": "id2_gridfs",
+                    "image": image_id,
                     "class": "classe6",
                     "id": "id6",
                     "mouseClass": "classe6",
@@ -116,7 +120,7 @@ data_admin = {
                 {
                     "type": "move",
                     "time": 7,
-                    "image": "id2_gridfs",
+                    "image": image_id,
                     "class": "classe7",
                     "id": "id7",
                     "mouseClass": "classe7",
@@ -130,7 +134,7 @@ data_admin = {
                 {
                     "type": "voice",
                     "time": 8,
-                    "image": "id2_gridfs",
+                    "image": image_id,
                     "class": "classe8",
                     "id": "id8",
                     "mouseClass": "classe8",
@@ -146,7 +150,7 @@ data_admin = {
                 {
                     "type": "face",
                     "time": 9,
-                    "image": "id3_gridfs",
+                    "image": image_id,
                     "class": "classe9",
                     "id": "id9",
                     "mouseClass": "classe9",
@@ -170,3 +174,5 @@ data_admin = {
         }
     ]
 }
+
+    mongo[user_collection_name].insert_one(data_admin)

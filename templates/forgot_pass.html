@@ -1,33 +1,9 @@
 {% extends "base.html" %}
 
 {% block head %}
-  <style type="text/css">    
-    .form-signin {
-      max-width: 350px;
-      padding: 1rem;
-    }
-    
-    .form-signin .form-floating:focus-within {
-      z-index: 2;
-    }
-    
-    .form-signin input[type="text"] {
-      margin-bottom: -1px;
-      border-bottom-right-radius: 0;
-      border-bottom-left-radius: 0;
-    }
-    
-    .form-signin input[type="email"] {
-      margin-bottom: 0px;
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
-    }
 
-    .form-signin button[type="submit"] {
-      margin-top: 30px;
-      margin-bottom: 20px;
-    }
-  </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forgot_pass.css') }}">
+
 {% endblock %}
 
 {% block content %}
@@ -60,7 +36,7 @@
                 <label for="floatingInput">Email</label>
               </div>
 
-              <button class="btn btn-primary w-100 py-2" type="submit">Receber minha senha por email</button>
+              <button class="btn btn-primary w-100 py-2" type="submit" style="color: white;">Receber minha senha por email</button>
 
               <p style="text-align: center;"><br>
                 <a href="{{ url_for('auth_bp.login_get') }}">Tem uma conta?</a><br>

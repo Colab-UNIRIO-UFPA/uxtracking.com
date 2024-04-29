@@ -1,21 +1,9 @@
 {% extends "base.html" %}
 
 {% block head %}
-<style type="text/css">
-  input[type="checkbox"]:checked+.btn {
-    color: #ffffff;
-    background: #676767 !important;
-  }
 
-  input[type="checkbox"]:hover+.btn {
-    color: #ffffff;
-    background: #676767 !important;
-  }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/data_filter.css') }}">
 
-  .adjust-side-menu {
-        margin-left: 30vh;
-    }
-</style>
 {% endblock %}
 
 {% block content %}

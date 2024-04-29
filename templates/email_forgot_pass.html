@@ -5,49 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>redefinição de Senha</title>
-    <style type="text/css">
-        body{
-            margin: 0;
-        }
-
-        table{
-            border-spacing: 0;
-        }
-
-        td{
-            padding: 0;
-        }
-
-        img{
-            border: 0;
-        }
-
-        .wrapper{
-            width: 100%;
-            table-layout: fixed;
-            display: flex;
-            justify-content: center;
-            background-color: #cccccc;
-        }
-
-        .main{
-            background-color: #ffffff;
-            margin: 0 auto;
-            width: 100%;
-            max-width: 600px;
-            border-spacing: 0;
-        }
-
-        @media screen and (max-width: 600px){
-            
-        }
-
-        @font-face{
-            font-family: 'Archivo Black', 'Roboto', sans-serif;
-            src: url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Roboto:wght@100;300&display=swap');
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/email_forgot_password.css') }}">
 </head>
 <body>
     <div class="wrapper">

@@ -76,11 +76,12 @@ def index_post():
             for image_id in image_ids:
                 try:
                     # Recupera o arquivo de imagem do GridFS usando o ID
-                    grid_out = fs.get(image_id)
-                    zipf.writestr(image_id, grid_out.read())
+                    grid_out = fs.get(image_id).read()
+                    image_name = f'{str(image_id)}.png'
+                    if image_name not in zipf.namelist():
+                        zipf.writestr(image_name, grid_out)
                 except Exception as e:
-                    None
-                    # abort(404, description=f"Erro ao recuperar a imagem {image_id}: {e}")
+                    abort(404, description=f"Erro ao recuperar a imagem {image_id}: {e}")
 
         # Retorna o objeto ZIP em memória para download ou outras operações
         memory_zip.seek(0)

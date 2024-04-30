@@ -9,7 +9,7 @@
 {% block content %}
 <div class="form-signin w-100 pe-1 pt-0 adjust-side-menu" style="text-align: center; min-height: 100vh">
   {% if metadata == 'datetime' %}
-  <p class="fs-3 fw-bold my-0 py-2 ps-3 text-white text-bg-secondary">Selecione as coletas que deseja baixar</p>
+  <p class="fs-3 fw-bold my-0 py-2 ps-3 text-white bg-body-tertiary">Selecione as coletas que deseja baixar</p>
   {% with messages = get_flashed_messages() %}
   {% if messages %}
   {% for message in messages %}
@@ -22,14 +22,14 @@
     <div class="d-flex flex-column py-0 list-group">
       {% for data in items%}
       <label
-        class="d-flex gap-2 w-100 py-0 rounded-0 border-bottom justify-content-between border-secondary-subtle align-items-center">
+        class="d-flex gap-2 w-100 py-0 rounded-0 border-bottom justify-content-between align-items-center"> <!-- border-secondary-subtle -->
 
         <input class="btn-check" type="checkbox" name="dates[]" value="{{ data['id'] }}" autocomplete="off">
 
         {% if loop.first %}
-        <div class="d-flex btn list-group-item w-100 p-2 rounded-0 justify-content-between border-0" for="btn-check">
+        <div class="d-flex btn list-group-item w-100 p-2 rounded-0 justify-content-between border-0 cor-preto1" for="btn-check">
           {% elif loop.last %}
-          <div class="d-flex btn list-group-item w-100 p-2 rounded-0 justify-content-between border-0" for="btn-check">
+          <div class="d-flex btn list-group-item w-100 p-2 rounded-0 justify-content-between border-0 cor-preto1" for="btn-check">
             {% else %}
             <div class="d-flex btn list-group-item w-100 p-2 rounded-0 justify-content-between border-0"
               for="btn-check">
@@ -55,7 +55,7 @@
               <div class="d-flex flex-wrap justify-content-end align-items-center">
                 <h6 class="mb-2 w-100 text-white" style="text-align: end;">Páginas coletadas</h6>
                 {% for site in data['sites'] %}
-                <small class="text-bg-light opacity-100 text-nowrap border px-2 py-1 ms-1 rounded-pill">{{ site
+                <small class="text-bg-light opacity-100 text-nowrap border px-2 py-1 ms-1 rounded-pill custom-style">{{ site
                   }}</small>
                 {% endfor %}
               </div>

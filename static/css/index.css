@@ -123,3 +123,20 @@ body {
       margin-left: -10px; /* Remove o espaçamento extra em telas pequenas */
     }
 }
+
+.cor-preto1 {
+    background-color: #0D0D0D !important; /* Fundo */
+}
+.cor-preto2 {
+    background-color: #121212 !important; /* Barra lateral */
+}
+.cor-laranja {
+    background-color: #fd7e14 !important;
+}
+
+.custom-style { /* pilulas sites */
+    border: 1px solid #fd7e14 !important;
+    color: #fd7e14 !important;
+    background-color: transparent !important;
+    opacity: 0.8 !important;
+}

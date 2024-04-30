@@ -150,7 +150,7 @@
 
       <!-- menu lateral -->
       <main class="d-flex flex-nowrap" style="min-height: 100vh;">
-        <div class="d-flex flex-column flex-shrink-0 py-3 px-0 bg-body-tertiary fixed-top" style="width: 30vh; height: 100%;">
+        <div class="d-flex flex-column flex-shrink-0 py-3 px-0 bg-body-tertiary fixed-top cor-preto2" style="width: 30vh; height: 100%;">
           <a href="/" class="d-flex flex-column align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
             <svg xmlns="http://www.w3.org/2000/svg" width="55%" height="auto" fill="currentColor" class="bi pe-none ms-3 me-3 bi-menu-button-wide" viewBox="0 0 783 501">
               <path d="M57.269 250.461a5.333 5.333 0 1 0 9.462-4.921 5.333 5.333 0 0 0-9.462 4.921Zm175.865-91.481a5.333 5.333 0 1 0 9.463-4.923 5.334 5.334 0 0 0-9.463 4.923ZM62.462 248.887l175.865-91.481-.923-1.775-175.865 91.482.922 1.774Zm623.173-87.879c-6.266-6.231-16.397-6.202-22.627.064-6.231 6.266-6.202 16.397.064 22.627 6.266 6.231 16.397 6.202 22.627-.064 6.231-6.266 6.202-16.397-.064-22.627Zm-64.762 60.877a2.998 2.998 0 0 0 .012 4.242 2.998 2.998 0 0 0 4.242-.012l-4.254-4.23Zm51.353-51.647-51.353 51.647 4.254 4.23 51.354-51.646-4.255-4.231ZM563.118 288.125a3.001 3.001 0 0 0-4.236-4.25l4.236 4.25Zm-78.432 73.934c-6.238-6.259-16.368-6.276-22.627-.038-6.259 6.238-6.276 16.368-.038 22.627 6.238 6.259 16.368 6.276 22.627.038 6.259-6.238 6.276-16.368.038-22.627Zm74.196-78.184-87.646 87.354 4.235 4.249 87.647-87.353-4.236-4.25Z"/>
@@ -169,9 +169,9 @@
           </a>
           <hr>
           <ul class="nav nav-pills flex-column mb-auto px-2">
-            <li class="nav-item  {{ 'border border-secondary-subtle rounded' if title == 'Home'}}">
+            <li class="nav-item  {{ 'border border-secondary-subtle rounded pagina-atual' if title == 'Home'}}">
               <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Página inicial" data-bs-content="Acesse suas últimas coletas, seu histórico de atividades, o link para a nossa extensão de coleta e a documentação oficial do UX-Tracking.">
-              <a href="{{ url_for('index_bp.index_get') }}" class="nav-link link-body-emphasis" >
+              <a href="{{ url_for('index_bp.index_get') }}" class="nav-link link-body-emphasis {{ 'pagina-atual' if title == 'Home'}}" >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-house" viewBox="0 0 16 16">
                   <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
                 </svg>
@@ -179,9 +179,9 @@
               </a>
             </span>
             </li>
-            <li class="nav-item  {{ 'border border-secondary-subtle rounded' if title == 'Coletas'}}">
+            <li class="nav-item  {{ 'border border-secondary-subtle rounded pagina-atual' if title == 'Coletas'}}">
               <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Minhas coletas" data-bs-content="Faça o download de suas coletas, podendo filtrar por data, hora e site coletados.">
-                <a href="{{ url_for('data_bp.datafilter_get', username=username, metadata='datetime') }}" class="nav-link link-body-emphasis">
+                <a href="{{ url_for('data_bp.datafilter_get', username=username, metadata='datetime') }}" class="nav-link link-body-emphasis {{ 'pagina-atual' if title == 'Coletas'}}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-database-down" viewBox="0 0 16 16">
                     <path d="M12.5 9a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm.354 5.854 1.5-1.5a.5.5 0 0 0-.708-.708l-.646.647V10.5a.5.5 0 0 0-1 0v2.793l-.646-.647a.5.5 0 0 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0Z"/>
                     <path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262 0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>
@@ -192,7 +192,7 @@
             </li>
             <li class="nav-item  {{ 'border border-secondary-subtle rounded' if title == 'Análise'}}">
               <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Análise dos dados" data-bs-content="Realize a análise dos seus dados por meio de uma variedade de modelos estatísticos disponíveis.">
-                <a href="{{ url_for('data_bp.dataanalysis_get', username=username, model='default') }}" class="nav-link link-body-emphasis">
+                <a href="{{ url_for('data_bp.dataanalysis_get', username=username, model='default') }}" class="nav-link link-body-emphasis {{ 'pagina-atual' if title == 'Análise'}}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-cpu" viewBox="0 0 16 16">
                     <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2A2.5 2.5 0 0 1 14 4.5h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14a2.5 2.5 0 0 1-2.5 2.5v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14A2.5 2.5 0 0 1 2 11.5H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2A2.5 2.5 0 0 1 4.5 2V.5A.5.5 0 0 1 5 0zm-.5 3A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7zM5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3zM6.5 6a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
                   </svg>
@@ -202,7 +202,7 @@
             </li>
             <li class="nav-item  {{ 'border border-secondary-subtle rounded' if title == 'Visualização'}}">
               <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-title="Visualização dos dados" data-bs-content="Explore a experiência do usuário! Visualize e analise as interações do usuário de uma forma simplificada através de nossas ferramentas.">
-                <a href="{{ url_for('data_bp.dataview_get', username=username, plot='default') }}" class="nav-link link-body-emphasis">
+                <a href="{{ url_for('data_bp.dataview_get', username=username, plot='default') }}" class="nav-link link-body-emphasis {{ 'pagina-atual' if title == 'Visualização'}}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2 bi-eye" viewBox="0 0 16 16">
                     <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
                     <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>

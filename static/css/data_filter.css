@@ -11,3 +11,10 @@ input[type="checkbox"]:hover+.btn {
 .adjust-side-menu {
         margin-left: 30vh;
     }
+    
+.custom-style { /* pilulas sites */
+        border: 1px solid #fd7e14 !important;
+        color: #fd7e14 !important;
+        background-color: transparent !important;
+        opacity: 0.8 !important;
+}

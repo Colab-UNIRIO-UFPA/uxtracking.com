@@ -6,10 +6,13 @@
 
 {% block content %}
     {% if not session %}
+
+        <div class="botao-lateral" id="botaolateral">></div>
+
         <div class="minha-div mt-5">
            
             <div class="row">
-                <div class="col-4">
+                <div class="col-4 guia-lateral" id="guialateral">
                   <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
                     <nav class="nav nav-pills flex-column">
                       
@@ -295,7 +298,28 @@
               </div>
         </div>
 
-        
+        <script>
+          var paginas = document.getElementById('guialateral');
+          var botao = document.getElementById('botaolateral');
+          var aberto = false;
+
+          botao.addEventListener("click", myFunction); 
+
+          function myFunction() {
+              if (aberto == false){
+                  paginas.style.left = '0px';
+                  botao.style.left = "155px"
+                  botao.innerText = '<';
+                  aberto = true;
+              }
+              else {
+                  paginas.style.left = '-220px';
+                  botao.style.left = "0px";
+                  botao.innerText = '>';
+                  aberto = false;
+              }
+          }
+        </script>
     {% else %}
         
     {% endif %}

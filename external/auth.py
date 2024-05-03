@@ -2,6 +2,7 @@ from flask_mail import Message
 from app import mongo, mail, mail_username
 from utils.functions import id_generator
 from flask import render_template, Blueprint, request, session, jsonify
+from werkzeug.security import check_password_hash
 
 external_auth_bp = Blueprint(
     "external_auth_bp", "__name__", template_folder="templates", static_folder="static"
@@ -12,11 +13,11 @@ external_auth_bp = Blueprint(
 def userAuth():
     username = request.form["username"]
     password = request.form["password"]
-    userfound = mongo.users.find_one({"username": username, "password": password})
+    userfound = mongo.users.find_one({"username": username})
 
-    if userfound != None:
+    if userfound and check_password_hash(userfound["password"], password):
         userid = userfound["_id"]
-        session["username"] = request.form["username"]
+        session["username"] = username
         response = {"id": str(userid), "status": 200}
     # Credenciais incorretas
     else:

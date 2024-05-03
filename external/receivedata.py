@@ -3,6 +3,8 @@ import re
 import torch
 import base64
 from PIL import Image
+from bson import ObjectId
+from datetime import datetime
 from app import mongo, model, fs
 import torch.nn.functional as F
 from torchvision.transforms import v2 as T
@@ -15,19 +17,17 @@ external_receivedata_bp = Blueprint(
     static_folder="static",
 )
 
+
 # Define a rota para o envio dos dados pela ferramenta
 @external_receivedata_bp.post("/receiver")
 def receiver():
     content = request.get_json(silent=True)
-    metadata, data = content["metadata"], content["data"]
-    userfound = mongo.users.find_one({"username": metadata["userID"]})
+    metadata, data = content.get("metadata", {}), content.get("data", {})
+    userfound = mongo.users.find_one({"_id": ObjectId(metadata["userID"])})
     if not userfound:
         abort(403)
     collection_name = f"data_{userfound['_id']}"
-
-    result = mongo[collection_name].find_one(
-        {"datetime": {"$date": metadata["dateTime"]}}
-    )
+    result = mongo[collection_name].find_one({"datetime.$date": metadata["dateTime"]})
 
     # inserção no mongo gridFS (id retornado)
     image_id = fs.put(
@@ -36,33 +36,37 @@ def receiver():
 
     interactions = []
     for i in range(len(data["type"])):
-        interactions.append({
-            'type': data["type"][i],
-            'time': data["time"][i],
-            'image': image_id,
-            'class': data["class"][i],
-            'id': data["id"][i],
-            'mouseClass': data["mouseClass"][i],
-            'mouseID': data["mouseID"][i],
-            'x': data["x"][i],
-            'y': data["y"][i],
-            'scroll': data["scroll"][i],
-            'height': metadata["height"],
-            'value': data["value"][i]
-        })
+        interactions.append(
+            {
+                "type": data["type"][i],
+                "time": data["time"][i],
+                "image": image_id,
+                "class": data["class"][i],
+                "id": data["id"][i],
+                "x": data["x"][i],
+                "y": data["y"][i],
+                "scroll": data["scroll"][i],
+                "height": metadata["height"],
+                "value": data["value"][i],
+            }
+        )
 
     document = {
-        'datetime': metadata["dateTime"],
-        'sites': [metadata['site']],
-        'data': [{
-            'site': metadata['site'],
-            'images': [image_id],
-            'interactions': interactions
-        }]
+        "datetime": {"$date": metadata["dateTime"]},
+        "sites": [metadata["site"]],
+        "data": [
+            {
+                "site": metadata["site"],
+                "images": [image_id],
+                "interactions": interactions,
+            }
+        ],
     }
 
     if result:
-        mongo[collection_name].update_one({'_id': result["_id"]}, {'$set': document}, upsert=True)
+        mongo[collection_name].update_one(
+            {"_id": result["_id"]}, {"$set": document}, upsert=True
+        )
     else:
         mongo[collection_name].insert_one(document)
 

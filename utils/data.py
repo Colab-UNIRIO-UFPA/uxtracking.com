@@ -99,7 +99,7 @@ def userdata_summary(documents):
     try:
         for doc in documents:
             # Obtenha a string de data e hora do documento
-            date_str = doc["datetime"]["$date"]
+            date_str = doc["datetime"]
 
             # Converter para data e hora
             date_obj = datetime.fromisoformat(date_str.rstrip("Z"))

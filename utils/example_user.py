@@ -18,7 +18,7 @@ def gen_example(mongo, fs):
     image_id = fs.put(contents, filename="default")
 
     data_admin = {
-    "datetime": {"$date": "2024-02-01T14:50:24Z"},
+    "datetime": "2024-02-01T14:50:24Z",
     "sites": ["site1", "site2"],
     "data": [
         {

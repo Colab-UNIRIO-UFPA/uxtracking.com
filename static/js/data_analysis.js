@@ -1,9 +1,11 @@
 var valueData;
-function submitdata(data, model) {
+var url_aud;
+function submitdata(data, url_data, url_audio) {
     valueData = data;
+    url_aud = url_audio;
     document.getElementById("mybutton").style.display = "none";
     $("#resultModal").modal('show');
-    $.post("{{ url_for('data_bp.dataanalysis_post', username=username, model=model) }}",
+    $.post(url_data,
     {
         dir: data
     },
@@ -11,8 +13,8 @@ function submitdata(data, model) {
         document.getElementById("spinner").style.display = "none";
         document.getElementById("mybutton").style.display = "inline-block";
 
-        var result1 = results.result1
-        var result2 = results.result2
+        var result1 = results.result1;
+        var result2 = results.result2;
 
         if (result2 == false){
             document.getElementById("mybutton").style.display = "none";
@@ -33,7 +35,7 @@ function renderGraph(figJSON){
     Plotly.newPlot(graphDiv, fig.data, fig.layout);
 }
 function clickbutton(){
-    $.post("{{ url_for('data_bp.downloadAudio')}}",
+    $.post(url_aud,
     {
         data: valueData
     },

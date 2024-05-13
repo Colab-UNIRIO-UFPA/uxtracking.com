@@ -1,6 +1,6 @@
-function submitdata(data, plot) {
+function submitdata(data, url_dataview) {
     $("#resultModal").modal('show');
-    $.post("{{ url_for('data_bp.dataview_post', username=username, plot=plot) }}",
+    $.post(url_dataview,
     {
         dir: data
     },
@@ -15,7 +15,7 @@ function closePopupResult() {
 };
 
 var result2;
-function submitdata(data, plot) {
+function submitdata(data, url_dataview) {
     //Quando chama o model alguns elementos são configurados para serem ocultados 
     $("#resultModal").modal('show');
     document.getElementById("sites").style.display = "none";
@@ -29,7 +29,7 @@ function submitdata(data, plot) {
     modalContent.appendChild(modalBody);
 
     //solicitação para a rota dataview
-    $.post("{{ url_for('data_bp.dataview_post', username=username, plot=plot) }}",
+    $.post(url_dataview,
     {
         dir: data
     },

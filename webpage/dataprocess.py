@@ -1,6 +1,7 @@
 import os
 import io
 import shutil
+import gridfs
 import zipfile
 from app import mongo
 import pandas as pd
@@ -90,8 +91,8 @@ def datafilter_post(username, metadata):
                     face_df = userdata2frame(mongo, collection_name, date, "face")
 
                     #data da coleta
-                    doc = mongo[collection_name].find_one({"_id": ObjectId(date)})
-                    date = doc["datetime"]["$date"]
+                    document = mongo[collection_name].find_one({"_id": ObjectId(date)})
+                    date = document["datetime"]["$date"]
                     date_obj = datetime.fromisoformat(date.rstrip("Z"))
                     date_part = date_obj.date().strftime("%d/%m/%Y")
 
@@ -110,6 +111,30 @@ def datafilter_post(username, metadata):
                     tracefiltered = pd.concat([df_site_trace, tracefiltered])
                     audiofiltered = pd.concat([df_site_voice, audiofiltered])
                     facefiltered = pd.concat([df_site_face, facefiltered])
+
+                    #tratando as imagens
+                    image_ids = []
+
+                    if "data" in document and isinstance(document["data"], list):
+                        for site_data in document["data"]:
+                            if "images" in site_data:
+                                image_ids.extend(
+                                    site_data["images"]
+                                )
+
+
+                    #guardando as imagens no zip
+                    fs = gridfs.GridFS(mongo)
+                    
+                    for image_id in image_ids:
+                        try:
+                            grid_out = fs.get(image_id).read()
+                            image_name = f'{str(image_id)}.png'
+                            if image_name not in zipf.namelist():
+                                zipf.writestr(image_name, grid_out)
+
+                        except Exception as e:
+                            abort(404, description=f"Erro ao recuperar a imagem {image_id}: {e}")
 
                     #verifica se os arquivos estão vazios 
                     if not tracefiltered.empty:
@@ -230,6 +255,7 @@ def dataanalysis_post(username, model):
                 fig = graph_sentiment(df_audio)
                 results["result1"] = pio.to_json(fig)
                 results["result2"] = True
+                
             except:
                 results["result1"] = (
                     "Não foi possível processar a coleta, áudio ausente!"

@@ -3,6 +3,8 @@ import re
 import torch
 import base64
 from PIL import Image
+from bson import ObjectId
+from datetime import datetime
 from app import mongo, model, fs
 import torch.nn.functional as F
 from torchvision.transforms import v2 as T
@@ -15,56 +17,89 @@ external_receivedata_bp = Blueprint(
     static_folder="static",
 )
 
+
 # Define a rota para o envio dos dados pela ferramenta
 @external_receivedata_bp.post("/receiver")
 def receiver():
     content = request.get_json(silent=True)
-    metadata, data = content["metadata"], content["data"]
-    userfound = mongo.users.find_one({"username": metadata["userID"]})
-    if not userfound:
-        abort(403)
-    collection_name = f"data_{userfound['_id']}"
+    if not content:
+        abort(400, "No JSON data found")
 
-    result = mongo[collection_name].find_one(
-        {"datetime": {"$date": metadata["dateTime"]}}
-    )
+    metadata, data = content.get("metadata", {}), content.get("data", {})
+    if not metadata.get("userID"):
+        abort(403, "No user ID provided")
+
+    userfound = mongo.users.find_one({"_id": ObjectId(metadata["userID"])})
+    if not userfound:
+        abort(403, "User not found")
+
+    collection_name = f"data_{userfound['_id']}"
+    result = mongo[collection_name].find_one({"datetime": metadata["dateTime"]})
 
     # inserção no mongo gridFS (id retornado)
     image_id = fs.put(
         base64.b64decode(re.sub("^data:image/\w+;base64,", "", metadata["image"]))
     )
 
-    interactions = []
-    for i in range(len(data["type"])):
-        interactions.append({
-            'type': data["type"][i],
-            'time': data["time"][i],
-            'image': image_id,
-            'class': data["class"][i],
-            'id': data["id"][i],
-            'mouseClass': data["mouseClass"][i],
-            'mouseID': data["mouseID"][i],
-            'x': data["x"][i],
-            'y': data["y"][i],
-            'scroll': data["scroll"][i],
-            'height': metadata["height"],
-            'value': data["value"][i]
-        })
+    # Preparação da lista de interações
+    interactions = [
+        {
+            "type": data["type"][i],
+            "time": data["time"][i],
+            "image": image_id,
+            "class": data["class"][i],
+            "id": data["id"][i],
+            "x": data["x"][i],
+            "y": data["y"][i],
+            "scroll": data["scroll"][i],
+            "height": metadata["height"],
+            "value": data["value"][i],
+        }
+        for i in range(len(data["type"]))
+    ]
 
-    document = {
-        'datetime': metadata["dateTime"],
-        'sites': [metadata['site']],
-        'data': [{
-            'site': metadata['site'],
-            'images': [image_id],
-            'interactions': interactions
-        }]
+    # Estrutura do documento para inserção ou atualização
+    update = {
+        "$addToSet": {"sites": metadata["site"]},
+        "$setOnInsert": {"datetime": metadata["dateTime"]},
     }
 
     if result:
-        mongo[collection_name].update_one({'_id': result["_id"]}, {'$set': document}, upsert=True)
+        # Verifica se o site já existe no documento
+        site_exists = any(d["site"] == metadata["site"] for d in result["data"])
+        if site_exists:
+            # Adiciona as interações ao site existente
+            update["$push"] = {
+                "data.$[elem].interactions": {"$each": interactions},
+                "data.$[elem].images": {"$each": [image_id]},
+            }
+            array_filters = [{"elem.site": metadata["site"]}]
+            mongo[collection_name].update_one(
+                {"_id": result["_id"]}, update, array_filters=array_filters
+            )
+        else:
+            # Adiciona um novo site ao array de dados
+            new_site = {
+                "site": metadata["site"],
+                "images": [image_id],
+                "interactions": interactions,
+            }
+            update["$push"] = {"data": new_site}
+            mongo[collection_name].update_one({"_id": result["_id"]}, update)
     else:
-        mongo[collection_name].insert_one(document)
+        # Insere um novo documento se não houver um existente para essa data
+        new_document = {
+            "datetime": metadata["dateTime"],
+            "sites": [metadata["site"]],
+            "data": [
+                {
+                    "site": metadata["site"],
+                    "images": [image_id],
+                    "interactions": interactions,
+                }
+            ],
+        }
+        mongo[collection_name].insert_one(new_document)
 
     return "Received"
 

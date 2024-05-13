@@ -13,8 +13,6 @@ def userdata2frame(mongo_db, collection_name, id, data_type):
         "time",
         "class",
         "id",
-        "mouseClass",
-        "mouseID",
         "x",
         "y",
         "scroll",
@@ -78,8 +76,6 @@ def userdata2frame(mongo_db, collection_name, id, data_type):
                 "time": interaction.get("time"),
                 "class": interaction.get("class"),
                 "id": interaction.get("id"),
-                "mouseClass": interaction.get("mouseClass"),
-                "mouseID": interaction.get("mouseID"),
                 "x": interaction.get("x"),
                 "y": interaction.get("y"),
                 "scroll": interaction.get("scroll"),
@@ -103,7 +99,7 @@ def userdata_summary(documents):
     try:
         for doc in documents:
             # Obtenha a string de data e hora do documento
-            date_str = doc["datetime"]["$date"]
+            date_str = doc["datetime"]
 
             # Converter para data e hora
             date_obj = datetime.fromisoformat(date_str.rstrip("Z"))

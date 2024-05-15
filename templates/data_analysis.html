@@ -64,7 +64,7 @@
               <h5 class="modal-title w-100" id="resultModalLabel">Resultado</h5>
               <button type="button" onclick="closePopupResult()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="list-group modal-body align-items-center justify-content-center gap-3" style="text-align: center;">
+            <div class="list-group modal-body align-items-center justify-content-center gap-3 w-100" style="text-align: center;">
               <div class="list-group-item border-0 w-100">
                 <div class="spinner-border text-secondary" id="spinner" role="status"></div>
                 <div  id="resultplot"></div>
@@ -143,6 +143,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="{{ url_for('static', filename='js/data_analysis.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/data_analysis.js')}}"></script>
 {% endblock %}
   

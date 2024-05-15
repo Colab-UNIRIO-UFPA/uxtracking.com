@@ -13,7 +13,7 @@ from utils.data import userdata_summary
 from django.core.paginator import Paginator
 from utils.functions import (
     nlpBertimbau,
-    graph_sentiment,
+    df_graph_sentiment,
     dirs2data,
     make_heatmap,
     make_recording,
@@ -53,8 +53,9 @@ def datafilter_post(username, metadata):
         elif metadata == "pages":
             session["pages"] = request.form.getlist("pages[]")
             username = session.get("username")
-            dates = session.get("dates")  # Supondo que as datas também estejam armazenadas na sessão
 
+            dates = session.get("dates")
+        
             # Preparando o DataFrame vazio com colunas definidas
             columns_trace = [
                 "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height", "keys",
@@ -92,7 +93,7 @@ def datafilter_post(username, metadata):
 
                     #data da coleta
                     document = mongo[collection_name].find_one({"_id": ObjectId(date)})
-                    date = document["datetime"]["$date"]
+                    date = document["datetime"]
                     date_obj = datetime.fromisoformat(date.rstrip("Z"))
                     date_part = date_obj.date().strftime("%d/%m/%Y")
 
@@ -117,10 +118,11 @@ def datafilter_post(username, metadata):
 
                     if "data" in document and isinstance(document["data"], list):
                         for site_data in document["data"]:
-                            if "images" in site_data:
-                                image_ids.extend(
-                                    site_data["images"]
-                                )
+                            if site_data["site"] in session["pages"]:
+                                if "images" in site_data:
+                                    image_ids.extend(
+                                        site_data["images"]
+                                    )
 
 
                     #guardando as imagens no zip
@@ -136,23 +138,23 @@ def datafilter_post(username, metadata):
                         except Exception as e:
                             abort(404, description=f"Erro ao recuperar a imagem {image_id}: {e}")
 
-                    #verifica se os arquivos estão vazios 
-                    if not tracefiltered.empty:
-                        csv_buffer = io.StringIO()
-                        tracefiltered.to_csv(csv_buffer, index=False)
-                        csv_buffer.seek(0)
-                        zipf.writestr('trace.csv', csv_buffer.read())
-                    if not audiofiltered.empty:
-                        csv_buffer = io.StringIO()
-                        audiofiltered.to_csv(csv_buffer, index=False)
-                        csv_buffer.seek(0)
-                        zipf.writestr('voice.csv', csv_buffer.read())
+                #verifica se os arquivos estão vazios 
+                if not tracefiltered.empty:
+                    csv_buffer = io.StringIO()
+                    tracefiltered.to_csv(csv_buffer, index=False)
+                    csv_buffer.seek(0)
+                    zipf.writestr('trace.csv', csv_buffer.read())
+                if not audiofiltered.empty:
+                    csv_buffer = io.StringIO()
+                    audiofiltered.to_csv(csv_buffer, index=False)
+                    csv_buffer.seek(0)
+                    zipf.writestr('voice.csv', csv_buffer.read())
 
-                    if not facefiltered.empty:
-                        csv_buffer = io.StringIO()
-                        facefiltered.to_csv(csv_buffer, index=False)
-                        csv_buffer.seek(0)
-                        zipf.writestr('face.csv', csv_buffer.read())
+                if not facefiltered.empty:
+                    csv_buffer = io.StringIO()
+                    facefiltered.to_csv(csv_buffer, index=False)
+                    csv_buffer.seek(0)
+                    zipf.writestr('face.csv', csv_buffer.read())
 
             # Preparar o arquivo para download
             memory_zip.seek(0)
@@ -252,15 +254,17 @@ def dataanalysis_post(username, model):
             df_voice = userdata2frame(mongo, collection_name, dir, "voice")
             try:
                 df_audio = nlpBertimbau(df_voice)
-                fig = graph_sentiment(df_audio)
-                results["result1"] = pio.to_json(fig)
-                results["result2"] = True
+                df_radar, df_sentiment = df_graph_sentiment(df_audio)
+
+                #transformando os df em json para serem processados no js
+                results['result1'] = df_radar.to_json(orient="records")
+                results["result2"] = df_sentiment.to_json(orient="records")
+                results['result3'] = True
                 
             except:
-                results["result1"] = (
-                    "Não foi possível processar a coleta, áudio ausente!"
-                )
-                results["result2"] = False
+                results["result1"] = "Não foi possível processar a coleta, áudio ausente!"
+                results['result2'] = True
+                results["result3"] = False
 
             return results
 

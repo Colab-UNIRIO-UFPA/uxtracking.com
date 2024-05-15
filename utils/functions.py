@@ -48,7 +48,7 @@ def format_ISO(dates):
 def nlpBertimbau(df):
 
     if df.empty or len(df.columns) == 0:
-        raise ValueError("O DataFrame está vazio ou possui apenas os cabeçalhos das colunas.")
+        raise ValueError("DataFrame está vazio ou não possui colunas.")
 
     texts = []
     sentiment_dict = {sentiment: [] for sentiment in id2label.values()}
@@ -74,7 +74,7 @@ def nlpBertimbau(df):
     return df
 
 
-def graph_sentiment(df):
+def df_graph_sentiment(df):
     # contagem dos sentimentos para grafico radar
     audio_sentiment = list(df["feeling"])
 
@@ -87,7 +87,8 @@ def graph_sentiment(df):
     # criação de datafrime para grafico radar
     df_radar = pd.DataFrame(
         dict(
-            Emoção=list(sentiment_count.keys()), Contagem=list(sentiment_count.values())
+            Emocao=list(sentiment_count.keys()), 
+            Contagem=list(sentiment_count.values())
         )
     )
 
@@ -107,147 +108,7 @@ def graph_sentiment(df):
     # transformando para string
     df_sentiment["time"] = df_sentiment["time"].astype(str)
 
-    # organização de subplots
-    fig = make_subplots(
-        rows=4,
-        cols=2,
-        column_widths=[0.5, 0.5],
-        row_heights=[0.56, 0.13, 0.13, 0.13],
-        specs=[
-            [{"type": "scatterpolar", "colspan": 2}, None],
-            [{"type": "bar"}, {"type": "bar"}],
-            [{"type": "bar"}, {"type": "bar"}],
-            [{"type": "bar"}, {"type": "bar"}],
-        ],
-        subplot_titles=(
-            "Sentiment Dominance Chart",
-            "Raiva",
-            "Tristeza",
-            "Alegria",
-            "Surpresa",
-            "Nojo",
-            "Medo",
-        ),
-        print_grid=False,
-        horizontal_spacing=0.05,
-        vertical_spacing=0.08,
-    )
-
-    fig.add_trace(
-        go.Scatterpolar(
-            r=df_radar["Contagem"],
-            theta=df_radar["Emoção"],
-            fill="toself",
-            customdata=df_radar["Emoção"],
-            hovertemplate="Sentimento: %{theta} <br>Quantidade: %{r}",
-            showlegend=False,
-        ),
-        row=1,
-        col=1,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=df_sentiment["time"],
-            y=df_sentiment["raiva"],
-            marker=dict(color="crimson"),
-            showlegend=False,
-            name="raiva",
-            hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
-        ),
-        row=2,
-        col=1,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=df_sentiment["time"],
-            y=df_sentiment["tristeza"],
-            marker=dict(color="blue"),
-            showlegend=False,
-            name="tristeza",
-            hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
-        ),
-        row=2,
-        col=2,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=df_sentiment["time"],
-            y=df_sentiment["alegria"],
-            marker=dict(color="#FFFF00"),
-            showlegend=False,
-            name="alegria",
-            hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
-        ),
-        row=3,
-        col=1,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=df_sentiment["time"],
-            y=df_sentiment["surpresa"],
-            marker=dict(color="#EEEE33"),
-            showlegend=False,
-            name="surpresa",
-            hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
-        ),
-        row=3,
-        col=2,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=df_sentiment["time"],
-            y=df_sentiment["nojo"],
-            marker=dict(color="#008000"),
-            showlegend=False,
-            name="nojo",
-            hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
-        ),
-        row=4,
-        col=1,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=df_sentiment["time"],
-            y=df_sentiment["medo"],
-            marker=dict(color="#800080"),
-            showlegend=False,
-            name="medo",
-            hovertemplate="Confiança: %{y} <br>Tempo: %{x}",
-        ),
-        row=4,
-        col=2,
-    )
-
-    # Update xaxis properties
-    fig.update_yaxes(title_text="Confiança", row=2, col=1)
-    fig.update_yaxes(title_text="Confiança", row=3, col=1)
-    fig.update_yaxes(title_text="Confiança", row=4, col=1)
-
-    # Update yaxis properties
-    fig.update_xaxes(title_text="Tempo(s)", row=4, col=1)
-    fig.update_xaxes(title_text="Tempo(s)", row=4, col=2)
-
-    fig.update_polars(
-        bgcolor="rgba(0, 0, 0, 0)",
-    )
-    fig.update_yaxes(range=[0, 100])
-    fig.update_layout(
-        margin=dict(r=60, t=60, b=40, l=60),
-        height=1200,
-        paper_bgcolor="rgba(33, 37, 41, 1)",
-        plot_bgcolor="rgba(0, 0, 0, 0)",
-        polar=dict(radialaxis=dict(angle=90, tickangle=90)),
-        font=dict(color="white"),
-    )
-    fig.update_annotations(yshift=15, font=dict(family="Helvetica", size=20))
-    return fig
-
+    return df_radar, df_sentiment
 
 def model_kmeans(data, n_clusters, n_init, max_iter):
     x = data

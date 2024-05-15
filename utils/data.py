@@ -96,8 +96,8 @@ def userdata2frame(mongo_db, collection_name, id, data_type):
 def userdata_summary(documents):
     data = []
     date_arr = []
-    try:
-        for doc in documents:
+    for doc in documents:
+        try:
             # Obtenha a string de data e hora do documento
             date_str = doc["datetime"]
 
@@ -117,10 +117,10 @@ def userdata_summary(documents):
                 }
             )
 
-    except:
-        None
+        except:
+            None
 
     # Contar as ocorrências de cada data
-    date_counts = Counter(date_arr) 
+    date_counts = Counter(date_arr)
 
     return data, date_counts

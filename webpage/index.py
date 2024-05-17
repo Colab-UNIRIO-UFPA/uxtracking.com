@@ -105,7 +105,7 @@ def index_get():
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"
-        documents = mongo[collection_name].find({}).limit(5)
+        documents = mongo[collection_name].find({}) 
 
         data, date_counts = userdata_summary(documents)
         

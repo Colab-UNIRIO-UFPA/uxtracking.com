@@ -1,6 +1,8 @@
 import os
 import io
 import shutil
+import json
+import base64
 import gridfs
 import zipfile
 from app import mongo
@@ -16,7 +18,7 @@ from utils.functions import (
     df_graph_sentiment,
     dirs2data,
     make_heatmap,
-    make_recording,
+    df_make_recording,
 )
 from utils.data import(
     userdata2frame
@@ -88,6 +90,7 @@ def datafilter_post(username, metadata):
                         date,
                         ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"],
                     )
+   
                     voice_df = userdata2frame(mongo, collection_name, date, "voice")
                     face_df = userdata2frame(mongo, collection_name, date, "face")
 
@@ -351,30 +354,37 @@ def dataview_post(username, plot):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        userid = userfound["_id"]
-        datadir = f"./Samples/{userid}"
+        collection_name = f"data_{userfound['_id']}"
+        
 
         dir = request.form["dir"]
 
-        # normalizando caminho base
-        base_path = os.path.normpath(datadir)
-
-        # normalizando caminho completo
-        folder = os.path.normpath(os.path.join(base_path, dir))
-
-        if not folder.startswith(base_path):
-            abort(403)
+        df_trace = userdata2frame(mongo, collection_name, dir, ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"])
+        df_audio =  userdata2frame(mongo, collection_name, dir, "voice")
 
         if plot == "heatmap":
-            return make_heatmap(folder)
+            return make_heatmap(df_trace, df_audio)
         elif plot == "recording":
             results = {}
             try:
-                results['result1'] = make_recording(folder, type="mouse")
-                results['result2'] = True
+                full_ims, type_icon = df_make_recording(df_trace, type="mouse")
+
+                # Convertendo as imagens em 'full' para strings base64
+                full_base64 = {key: base64.b64encode(img.tobytes()).decode('utf-8') for key, img in full_ims.items()}
+
+                df_trace_site = df_trace[['site']].copy()
+
+                #resultados enviados para js
+                results['result1'] = json.dumps(full_base64)
+                results['result2'] = json.dumps(type_icon)
+                results['result3'] = df_trace_site.to_json(orient="records")
+                results['result4'] = True
             except:
                 results['result1'] = 'Não foi possível carregar o conteúdo'
-                results['result2'] = False
+                results['result2'] = None
+                results['result3'] = None
+                results['result4'] = False
+            
             return results
         elif plot == "nlp":
             return

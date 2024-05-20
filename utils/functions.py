@@ -198,31 +198,48 @@ def id_generator():
 ###############
 # plot functions
 def make_heatmap(df_trace, df_audio):
-    df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
-    try:
-        df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
-    except:
-        df_audio = pd.DataFrame(
-            columns=[
-                "site",
-                "time",
-                "text",
-                "image",
-                "class",
-                "id",
-                "mouseClass",
-                "mouseId",
-                "x",
-                "y",
-                "scroll",
-                "height",
-            ]
-        )
+    # df_trace = pd.read_csv(f"{folder}/trace.csv", encoding='iso-8859-1')
+    # try:
+        # df_audio = pd.read_csv(f"{folder}/audio.csv", encoding='iso-8859-1')
+    # except:
+    #     df_audio = pd.DataFrame(
+    #         columns=[
+    #             "site",
+    #             "time",
+    #             "text",
+    #             "image",
+    #             "class",
+    #             "id",
+    #             "mouseClass",
+    #             "mouseId",
+    #             "x",
+    #             "y",
+    #             "scroll",
+    #             "height",
+    #         ]
+    #     )
+
+    df_audio = pd.DataFrame(
+        columns=[
+            "site",
+            "time",
+            "text",
+            "image",
+            "class",
+            "id",
+            "mouseClass",
+            "mouseId",
+            "x",
+            "y",
+            "scroll",
+            "height",
+        ]
+    )
 
     for i in range(df_trace.shape[0]):
         try:
-            im = Image.open(f"{folder}/{df_trace.image[i]}")
-            im0 = base64.b64encode(open(f"{folder}/{df_trace.image[i]}", "rb").read())
+            im = Image.open(df_trace.image[i])
+            im0 = base64.b64encode(open(df_trace.image[i], "rb").read())
             break
         except:
             None
@@ -256,7 +273,7 @@ def make_heatmap(df_trace, df_audio):
             if time in df_audio.time.values:
                 audio2text = df_audio.query(f"time == {time}")["text"].values
                 try:
-                    img = base64.b64encode(open(f"{folder}/{image}", "rb").read())
+                    img = base64.b64encode(open(image, "rb").read())
                     frames.append(
                         go.Frame(
                             data=go.Heatmap(
@@ -302,7 +319,7 @@ def make_heatmap(df_trace, df_audio):
                     None
             else:
                 try:
-                    img = base64.b64encode(open(f"{folder}/{image}", "rb").read())
+                    img = base64.b64encode(open(image, "rb").read())
                     frames.append(
                         go.Frame(
                             data=go.Heatmap(

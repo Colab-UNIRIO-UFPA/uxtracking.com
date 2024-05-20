@@ -1,121 +1,60 @@
-
-var result4;
-
 function submitdata(data, url_dataview) {
     $("#resultModal").modal('show');
 
-    $.post(url_dataview, { dir: data }, function(result) {
-        result1 = result.result1;
-        result4 = result.result4;
+    $.post(url_dataview, { dir: data }, function (result) {
 
-        if (result4 == true) {
+        if (result) {
             document.getElementById("spinner").style.display = "none";
 
-            var full_ims = JSON.parse(result.result1); // full_ims
-            var df_trace_site = JSON.parse(result.result2);
-            var df_trace_voice = JSON.parse(result.result3);
+            var images = JSON.parse(result.images);
+            var df_trace = JSON.parse(result.trace);
+            var df_voice = JSON.parse(result.voice);
 
-            alert(df_trace_site[0]["x"]);
-            
             // Call the graph_heatmap function and handle it asynchronously
-            graph_heatmap(full_ims, df_trace_site, df_trace_voice)
-                .then(() => {
-                    console.log("Heatmap generation completed.");
-                })
+            graph_heatmap(images, df_trace, df_voice)
                 .catch((error) => {
                     console.error("Error generating heatmap:", error);
                 });
         } else {
-            $('#resultplot').html('result1');
+            $('#resultplot').html('No results returned');
         }
     });
 }
 
-
-
-
-
-// var result4;
-// var coletaAberta; //verificando se a coleta está aberta
-// function submitdata(data, url_dataview) {
-
-//     coletaAberta = true;
-
-//     //Quando chama o model alguns elementos são configurados para serem ocultados 
-//     document.getElementById("sites").style.display = "none";
-//     $("#resultModal").modal('show');
-//     $("#sites_heading").hide();
-//     document.getElementById("group").style.display = "none";
-
-//     //criando o modal-body para o spinner
-//     var modalBody = createModalBody();
-
-//     var modalContent = document.querySelector('#modalContent');
-//     modalContent.appendChild(modalBody);
-
-//     //solicitação para a rota dataview
-//     $.post(url_dataview,
-//     {
-//         dir: data
-//     },
-//     function (result) {
-//         //Quando recebe o resultado os dados são exibidos seja gráfico ou texto
-//         var type_icon = JSON.parse(result.result2); //type_icon
-//         var df_trace_site = JSON.parse(result.result3); //df_trace
-//         result4 = JSON.parse(result.result4);
-
-
-//         //Se `result4` for verdadeiro, o corpo do modelo do spinner desaparece e o resultado do gráfico é exibido.
-//         if (coletaAberta == true && result4 == true) {
-//             modalSpinner = true;
-//             var full_ims = JSON.parse(result.result1); //full_ims
-
-//             $("#sites_heading").show();
-//             document.getElementById("modalBody").remove();
-//             document.getElementById("group").style.display = "inline-flex";
-//             document.getElementById("sites").style.display = "inline-flex";
-//             botaoSites(graph_recording(full_ims, type_icon, df_trace_site)); 
-//         } else {
-//             var result1 = result.result1; 
-//             $('#resultText').html(result1);
-//             document.getElementById("spinner").style.display = "none";
-//         }
-//     });
-// };
-    function closePopupResult() {
+function closePopupResult() {
     //coletaAberta == false; //coleta fechada
 
-     //limpa os elementos da lista de botoes quando fecha o model
-     var nameSites = document.getElementById("dropdown-list");
+    //limpa os elementos da lista de botoes quando fecha o model
+    var nameSites = document.getElementById("dropdown-list");
 
-     nameSites.innerHTML = '';
+    nameSites.innerHTML = '';
 
-     //verificando se o modelBody existe
-     var modalBody = document.getElementById("modalBody"); 
+    //verificando se o modelBody existe
+    var modalBody = document.getElementById("modalBody");
 
-     //oculta o conteúdo do gráfico e lista de botoes
-     document.getElementById("group").style.display = "none";
-     document.getElementById("sites").style.display = "none";
+    //oculta o conteúdo do gráfico e lista de botoes
+    document.getElementById("group").style.display = "none";
+    document.getElementById("sites").style.display = "none";
 
-     //se existir remove
-     if (modalBody !== null) {
-         modalBody.remove();
-     }
+    //se existir remove
+    if (modalBody !== null) {
+        modalBody.remove();
+    }
 
-     //criando novamente o modal-body do spinner
-     var modalBody = createModalBody();
-     var modalContent = document.querySelector('#modalContent');
-     modalContent.appendChild(modalBody);
+    //criando novamente o modal-body do spinner
+    var modalBody = createModalBody();
+    var modalContent = document.querySelector('#modalContent');
+    modalContent.appendChild(modalBody);
 
-     //limpando o plotly
-     $('#resultPlot').html('');
+    //limpando o plotly
+    $('#resultPlot').html('');
 
-     // Aqui, definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
-     setTimeout(function () {
-         document.getElementById("modalBody").remove();
-     }, 1000);
- 
-    };
+    // Aqui, definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
+    setTimeout(function () {
+        document.getElementById("modalBody").remove();
+    }, 1000);
+
+};
 
 //funcao para a lista de botoes
 function botaoSites(result) {
@@ -198,29 +137,34 @@ function createModalBody() {
     return modalBody;
 };
 
-async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
-    const imgElement = document.createElement('img');
-    imgElement.src = `data:image/jpeg;base64,${full_ims}`;
+function gaussianFilter(matrix, sigma) {
+    const kernelSize = 6 * sigma + 1;
+    const kernel = new Array(kernelSize).fill().map((_, i) => {
+        const x = i - kernelSize / 2;
+        return Math.exp(-0.5 * (x / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
+    });
+    const sum = kernel.reduce((acc, val) => acc + val, 0);
+    return matrix.map(row => row.map(val => val / sum));
+}
 
-    try {
-        await imgElement.decode();
-    } catch (error) {
-        console.error("Erro ao decodificar a imagem", error);
-        alert("Erro ao decodificar a imagem");
-        return;
-    }
+async function graph_heatmap(images, df_trace, df_voice) {
+    // Obter a primeira imagem do JSON
+    const firstImageKey = Object.keys(images)[0];  // Obtém a primeira chave (ID) do JSON
+    const firstImageBase64 = images[firstImageKey];  // Obtém a primeira imagem em base64
 
-    const width = imgElement.width;
-    const height = imgElement.height;
+    // Criar uma nova imagem e carregar a imagem base64 nela
+    const img = new Image();
+    img.src = firstImageBase64;
 
-    if (!width || !height) {
-        console.error("Dimensões inválidas da imagem");
-        alert("Dimensões inválidas da imagem");
-        return;
-    }
+    // Retornar uma Promise para garantir que a imagem foi carregada
+    await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+    });
 
-    alert(`Dimensões: ${width} x ${height}`);
-    console.log(`Dimensões da imagem: width = ${width}, height = ${height}`);
+    // Obter a largura e altura da imagem
+    const width = img.width;
+    const height = img.height;
 
     const frames = [];
     const colorscale = [
@@ -233,10 +177,12 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
         [1, "rgba(255, 1, 0, 1)"]
     ];
 
-    const maxTime = Math.max(...df_trace_site.map(row => row.time));
+
+    const maxTime = Math.max(...df_trace.map(row => row.time));
     for (let time = 0; time <= maxTime; time++) {
-        const filtered_df = df_trace_site.filter(row => row.time == time);
+        const filtered_df = df_trace.filter(row => row.time == time);
         const uniqueImages = [...new Set(filtered_df.map(row => row.image))];
+        
         for (const image of uniqueImages) {
             const plot_df = filtered_df.filter(row => row.image == image);
 
@@ -245,16 +191,23 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
 
             // Create histogram
             const histogram = new Array(250).fill().map(() => new Array(250).fill(0));
-            for (let i = 0; i < x.length; i++) {
-                const xBin = Math.floor((x[i] / width) * 250);
-                const yBin = Math.floor((y[i] / height) * 250);
-                histogram[xBin][yBin]++;
+            try {
+                for (let i = 0; i < x.length; i++) {
+                    const xBin = Math.floor((x[i] / width) * 250);
+                    const yBin = Math.floor((y[i] / height) * 250);
+                    histogram[xBin][yBin]++;
+                }
+            } catch (error) {
+                console.error("Erro ao criar o histograma:", error);
+                continue;
+                // Lidar com o erro, se necessário
             }
 
             const dataSmoothed = gaussianFilter(histogram, 12);
 
-            if (df_trace_voice.some(row => row.time == time)) {
-                const audio2text = df_trace_voice.find(row => row.time == time).text;
+            if (df_voice.some(row => row.time == time)) {
+                const audio2text = df_voice.find(row => row.time == time).text;
+                console.log(`Audio Frame pushed`);
                 frames.push({
                     data: [{
                         z: dataSmoothed,
@@ -266,7 +219,7 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
                     name: `${time}`,
                     layout: {
                         images: [{
-                            source: `data:image/jpeg;base64,${full_ims}`,
+                            source: images[image],
                             xref: "x",
                             yref: "y",
                             x: 0,
@@ -297,6 +250,7 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
                     }
                 });
             } else {
+                console.log(`Frame pushed`);
                 frames.push({
                     data: [{
                         z: dataSmoothed,
@@ -308,7 +262,7 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
                     name: `${time}`,
                     layout: {
                         images: [{
-                            source: `data:image/jpeg;base64,${full_ims}`,
+                            source: images[image],
                             xref: "x",
                             yref: "y",
                             x: 0,
@@ -329,7 +283,7 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
         xaxis: { range: [0, width], autorange: false },
         yaxis: { range: [0, height], autorange: false, scaleanchor: "x" },
         images: [{
-            source: `data:image/jpeg;base64,${full_ims}`,
+            source: firstImageBase64,
             xref: "x",
             yref: "y",
             x: 0,
@@ -354,7 +308,7 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
         }],
         updatemenus: [{
             buttons: [{
-                args: [null, { frame: { duration: 300, redraw: true }, fromcurrent: true, transition: { duration: 300, easing: "quadratic-in-out" } }],
+                args: [null, { frame: { duration: 800, redraw: true }, fromcurrent: true, transition: { duration: 300, easing: "quadratic-in-out" } }],
                 label: "Play",
                 method: "animate"
             }, {
@@ -375,18 +329,8 @@ async function graph_heatmap(full_ims, df_trace_site, df_trace_voice) {
         }]
     }
 
-    var graphDiv = document.getElementById('resultplot');
+    var graphDiv = document.getElementById('resultPlot');
 
     Plotly.newPlot(graphDiv, [], layout, { showlink: false }); // Inicia a plotagem sem dados
     Plotly.addFrames(graphDiv, frames); // Adiciona os frames de animação
-}
-
-function gaussianFilter(matrix, sigma) {
-    const kernelSize = 6 * sigma + 1;
-    const kernel = new Array(kernelSize).fill().map((_, i) => {
-        const x = i - kernelSize / 2;
-        return Math.exp(-0.5 * (x / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
-    });
-    const sum = kernel.reduce((acc, val) => acc + val, 0);
-    return matrix.map(row => row.map(val => val / sum));
 }

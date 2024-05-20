@@ -360,10 +360,39 @@ def dataview_post(username, plot):
         dir = request.form["dir"]
 
         df_trace = userdata2frame(mongo, collection_name, dir, ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"])
-        df_audio =  userdata2frame(mongo, collection_name, dir, "voice")
+        df_audio = userdata2frame(mongo, collection_name, dir, "voice")
 
         if plot == "heatmap":
-            return make_heatmap(df_trace, df_audio)
+            results = {}
+            try: 
+                full_ims, type_icon = df_make_recording(df_trace, type="mouse")
+
+                full_base64 = {}
+                for key, img in full_ims.items():
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="PNG")
+                    img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                    full_base64[key] = 'data:image/png;base64,' + img_base64
+
+
+                df_trace_site = df_trace[["time", "x", "y", "scroll"]].copy()
+                df_trace_voice = df_audio[["text", "time"]].copy()
+
+                results['result1'] = json.dumps(full_base64)
+                results['result2'] = df_trace_site.to_json(orient="records")
+                results['result3'] = df_trace_voice.to_json(orient="records")
+                results['result4'] = True
+
+            except Exception as e:
+                 print(e)
+                 results['result1'] = 'Não foi possível carregar o conteúdo'
+                 results['result2'] = None
+                 results['result3'] = None
+                 results['result4'] = False
+                    
+
+            return results
+        
         elif plot == "recording":
             results = {}
             try:

@@ -10,6 +10,9 @@ services:
       MONGO_INITDB_DATABASE: uxtracking
     ports:
       - "27017:27017"
+    mem_limit: 1024M
+    cpus: 1.0
+    restart: always
 
   mongo-express:
     image: mongo-express:latest
@@ -22,6 +25,9 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongo
     ports:
       - "8081:8081"
+    mem_limit: 512M
+    cpus: 0.5
+    restart: always
 
   flask-app:
     build: .
@@ -35,3 +41,6 @@ services:
       FLASK_RUN_HOST: 0.0.0.0
     depends_on:
       - mongo
+    mem_limit: 2048M
+    cpus: 2.0
+    restart: always

@@ -1,6 +1,6 @@
 import io
 import zipfile
-from app import mongo
+from app import mongo, fs
 import gridfs
 from bson import ObjectId
 from utils.data import userdata2frame, userdata_summary
@@ -72,7 +72,6 @@ def index_post():
             csv_buffer.seek(0)
             zipf.writestr("emotion.csv", csv_buffer.getvalue())
 
-            fs = gridfs.GridFS(mongo)
             for image_id in image_ids:
                 try:
                     # Recupera o arquivo de imagem do GridFS usando o ID

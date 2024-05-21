@@ -464,7 +464,6 @@ def df_make_recording(df_trace, **kwargs):
     with Image.open(io.BytesIO(im)) as im:
         width, height = im.size
 
-
     frames = {}
 
     # verificar as primeiras ocorrencias dos frames
@@ -475,7 +474,32 @@ def df_make_recording(df_trace, **kwargs):
             id0 = group[group["image"] == frame].index[0]
             columns = group.loc[id0, ["scroll", "height"]]
             frames[site][frame] = columns.to_dict()
+    """
+    img_src = {} 
+    w = []
+    h = [] 
     
+    for site in full_ims.keys():
+        fig = go.Figure()
+        fil;ered_df = df_trace[df_trace["site"] == site]
+
+        width, height = full_ims[site].size
+        imagem = full_ims[site]
+        buffer = BytesIO()
+        imagem.save(buffer, format="PNG")  # Ou o formato apropriado da sua imagem
+        imagem_base64 = base64.b64encode(buffer.getvalue()).decode()
+        image_src = "data:image/png;base64," + imagem_base64
+        img_src[site] =  image_src
+        w.append(width)
+        h.append(height)
+        print("image_src: ", img_src)
+        print("width: ", w)
+        print("height: ", h)
+    """
+    
+    print("Tamanho e Altura: ", width, height)
+          
+    print("frames: ", frames)
 
     full_ims = gen_fullpage(width, height, frames)
 
@@ -489,7 +513,6 @@ def df_make_recording(df_trace, **kwargs):
     }
 
     return full_ims, type_icon
-
     # dict_site = {}
 
     # for site in full_ims.keys():
@@ -574,20 +597,24 @@ def df_make_recording(df_trace, **kwargs):
         
     #     dict_site[site] = fig.to_html(div_id="plotDiv")
 
-    # return dict_site
-        
+    # return dict_site", analise esse código profundamente e o transforme para js plotly
     
-
-
 def gen_fullpage(width, height, frames):
+    
     full_ims = {}
 
     for site, image in frames.items():
+        #print("site ", site)
+        #print("image ", image)
+        #print("image_values ", image.values)
         height = int(height + max(item["scroll"] for item in image.values()))
+        #print("height, ", height)
         compose_im = Image.new("RGB", (width, height), "white")
 
         for image, item in image.items():
             try:
+                #print("img_try ", image)
+                #print("item_try ", item)
                 fs = gridfs.GridFS(mongo)
                 img_data = fs.get(image).read()
                 with Image.open(io.BytesIO(img_data)) as img:

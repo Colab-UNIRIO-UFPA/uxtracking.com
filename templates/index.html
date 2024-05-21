@@ -8,7 +8,11 @@
 
 {% block content %}
     {% if not session %}
-    
+    <style>
+        body {
+            padding-top: 80px;
+        }
+    </style>
         
         <div class="container col-xxl-8 px-5 py-5 ">
             <div class="row flex-lg-row-reverse align-items-centers g-5 ">  
@@ -390,6 +394,11 @@
         </div>
 
     {% else %}
+        <style>
+            body {
+                padding-top: 0px !important;
+            }
+        </style>
         <div class="d-flex flex-column w-100 pt-0 gap-2 align-items-between justify-content-start pe-1 adjust-side-menu" style="min-height: 100vh;">
             <div class="list-group w-100 border-0 rounded-0" fill="currentColor">
                 <p class="fs-3 fw-bold my-0 py-2 ps-3 text-white bg-body-tertiary">Histórico de atividades</p>

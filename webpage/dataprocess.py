@@ -1,13 +1,11 @@
-import os
 import io
-import shutil
 import json
 import base64
 import gridfs
+import asyncio
 import zipfile
-from app import mongo
+from PIL import Image
 import pandas as pd
-import plotly.io as pio
 from io import StringIO
 from bson import ObjectId
 from datetime import datetime
@@ -16,13 +14,10 @@ from django.core.paginator import Paginator
 from utils.functions import (
     nlpBertimbau,
     df_graph_sentiment,
-    dirs2data,
-    make_heatmap,
     df_make_recording,
 )
-from utils.data import(
-    userdata2frame
-)
+from utils.data import userdata2frame, remove_non_utf8
+from utils.plot import create_blank_image_base64
 from flask import (
     render_template,
     Blueprint,
@@ -34,8 +29,11 @@ from flask import (
     Response,
     abort,
 )
+from app import mongo, fs
 
-data_bp = Blueprint("data_bp", "__name__", template_folder="templates", static_folder="static")
+data_bp = Blueprint(
+    "data_bp", "__name__", template_folder="templates", static_folder="static"
+)
 
 
 @data_bp.post("/datafilter/<username>/<metadata>")
@@ -43,130 +41,187 @@ def datafilter_post(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        collection_name = f"data_{userfound['_id']}" #pasta dos documentos
+        collection_name = f"data_{userfound['_id']}"  # pasta dos documentos
 
         if metadata == "datetime":
             # adiciona as datas à seção
             session["dates"] = request.form.getlist("dates[]")
 
             # refireciona pra seleção dos traços
-            return redirect(url_for("data_bp.datafilter_get", username=username, metadata="pages"))
+            return redirect(
+                url_for("data_bp.datafilter_get", username=username, metadata="pages")
+            )
 
         elif metadata == "pages":
             session["pages"] = request.form.getlist("pages[]")
             username = session.get("username")
 
             dates = session.get("dates")
-        
+
             # Preparando o DataFrame vazio com colunas definidas
             columns_trace = [
-                "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height", "keys",
+                "site",
+                "image",
+                "type",
+                "time",
+                "class",
+                "id",
+                "mouseClass",
+                "mouseID",
+                "x",
+                "y",
+                "scroll",
+                "height",
+                "keys",
             ]
             tracefiltered = pd.DataFrame(columns=columns_trace)
-            
+
             columns_audio = [
-                "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height", "text"
+                "site",
+                "image",
+                "type",
+                "time",
+                "class",
+                "id",
+                "mouseClass",
+                "mouseID",
+                "x",
+                "y",
+                "scroll",
+                "height",
+                "text",
             ]
             audiofiltered = pd.DataFrame(columns=columns_audio)
 
             # Preparando o DataFrame vazio com colunas definidas
             columns_emotions = [
-                "site", "image", "type", "time", "class", "id", "mouseClass", "mouseID", "x", "y", "scroll", "height",
-                "anger", "contempt", "disgust", "fear", "happy", "neutral", "sad", "surprise",
+                "site",
+                "image",
+                "type",
+                "time",
+                "class",
+                "id",
+                "mouseClass",
+                "mouseID",
+                "x",
+                "y",
+                "scroll",
+                "height",
+                "anger",
+                "contempt",
+                "disgust",
+                "fear",
+                "happy",
+                "neutral",
+                "sad",
+                "surprise",
             ]
             facefiltered = pd.DataFrame(columns=columns_trace)
 
             # Criando o arquivo ZIP em memória
             memory_zip = io.BytesIO()
-            with zipfile.ZipFile(memory_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            with zipfile.ZipFile(memory_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
 
                 # Filtyrar dados para cada data especificada
                 for date in dates:
-                    
-                    #preparando dataframes
+
+                    # preparando dataframes
                     trace_df = userdata2frame(
                         mongo,
                         collection_name,
                         date,
-                        ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"],
+                        [
+                            "eye",
+                            "mouse",
+                            "keyboard",
+                            "freeze",
+                            "click",
+                            "wheel",
+                            "move",
+                        ],
                     )
-   
+
                     voice_df = userdata2frame(mongo, collection_name, date, "voice")
                     face_df = userdata2frame(mongo, collection_name, date, "face")
 
-                    #data da coleta
+                    # data da coleta
                     document = mongo[collection_name].find_one({"_id": ObjectId(date)})
                     date = document["datetime"]
                     date_obj = datetime.fromisoformat(date.rstrip("Z"))
                     date_part = date_obj.date().strftime("%d/%m/%Y")
 
-                    #tratando os dados de acordo com as pages
+                    # tratando os dados de acordo com as pages
                     df_site_trace = trace_df[trace_df.site.isin(session["pages"])]
                     df_site_voice = voice_df[voice_df.site.isin(session["pages"])]
                     df_site_face = face_df[face_df.site.isin(session["pages"])]
 
                     # Adiciona a coluna 'data' no início de todos os DataFrames
-                    df_site_trace.insert(0, "data", [date_part]*len(df_site_trace.index), True)
-                    df_site_voice.insert(0, "data", [date_part]*len(df_site_voice.index), True)
-                    df_site_face.insert(0, "data", [date_part]*len(df_site_face.index), True)
+                    df_site_trace.insert(
+                        0, "data", [date_part] * len(df_site_trace.index), True
+                    )
+                    df_site_voice.insert(
+                        0, "data", [date_part] * len(df_site_voice.index), True
+                    )
+                    df_site_face.insert(
+                        0, "data", [date_part] * len(df_site_face.index), True
+                    )
 
-
-                    #tratando os dados
+                    # tratando os dados
                     tracefiltered = pd.concat([df_site_trace, tracefiltered])
                     audiofiltered = pd.concat([df_site_voice, audiofiltered])
                     facefiltered = pd.concat([df_site_face, facefiltered])
 
-                    #tratando as imagens
+                    # tratando as imagens
                     image_ids = []
 
                     if "data" in document and isinstance(document["data"], list):
                         for site_data in document["data"]:
                             if site_data["site"] in session["pages"]:
                                 if "images" in site_data:
-                                    image_ids.extend(
-                                        site_data["images"]
-                                    )
+                                    image_ids.extend(site_data["images"])
 
-
-                    #guardando as imagens no zip
+                    # guardando as imagens no zip
                     fs = gridfs.GridFS(mongo)
-                    
+
                     for image_id in image_ids:
                         try:
                             grid_out = fs.get(image_id).read()
-                            image_name = f'{str(image_id)}.png'
+                            image_name = f"{str(image_id)}.png"
                             if image_name not in zipf.namelist():
                                 zipf.writestr(image_name, grid_out)
 
                         except Exception as e:
-                            abort(404, description=f"Erro ao recuperar a imagem {image_id}: {e}")
+                            abort(
+                                404,
+                                description=f"Erro ao recuperar a imagem {image_id}: {e}",
+                            )
 
-                #verifica se os arquivos estão vazios 
+                # verifica se os arquivos estão vazios
                 if not tracefiltered.empty:
                     csv_buffer = io.StringIO()
                     tracefiltered.to_csv(csv_buffer, index=False)
                     csv_buffer.seek(0)
-                    zipf.writestr('trace.csv', csv_buffer.read())
+                    zipf.writestr("trace.csv", csv_buffer.read())
                 if not audiofiltered.empty:
                     csv_buffer = io.StringIO()
                     audiofiltered.to_csv(csv_buffer, index=False)
                     csv_buffer.seek(0)
-                    zipf.writestr('voice.csv', csv_buffer.read())
+                    zipf.writestr("voice.csv", csv_buffer.read())
 
                 if not facefiltered.empty:
                     csv_buffer = io.StringIO()
                     facefiltered.to_csv(csv_buffer, index=False)
                     csv_buffer.seek(0)
-                    zipf.writestr('face.csv', csv_buffer.read())
+                    zipf.writestr("face.csv", csv_buffer.read())
 
             # Preparar o arquivo para download
             memory_zip.seek(0)
-            return Response(    
+            return Response(
                 memory_zip,
                 headers={
                     "Content-Type": "application/zip",
-                    "Content-Disposition": f"attachment; filename={username}_data.zip;"
-                }
+                    "Content-Disposition": f"attachment; filename={username}_data.zip;",
+                },
             )
 
         else:
@@ -185,10 +240,10 @@ def datafilter_get(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        collection_name = f"data_{userfound['_id']}" #pasta dos documentos
+        collection_name = f"data_{userfound['_id']}"  # pasta dos documentos
         documents = mongo[collection_name].find({})
 
-        data, date_counts = userdata_summary(documents) #informações documentos
+        data, date_counts = userdata_summary(documents)  # informações documentos
 
         if metadata == "datetime":
             # Paginação das coletas
@@ -213,9 +268,9 @@ def datafilter_get(username, metadata):
             pages = []
 
             for date in dates:
-                #procurando os sites dos documentos pelo id
+                # procurando os sites dos documentos pelo id
                 document = mongo[collection_name].find_one({"_id": ObjectId(date)})
-                site = document['sites']
+                site = document["sites"]
                 for page in site:
                     if page not in pages:
                         pages.append(page)
@@ -244,10 +299,10 @@ def dataanalysis_post(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
-        collection_name = f"data_{userfound['_id']}" #pasta dos documentos
+        collection_name = f"data_{userfound['_id']}"  # pasta dos documentos
 
         dir = request.form["dir"]
-        
+
         if model == "kmeans":
             return
         elif model == "meanshift":
@@ -259,14 +314,16 @@ def dataanalysis_post(username, model):
                 df_audio = nlpBertimbau(df_voice)
                 df_radar, df_sentiment = df_graph_sentiment(df_audio)
 
-                #transformando os df em json para serem processados no js
-                results['result1'] = df_radar.to_json(orient="records")
+                # transformando os df em json para serem processados no js
+                results["result1"] = df_radar.to_json(orient="records")
                 results["result2"] = df_sentiment.to_json(orient="records")
-                results['result3'] = True
-                
+                results["result3"] = True
+
             except:
-                results["result1"] = "Não foi possível processar a coleta, áudio ausente!"
-                results['result2'] = True
+                results["result1"] = (
+                    "Não foi possível processar a coleta, áudio ausente!"
+                )
+                results["result2"] = True
                 results["result3"] = False
 
             return results
@@ -294,7 +351,7 @@ def dataanalysis_get(username, model):
         data, date_counts = userdata_summary(documents)
 
         models = ["kmeans", "meanshift", "bertimbau"]
-        if model == 'default':
+        if model == "default":
             return render_template(
                 "data_analysis.html", username=username, title="Análise"
             )
@@ -339,7 +396,7 @@ def downloadAudio():
 
     # Obtendo o conteúdo do buffer como uma string
     file_content = csv_buffer.getvalue()
-    
+
     return Response(
         file_content,
         headers={
@@ -355,15 +412,56 @@ def dataview_post(username, plot):
         # faz a leitura da base de dados de coletas do usuário
         userfound = mongo.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"
-        
+
         dir = request.form["dir"]
 
-        df_trace = userdata2frame(mongo, collection_name, dir, ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"])
-        df_audio =  userdata2frame(mongo, collection_name, dir, "voice")
-        #print(df_trace)
+        df_trace = userdata2frame(
+            mongo,
+            collection_name,
+            dir,
+            ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"],
+        )
+        df_audio = userdata2frame(mongo, collection_name, dir, "voice")
 
+        print(df_trace)
         if plot == "heatmap":
-            return make_heatmap(df_trace, df_audio)
+            results = {}
+            full_base64 = {}
+
+            async def process_image(im_id):
+                try:
+                    file_data = fs.get(im_id).read()
+                    img = Image.open(io.BytesIO(file_data))
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="PNG")
+                    img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                    return str(im_id), "data:image/png;base64," + img_base64
+                except Exception as e:
+                    print(f"Erro ao processar a imagem {im_id}: {e}")
+                    return str(im_id), create_blank_image_base64()
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            tasks = [process_image(im_id) for im_id in df_trace["image"]]
+            results_img = loop.run_until_complete(asyncio.gather(*tasks))
+
+            for im_id, img_base64 in results_img:
+                full_base64[im_id] = img_base64
+
+            # filtra os dfs para diminuir o tamanho do json enviado
+            filtered_df_trace = df_trace[["time", "x", "y", "image", "scroll"]].copy()
+            filtered_df_voice = df_audio[["text", "time", "image"]].copy()
+
+            # Remove caracteres não UTF-8 dos DataFrames
+            filtered_df_trace = remove_non_utf8(filtered_df_trace)
+            filtered_df_voice = remove_non_utf8(filtered_df_voice)
+
+            results["images"] = json.dumps(full_base64)
+            results["trace"] = filtered_df_trace.to_json(orient="records")
+            results["voice"] = filtered_df_voice.to_json(orient="records")
+
+            return results
+
         elif plot == "recording":
             results = {}
             try:
@@ -371,8 +469,6 @@ def dataview_post(username, plot):
                 print("full: ", full_ims)
 
                 # Convertendo as imagens em 'full' para strings base64
-                #full_base64 = {key: base64.b64encode(img.tobytes()).decode('utf-8') for key, img in full_ims.items()}
-                #print("full2: ", full_base64)
                 full_base64 = {}
                 for key, img in full_ims.items():
                     buffered = io.BytesIO()
@@ -381,23 +477,16 @@ def dataview_post(username, plot):
                     full_base64[key] = 'data:image/png;base64,' + img_base64
                 
                 df_trace_site = df_trace[['site', 'type', 'time', 'x', 'y', 'scroll', 'height']].copy()
-                #print(df_trace_site)
                 
                 #resultados enviados para js
                 results['result1'] = json.dumps(full_base64)
                 results['result2'] = json.dumps(type_icon)
                 results['result3'] = df_trace_site.to_json(orient="records")
-                #results['result4'] = json.dumps(img_src)
-                #results['result5'] = json.dumps(w)
-                #results['result6'] = json.dumps(h)
                 results['result4'] = True
             except:
                 results['result1'] = 'Não foi possível carregar o conteúdo'
                 results['result2'] = None
                 results['result3'] = None
-                #results['result4'] = None
-                #results['result5'] = None
-                #results['result6'] = None
                 results['result4'] = False
             
             return results 
@@ -428,7 +517,7 @@ def dataview_get(username, plot):
 
         plots = ["heatmap", "recording"]
 
-        if plot == 'default':
+        if plot == "default":
             return render_template(
                 "data_view.html", username=username, title="Visualização"
             )

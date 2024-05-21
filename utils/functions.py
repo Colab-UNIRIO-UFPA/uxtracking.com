@@ -228,7 +228,6 @@ def df_make_recording(df_trace):
     }
 
     return full_ims, type_icon
-
     # dict_site = {}
 
     # for site in full_ims.keys():
@@ -313,18 +312,27 @@ def df_make_recording(df_trace):
 
     #     dict_site[site] = fig.to_html(div_id="plotDiv")
 
+    # return dict_site", analise esse código profundamente e o transforme para js plotly
+    
     # return dict_site
 
 
 def gen_fullpage(width, height, frames):
+    
     full_ims = {}
 
     for site, image in frames.items():
+        #print("site ", site)
+        #print("image ", image)
+        #print("image_values ", image.values)
         height = int(height + max(item["scroll"] for item in image.values()))
+        #print("height, ", height)
         compose_im = Image.new("RGB", (width, height), "white")
 
         for image, item in image.items():
             try:
+                #print("img_try ", image)
+                #print("item_try ", item)
                 fs = gridfs.GridFS(mongo)
                 img_data = fs.get(image).read()
                 with Image.open(io.BytesIO(img_data)) as img:

@@ -466,27 +466,30 @@ def dataview_post(username, plot):
             results = {}
             try:
                 full_ims, type_icon = df_make_recording(df_trace, type="mouse")
+                print("full: ", full_ims)
 
                 # Convertendo as imagens em 'full' para strings base64
-                full_base64 = {
-                    key: base64.b64encode(img.tobytes()).decode("utf-8")
-                    for key, img in full_ims.items()
-                }
-
-                df_trace_site = df_trace[["site"]].copy()
-
-                # resultados enviados para js
-                results["result1"] = json.dumps(full_base64)
-                results["result2"] = json.dumps(type_icon)
-                results["result3"] = df_trace_site.to_json(orient="records")
-                results["result4"] = True
+                full_base64 = {}
+                for key, img in full_ims.items():
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="PNG")
+                    img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                    full_base64[key] = 'data:image/png;base64,' + img_base64
+                
+                df_trace_site = df_trace[['site', 'type', 'time', 'x', 'y', 'scroll', 'height']].copy()
+                
+                #resultados enviados para js
+                results['result1'] = json.dumps(full_base64)
+                results['result2'] = json.dumps(type_icon)
+                results['result3'] = df_trace_site.to_json(orient="records")
+                results['result4'] = True
             except:
-                results["result1"] = "Não foi possível carregar o conteúdo"
-                results["result2"] = None
-                results["result3"] = None
-                results["result4"] = False
-
-            return results
+                results['result1'] = 'Não foi possível carregar o conteúdo'
+                results['result2'] = None
+                results['result3'] = None
+                results['result4'] = False
+            
+            return results 
         elif plot == "nlp":
             return
         else:

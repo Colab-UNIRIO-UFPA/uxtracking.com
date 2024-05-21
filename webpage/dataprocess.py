@@ -11,13 +11,9 @@ from bson import ObjectId
 from datetime import datetime
 from utils.data import userdata_summary
 from django.core.paginator import Paginator
-from utils.functions import (
-    nlpBertimbau,
-    df_graph_sentiment,
-    df_make_recording,
-)
+from utils.functions import nlpBertimbau, df_graph_sentiment
 from utils.data import userdata2frame, remove_non_utf8
-from utils.plot import create_blank_image_base64
+from utils.plot import create_blank_image_base64, generate_trace_recording
 from flask import (
     render_template,
     Blueprint,
@@ -456,6 +452,7 @@ def dataview_post(username, plot):
             filtered_df_trace = remove_non_utf8(filtered_df_trace)
             filtered_df_voice = remove_non_utf8(filtered_df_voice)
 
+            results["plot"] = "heatmap"
             results["images"] = json.dumps(full_base64)
             results["trace"] = filtered_df_trace.to_json(orient="records")
             results["voice"] = filtered_df_voice.to_json(orient="records")
@@ -464,32 +461,39 @@ def dataview_post(username, plot):
 
         elif plot == "recording":
             results = {}
-            try:
-                full_ims, type_icon = df_make_recording(df_trace, type="mouse")
-                print("full: ", full_ims)
+            full_base64 = {}
 
-                # Convertendo as imagens em 'full' para strings base64
-                full_base64 = {}
-                for key, img in full_ims.items():
+            full_ims, type_icon = generate_trace_recording(df_trace)
+
+            async def transform_b64(key, img):
+                try:
                     buffered = io.BytesIO()
                     img.save(buffered, format="PNG")
-                    img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-                    full_base64[key] = 'data:image/png;base64,' + img_base64
-                
-                df_trace_site = df_trace[['site', 'type', 'time', 'x', 'y', 'scroll', 'height']].copy()
-                
-                #resultados enviados para js
-                results['result1'] = json.dumps(full_base64)
-                results['result2'] = json.dumps(type_icon)
-                results['result3'] = df_trace_site.to_json(orient="records")
-                results['result4'] = True
-            except:
-                results['result1'] = 'Não foi possível carregar o conteúdo'
-                results['result2'] = None
-                results['result3'] = None
-                results['result4'] = False
-            
-            return results 
+                    img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                    return str(key), "data:image/png;base64," + img_base64
+                except Exception as e:
+                    print(f"Erro ao processar a imagem {im_id}: {e}")
+                    return str(key), create_blank_image_base64()
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            tasks = [transform_b64(key, img) for key, img in full_ims.items()]
+            transform_img = loop.run_until_complete(asyncio.gather(*tasks))
+
+            for key, img in transform_img:
+                full_base64[key] = img
+
+            df_trace_site = df_trace[
+                ["site", "type", "time", "x", "y", "scroll", "height"]
+            ].copy()
+
+            # resultados enviados para js
+            results["plot"] = "recording"
+            results["images"] = json.dumps(full_base64)
+            results["icons"] = json.dumps(type_icon)
+            results["trace"] = df_trace_site.to_json(orient="records")
+
+            return results
         elif plot == "nlp":
             return
         else:

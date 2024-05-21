@@ -2,25 +2,14 @@ import string
 import random
 import pandas as pd
 import os
-import io
-import gridfs
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-from app import mongo
+from app import mongo, fs
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 from matplotlib import pyplot as plt
 import cv2 as cv
 import numpy as np
-import plotly.graph_objects as go
-from PIL import Image
-import base64
-from stitching import Stitcher
 from datetime import datetime
-import plotly.express as px
-from plotly.subplots import make_subplots
-from flask import Response
-from scipy.ndimage import gaussian_filter
-from io import BytesIO
 
 
 folderBert = "bertimbau-finetuned"
@@ -193,157 +182,6 @@ def dirs2data(userfound, datadir):
 def id_generator():
     chars = string.ascii_uppercase + string.digits
     return "".join(random.choice(chars) for _ in range(8))
-
-
-def df_make_recording(df_trace):
-
-    id_im = df_trace["image"][0]
-
-    fs = gridfs.GridFS(mongo)
-    im = fs.get(id_im).read()
-
-    with Image.open(io.BytesIO(im)) as im:
-        width, height = im.size
-
-    frames = {}
-
-    # verificar as primeiras ocorrencias dos frames
-    for site, group in df_trace.groupby("site"):
-        images = group["image"].unique()
-        frames[site] = {}
-        for frame in images:
-            id0 = group[group["image"] == frame].index[0]
-            columns = group.loc[id0, ["scroll", "height"]]
-            frames[site][frame] = columns.to_dict()
-
-    full_ims = gen_fullpage(width, height, frames)
-
-    # Definindo os ícones para cada tipo de interação (ref: https://plotly.com/python/marker-style/)
-    type_icon = {
-        "freeze": "hourglass",
-        "eye": "circle",
-        "click": "circle",
-        "move": "arrow",
-        "keyboard": "hash",
-    }
-
-    return full_ims, type_icon
-    # dict_site = {}
-
-    # for site in full_ims.keys():
-    #     fig = go.Figure()
-    #     filtered_df = df_trace[df_trace["site"] == site]
-
-    #     width, height = full_ims[site].size
-    #     imagem = full_ims[site]
-    #     buffer = BytesIO()
-    #     imagem.save(buffer, format="PNG")  # Ou o formato apropriado da sua imagem
-    #     imagem_base64 = base64.b64encode(buffer.getvalue()).decode()
-    #     image_src = "data:image/png;base64," + imagem_base64
-
-    #     for type, group in filtered_df.groupby("type"):
-    #         if type in type_icon:
-    #             x = group["x"].values
-    #             y = group["y"].values + group["scroll"].values
-    #             time = group["time"].values
-    #             mode = "lines+markers" if type != "click" else "markers"
-    #             fig.add_trace(
-    #                 go.Scatter(
-    #                     x=x,
-    #                     y=y,
-    #                     mode=mode,
-    #                     name=type,
-    #                     text=[
-    #                         f"Time: {(t // 3600):02d}:{((t % 3600) // 60):02d}:{(t % 60):02d}"
-    #                         for t in time
-    #                     ],
-    #                     hovertemplate=f"Interaction: {type}<br>Site: {site}<br>%{{text}}<br>X: %{{x}}<br>Y: %{{y}}</br>",
-    #                     marker=dict(
-    #                         symbol=type_icon[type],
-    #                         size=10 if type != "click" else 35,
-    #                         angleref="previous",
-    #                     ),
-    #                 )
-    #             )
-    #         else:
-    #             pass
-
-    #     fig.update_layout(
-    #         xaxis=dict(
-    #             range=[0, width], autorange=False, rangeslider=dict(visible=False)
-    #         ),
-    #         yaxis=dict(range=[height, 0], autorange=False),
-    #         legend=dict(
-    #                     orientation="h",
-    #                     yanchor="bottom",
-    #                     y=1.01,
-    #                     xanchor="left",
-    #                     x=0,
-    #                     font = dict(color="white", size=18)
-    #                     ),
-    #         images=[
-    #             dict(
-    #                 source=image_src,
-    #                 xref="paper",  # Usa o sistema de coordenadas relativo ao papel/gráfico
-    #                 yref="paper",
-    #                 x=0,  # Posição no canto inferior esquerdo
-    #                 y=1,  # Posição no canto superior esquerdo
-    #                 sizex=1,  # Estender a imagem para cobrir toda a largura do gráfico
-    #                 sizey=1,  # Estender a imagem para cobrir toda a altura do gráfico
-    #                 sizing="stretch",  # Esticar a imagem para preencher o espaço (alternativas: "contain", "cover")
-    #                 opacity=1,  # Ajustar a opacidade conforme necessário
-    #                 layer="below",  # Colocar a imagem abaixo dos dados do gráfico
-    #             )
-    #         ],
-    #         width=width * 0.6,
-    #         height=height * 0.6,
-    #         margin=dict(l=0, r=0, t=0, b=0),
-    #         paper_bgcolor="rgba(0, 0, 0, 0)",
-    #         plot_bgcolor="rgba(0, 0, 0, 0)",
-    #     )
-    #     fig.update_xaxes(showgrid=False, zeroline=False, visible=False)
-
-    #     fig.update_yaxes(
-    #         showgrid=False,
-    #         zeroline=False,
-    #         visible=False,
-    #         scaleanchor="x",
-    #     )
-
-    #     dict_site[site] = fig.to_html(div_id="plotDiv")
-
-    # return dict_site", analise esse código profundamente e o transforme para js plotly
-    
-    # return dict_site
-
-
-def gen_fullpage(width, height, frames):
-    
-    full_ims = {}
-
-    for site, image in frames.items():
-        #print("site ", site)
-        #print("image ", image)
-        #print("image_values ", image.values)
-        height = int(height + max(item["scroll"] for item in image.values()))
-        #print("height, ", height)
-        compose_im = Image.new("RGB", (width, height), "white")
-
-        for image, item in image.items():
-            try:
-                #print("img_try ", image)
-                #print("item_try ", item)
-                fs = gridfs.GridFS(mongo)
-                img_data = fs.get(image).read()
-                with Image.open(io.BytesIO(img_data)) as img:
-                    compose_im.paste(img, (0, int(item["scroll"])))
-            except:
-                pass
-
-        full_ims[site] = compose_im
-
-    return full_ims
-
 
 def plot_image(img, figsize_in_inches=(5, 5)):
     fig, ax = plt.subplots(figsize=figsize_in_inches)

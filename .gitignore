@@ -1,8 +1,5 @@
 .env
 /venv
-/__pycache__
+/*/__pycache__
+/*/*/__pycache__
 /.vscode
-/Samples
-/bertimbau-finetuned
-/UX-Tracking Extension
-/UX-Tracking-Extension

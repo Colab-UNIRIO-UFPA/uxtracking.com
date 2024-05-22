@@ -419,7 +419,6 @@ def dataview_post(username, plot):
         )
         df_audio = userdata2frame(mongo, collection_name, dir, "voice")
 
-        print(df_trace)
         if plot == "heatmap":
             results = {}
             full_base64 = {}

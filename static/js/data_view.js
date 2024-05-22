@@ -273,31 +273,48 @@ function graph_recording(full_ims, type_icon, df_trace) {
 
 
 function gaussianFilter(matrix, sigma) {
-    const kernelSize = 6 * sigma + 1;
+    const kernelSize = Math.ceil(6 * sigma) + 1;
     const kernel = new Array(kernelSize).fill().map((_, i) => {
-        const x = i - kernelSize / 2;
+        const x = i - Math.floor(kernelSize / 2);
         return Math.exp(-0.5 * (x / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
     });
     const sum = kernel.reduce((acc, val) => acc + val, 0);
-    return matrix.map(row => row.map(val => val / sum));
+    const normalizedKernel = kernel.map(val => val / sum);
+
+    const convolve = (data) => {
+        const result = new Array(data.length).fill(0);
+        const half = Math.floor(normalizedKernel.length / 2);
+
+        for (let i = 0; i < data.length; i++) {
+            let sum = 0;
+            for (let j = -half; j <= half; j++) {
+                const index = i + j;
+                if (index >= 0 && index < data.length) {
+                    sum += data[index] * normalizedKernel[j + half];
+                }
+            }
+            result[i] = sum;
+        }
+        return result;
+    };
+
+    const result = matrix.map(row => convolve(row));
+    const transposed = result[0].map((_, colIndex) => result.map(row => row[colIndex]));
+    return transposed.map(row => convolve(row));
 }
 
 async function graph_heatmap(images, df_trace, df_voice) {
-    // Obter a primeira imagem do JSON
-    const firstImageKey = Object.keys(images)[0];  // Obtém a primeira chave (ID) do JSON
-    const firstImageBase64 = images[firstImageKey];  // Obtém a primeira imagem em base64
+    const firstImageKey = Object.keys(images)[0];
+    const firstImageBase64 = images[firstImageKey];
 
-    // Criar uma nova imagem e carregar a imagem base64 nela
     const img = new Image();
     img.src = firstImageBase64;
 
-    // Retornar uma Promise para garantir que a imagem foi carregada
     await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
     });
 
-    // Obter a largura e altura da imagem
     const width = img.width;
     const height = img.height;
 
@@ -312,7 +329,6 @@ async function graph_heatmap(images, df_trace, df_voice) {
         [1, "rgba(255, 1, 0, 1)"]
     ];
 
-
     const maxTime = Math.max(...df_trace.map(row => row.time));
     for (let time = 0; time <= maxTime; time++) {
         const filtered_df = df_trace.filter(row => row.time == time);
@@ -321,24 +337,29 @@ async function graph_heatmap(images, df_trace, df_voice) {
         for (const image of uniqueImages) {
             const plot_df = filtered_df.filter(row => row.image == image);
 
-            const x = plot_df.map(row => parseFloat(row.x));
-            const y = plot_df.map(row => Math.abs(parseFloat(row.y) - parseFloat(row.scroll)));
+            const x = plot_df.map(row => {
+                const value = parseFloat(row.x);
+                return isNaN(value) || value < 0 ? 0 : value;
+            });
 
-            // Create histogram
+            const y = plot_df.map(row => {
+                const value = Math.abs(parseFloat(row.y) - parseFloat(row.scroll));
+                return isNaN(value) || value < 0 ? 0 : value;
+            });
+
             const histogram = new Array(250).fill().map(() => new Array(250).fill(0));
-            try {
-                for (let i = 0; i < x.length; i++) {
+            for (let i = 0; i < x.length; i++) {
+                try {
                     const xBin = Math.floor((x[i] / width) * 250);
                     const yBin = Math.floor((y[i] / height) * 250);
                     histogram[xBin][yBin]++;
+                } catch (error) {
+                    console.error("Erro ao criar o histograma:", error);
+                    continue;
                 }
-            } catch (error) {
-                console.error("Erro ao criar o histograma:", error);
-                continue;
-                // Lidar com o erro, se necessário
             }
 
-            const dataSmoothed = gaussianFilter(histogram, 12);
+            const dataSmoothed = gaussianFilter(histogram, 24);
 
             if (df_voice.some(row => row.time == time)) {
                 const audio2text = df_voice.find(row => row.time == time).text;
@@ -413,8 +434,19 @@ async function graph_heatmap(images, df_trace, df_voice) {
     }
 
     const layout = {
-        xaxis: { range: [0, width], autorange: false },
-        yaxis: { range: [0, height], autorange: false, scaleanchor: "x" },
+        xaxis: {
+            range: [0, width], autorange: false,
+            showgrid: false,
+            zeroline: false,
+            visible: false,
+        },
+        yaxis: { 
+            range: [0, height], autorange: false, 
+            scaleanchor: "x",
+            showgrid: false,
+            zeroline: false,
+            visible: false,
+        },
         images: [{
             source: firstImageBase64,
             xref: "x",
@@ -463,7 +495,9 @@ async function graph_heatmap(images, df_trace, df_voice) {
     }
 
     var graphDiv = document.getElementById('resultPlot');
-
-    Plotly.newPlot(graphDiv, [], layout, { showlink: false }); // Inicia a plotagem sem dados
+    
+    // Inicie a plotagem com os dados do primeiro frame
+    const initialFrame = frames[0];
+    Plotly.newPlot(graphDiv, initialFrame.data, layout, { showlink: false });
     Plotly.addFrames(graphDiv, frames); // Adiciona os frames de animação
 }

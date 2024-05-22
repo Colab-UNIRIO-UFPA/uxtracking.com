@@ -4,7 +4,6 @@ import pandas as pd
 import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-from app import mongo, fs
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 from matplotlib import pyplot as plt
 import cv2 as cv
@@ -12,7 +11,7 @@ import numpy as np
 from datetime import datetime
 
 
-folderBert = "bertimbau-finetuned"
+folderBert = "app/bertimbau-finetuned"
 
 tokenizer = AutoTokenizer.from_pretrained(folderBert)
 modelBert = AutoModelForSequenceClassification.from_pretrained(folderBert)

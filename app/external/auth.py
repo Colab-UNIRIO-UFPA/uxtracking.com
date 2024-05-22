@@ -1,7 +1,7 @@
 from flask_mail import Message
-from app import mongo, mail, mail_username
-from utils.functions import id_generator
+from app.utils.functions import id_generator
 from flask import render_template, Blueprint, request, session, jsonify
+from flask import current_app as app
 from werkzeug.security import check_password_hash
 
 external_auth_bp = Blueprint(
@@ -13,7 +13,7 @@ external_auth_bp = Blueprint(
 def userAuth():
     username = request.form["username"]
     password = request.form["password"]
-    userfound = mongo.users.find_one({"username": username})
+    userfound = app.db.users.find_one({"username": username})
 
     if userfound and check_password_hash(userfound["password"], password):
         userid = userfound["_id"]
@@ -33,12 +33,12 @@ def userRegister():
     email = request.form["email"]
 
     # Verifica se o usuário já existe
-    userfound = mongo.users.find_one({"$or": [{"email": email}, {"username": username}]})
+    userfound = app.db.users.find_one({"$or": [{"email": email}, {"username": username}]})
     if userfound == None:
-        mongo.users.insert_one(
+        app.db.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
-        userfound = mongo.users.find_one({"username": username, "password": password})
+        userfound = app.db.users.find_one({"username": username, "password": password})
         response = {"id": str(userfound["_id"]), "status": 200}
     else:
         response = {"id": None, "status": 401}
@@ -50,7 +50,7 @@ def userRegister():
 def userRecover():
     # Obtém o usuário e email informados no formulário
     email = request.form["email"]
-    userfound = mongo.users.find_one({"email": email})
+    userfound = app.db.users.find_one({"email": email})
 
     if userfound != None:
         # Nova senha gerada
@@ -59,7 +59,7 @@ def userRecover():
         # Requisição por email
         msg = Message(
             "UX-Tracking password reset.",
-            sender=mail_username,
+            sender=app.mail_username,
             recipients=[email],
         )
 
@@ -71,11 +71,11 @@ def userRecover():
         )
 
         # Nova senha enviada
-        mail.send(msg)
+        app.mail.send(msg)
 
         # senha alterada
         _id = userfound["_id"]
-        mongo.users.update_one({"_id": _id}, {"$set": {"password": generatedPass}})
+        app.db.users.update_one({"_id": _id}, {"$set": {"password": generatedPass}})
 
         response = {"status": 200}
 

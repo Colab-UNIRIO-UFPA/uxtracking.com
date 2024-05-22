@@ -1,7 +1,7 @@
 import io
 import base64
 from PIL import Image
-from app import fs
+from flask import current_app as app
 
 def create_blank_image_base64():
     """
@@ -47,7 +47,7 @@ def generate_trace_recording(df_trace):
     id_im = df_trace["image"][0]
     
     # Lê a imagem do sistema de arquivos usando o ID obtido
-    im = fs.get(id_im).read()
+    im = app.fs.get(id_im).read()
 
     # Abre a imagem usando a biblioteca PIL e obtém suas dimensões
     with Image.open(io.BytesIO(im)) as im:
@@ -114,7 +114,7 @@ def gen_fullpage(width, height, frames):
         for image_name, item in image.items():
             try:
                 # Lê os dados da imagem do sistema de arquivos
-                img_data = fs.get(image_name).read()
+                img_data = app.fs.get(image_name).read()
                 
                 # Abre a imagem a partir dos dados em bytes
                 with Image.open(io.BytesIO(img_data)) as img:

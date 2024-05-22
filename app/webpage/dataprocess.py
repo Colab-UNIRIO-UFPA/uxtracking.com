@@ -9,11 +9,10 @@ import pandas as pd
 from io import StringIO
 from bson import ObjectId
 from datetime import datetime
-from utils.data import userdata_summary
 from django.core.paginator import Paginator
-from utils.functions import nlpBertimbau, df_graph_sentiment
-from utils.data import userdata2frame, remove_non_utf8
-from utils.plot import create_blank_image_base64, generate_trace_recording
+from app.utils.functions import nlpBertimbau, df_graph_sentiment
+from app.utils.data import userdata2frame, remove_non_utf8, userdata_summary
+from app.utils.plot import create_blank_image_base64, generate_trace_recording
 from flask import (
     render_template,
     Blueprint,
@@ -25,7 +24,7 @@ from flask import (
     Response,
     abort,
 )
-from app import mongo, fs
+from flask import current_app as app
 
 data_bp = Blueprint(
     "data_bp", "__name__", template_folder="templates", static_folder="static"
@@ -36,7 +35,7 @@ data_bp = Blueprint(
 def datafilter_post(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"  # pasta dos documentos
 
         if metadata == "datetime":
@@ -123,7 +122,7 @@ def datafilter_post(username, metadata):
 
                     # preparando dataframes
                     trace_df = userdata2frame(
-                        mongo,
+                        app.db,
                         collection_name,
                         date,
                         [
@@ -137,11 +136,11 @@ def datafilter_post(username, metadata):
                         ],
                     )
 
-                    voice_df = userdata2frame(mongo, collection_name, date, "voice")
-                    face_df = userdata2frame(mongo, collection_name, date, "face")
+                    voice_df = userdata2frame(app.db, collection_name, date, "voice")
+                    face_df = userdata2frame(app.db, collection_name, date, "face")
 
                     # data da coleta
-                    document = mongo[collection_name].find_one({"_id": ObjectId(date)})
+                    document = app.db[collection_name].find_one({"_id": ObjectId(date)})
                     date = document["datetime"]
                     date_obj = datetime.fromisoformat(date.rstrip("Z"))
                     date_part = date_obj.date().strftime("%d/%m/%Y")
@@ -177,11 +176,11 @@ def datafilter_post(username, metadata):
                                     image_ids.extend(site_data["images"])
 
                     # guardando as imagens no zip
-                    fs = gridfs.GridFS(mongo)
+                    app.fs = gridfs.GridFS(app.db)
 
                     for image_id in image_ids:
                         try:
-                            grid_out = fs.get(image_id).read()
+                            grid_out = app.fs.get(image_id).read()
                             image_name = f"{str(image_id)}.png"
                             if image_name not in zipf.namelist():
                                 zipf.writestr(image_name, grid_out)
@@ -235,9 +234,9 @@ def datafilter_post(username, metadata):
 def datafilter_get(username, metadata):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"  # pasta dos documentos
-        documents = mongo[collection_name].find({})
+        documents = app.db[collection_name].find({})
 
         data, date_counts = userdata_summary(documents)  # informações documentos
 
@@ -265,7 +264,7 @@ def datafilter_get(username, metadata):
 
             for date in dates:
                 # procurando os sites dos documentos pelo id
-                document = mongo[collection_name].find_one({"_id": ObjectId(date)})
+                document = app.db[collection_name].find_one({"_id": ObjectId(date)})
                 site = document["sites"]
                 for page in site:
                     if page not in pages:
@@ -294,7 +293,7 @@ def datafilter_get(username, metadata):
 def dataanalysis_post(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"  # pasta dos documentos
 
         dir = request.form["dir"]
@@ -305,7 +304,7 @@ def dataanalysis_post(username, model):
             return
         elif model == "bertimbau":
             results = {}
-            df_voice = userdata2frame(mongo, collection_name, dir, "voice")
+            df_voice = userdata2frame(app.db, collection_name, dir, "voice")
             try:
                 df_audio = nlpBertimbau(df_voice)
                 df_radar, df_sentiment = df_graph_sentiment(df_audio)
@@ -340,9 +339,9 @@ def dataanalysis_post(username, model):
 def dataanalysis_get(username, model):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"
-        documents = mongo[collection_name].find({})
+        documents = app.db[collection_name].find({})
 
         data, date_counts = userdata_summary(documents)
 
@@ -378,12 +377,12 @@ def dataanalysis_get(username, model):
 
 @data_bp.post("/downloadAudio")
 def downloadAudio():
-    userfound = mongo.users.find_one({"username": session["username"]})
+    userfound = app.db.users.find_one({"username": session["username"]})
     collection_name = f"data_{userfound['_id']}"
 
     valueData = request.form["data"]
 
-    df_voice = userdata2frame(mongo, collection_name, valueData, "voice")
+    df_voice = userdata2frame(app.db, collection_name, valueData, "voice")
     df_nlBertimbau = nlpBertimbau(df_voice)
 
     # Convertendo o DataFrame em um buffer de texto
@@ -406,27 +405,26 @@ def downloadAudio():
 def dataview_post(username, plot):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"
 
         dir = request.form["dir"]
 
         df_trace = userdata2frame(
-            mongo,
+            app.db,
             collection_name,
             dir,
             ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"],
         )
-        df_audio = userdata2frame(mongo, collection_name, dir, "voice")
+        df_audio = userdata2frame(app.db, collection_name, dir, "voice")
 
-        print(df_trace)
         if plot == "heatmap":
             results = {}
             full_base64 = {}
 
             async def process_image(im_id):
                 try:
-                    file_data = fs.get(im_id).read()
+                    file_data = app.fs.get(im_id).read()
                     img = Image.open(io.BytesIO(file_data))
                     buffered = io.BytesIO()
                     img.save(buffered, format="PNG")
@@ -512,12 +510,12 @@ def dataview_post(username, plot):
 def dataview_get(username, plot):
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         if not userfound:
             abort(404)
 
         collection_name = f"data_{userfound['_id']}"
-        documents = mongo[collection_name].find({})
+        documents = app.db[collection_name].find({})
 
         plots = ["heatmap", "recording"]
 

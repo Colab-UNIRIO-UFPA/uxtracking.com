@@ -1,8 +1,8 @@
-from app import mongo, mail, mail_username
 from flask_mail import Message
-from utils.functions import id_generator
+from app.utils.functions import id_generator
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import render_template, Blueprint, request, redirect, session, flash, url_for
+from flask import current_app as app
 
 pass_bp = Blueprint("pass_bp", "__name__", template_folder="templates", static_folder="static")
 
@@ -12,7 +12,7 @@ def forgot_pass_post():
     # Obtém o usuário e email informados no formulário
     username = request.form["username"]
     email = request.form["email"]
-    userfound = mongo.users.find_one({"username": username, "email": email})
+    userfound = app.db.users.find_one({"username": username, "email": email})
 
     if userfound != None:
         # Se as credenciais estiverem corretas, envia um email para o usuário
@@ -24,7 +24,7 @@ def forgot_pass_post():
         # Requisição por email
         msg = Message(
             "UX-Tracking password reset.",
-            sender=mail_username,
+            sender=app.mail_username,
             recipients=[email],
         )
 
@@ -34,14 +34,14 @@ def forgot_pass_post():
         )
 
         # Nova senha enviada
-        mail.send(msg)
+        app.mail.send(msg)
 
         flash("E-mail enviado com sucesso!")
 
         # senha alterada
         new_password_hash = generate_password_hash(generatedPass)
         _id = userfound["_id"]
-        mongo.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
+        app.db.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
 
         # Redirecionar para o login após o envio do email e atualização da senha
         return redirect(url_for("auth_bp.login_get", title="Login", session=False))
@@ -70,12 +70,12 @@ def change_pass():
         newpassword2 = request.form["confirm_newpassword"]
 
         # Verifica se as credenciais estão corretas
-        userfound = mongo.users.find_one({"username": username})
+        userfound = app.db.users.find_one({"username": username})
         if userfound and check_password_hash(userfound["password"], password):
             if newpassword == newpassword2:
                 _id = userfound["_id"]
                 new_password_hash = generate_password_hash(newpassword)
-                mongo.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
+                app.db.users.update_one({"_id": _id}, {"$set": {"password": new_password_hash}})
                 # Usuário logado
                 return redirect(
                     url_for(

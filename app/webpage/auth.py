@@ -1,8 +1,8 @@
 import os
-from app import oauth, mongo
 from authlib.common.security import generate_token
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import render_template, Blueprint, request, flash, redirect, url_for, session
+from flask import current_app as app
 
 auth_bp = Blueprint(
     "auth_bp", "__name__", template_folder="templates", static_folder="static"
@@ -18,8 +18,8 @@ def register_post():
     email = request.form.get("email")
 
     # Verifica se o email já existe na coleção de usuários
-    email_found = mongo.users.find_one({"email": email})
-    username_found = mongo.users.find_one({"username": username})
+    email_found = app.db.users.find_one({"email": email})
+    username_found = app.db.users.find_one({"username": username})
 
     if email_found is not None:
         flash("Esse email já foi cadastrado.")
@@ -31,7 +31,7 @@ def register_post():
 
     hashed_password = generate_password_hash(password)
     # Insere o novo usuário na coleção de usuários, se nome de usuário e email estão disponíveis
-    mongo.users.insert_one(
+    app.db.users.insert_one(
         {
             "username": username,
             "password": hashed_password,
@@ -41,9 +41,9 @@ def register_post():
     )
 
     # Cria uma coleção específica para o usuário com um documento inicial
-    userfound = mongo.users.find_one({"username": username})
+    userfound = app.db.users.find_one({"username": username})
     user_collection_name=f"data_{userfound['_id']}"
-    mongo[user_collection_name].insert_one(
+    app.db[user_collection_name].insert_one(
         {"message": f"Coleção criada para o usuário {username}."}
     )
 
@@ -66,7 +66,7 @@ def login_post():
     # Obtém o usuário e a senha informados no formulário
     username = request.form["username"]
     password = request.form["password"]
-    userfound = mongo.users.find_one({"username": username})
+    userfound = app.db.users.find_one({"username": username})
 
     if userfound and check_password_hash(userfound["password"], password):
         session["username"] = username
@@ -94,7 +94,7 @@ def google():
     GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
 
     CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
-    oauth.register(
+    app.oauth.register(
         name="google",
         client_id=GOOGLE_CLIENT_ID,
         client_secret=GOOGLE_CLIENT_SECRET,
@@ -105,21 +105,21 @@ def google():
     # Redirect to google_auth function
     redirect_uri = url_for("auth_bp.google_auth", _external=True)
     session["nonce"] = generate_token()
-    return oauth.google.authorize_redirect(redirect_uri, nonce=session["nonce"])
+    return app.oauth.google.authorize_redirect(redirect_uri, nonce=session["nonce"])
 
 
 @auth_bp.route("/google/auth/")
 def google_auth():
-    token = oauth.google.authorize_access_token()
-    user = oauth.google.parse_id_token(token, nonce=session["nonce"])
+    token = app.oauth.google.authorize_access_token()
+    user = app.oauth.google.parse_id_token(token, nonce=session["nonce"])
     username = user["name"]
     email = user["email"]
     password = user["sub"]
 
     # Verifica se o usuário já existe
-    userfound = mongo.users.find_one({"email": email})
+    userfound = app.db.users.find_one({"email": email})
     if userfound == None:
-        mongo.users.insert_one(
+        app.db.users.insert_one(
             {"username": username, "password": password, "email": email, "data": {}}
         )
     session["username"] = username

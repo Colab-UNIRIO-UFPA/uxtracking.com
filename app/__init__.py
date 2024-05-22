@@ -5,36 +5,18 @@ import os
 import gridfs
 from flask_mail import Mail
 from simple_colors import *
-import datetime
-from dotenv import load_dotenv
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import sys
-from unidecode import unidecode
 from torchvision import models
 import torch.nn as nn
 import torch
-from utils.example_user import gen_example
+from app.utils.example_user import gen_example
 
+# load blueprints
+from app.webpage.blueprints import webpage_bps
+from app.external.blueprints import external_bps
 
-# declarando o servidor
-def create_app():
-    app = Flask(__name__)
-    app.secret_key = os.environ["SECRET_KEY"]
-
-    # configurando o serviço de email
-    app.config.update(
-        MAIL_SERVER="smtp.gmail.com",
-        MAIL_PORT=465,
-        MAIL_USE_SSL=True,
-        MAIL_USERNAME=os.environ["MAIL_NAME"],
-        MAIL_PASSWORD=os.environ["MAIL_PASSWORD"]
-    )
-    mail_username = app.config.get("MAIL_USERNAME")
-    mail = Mail(app)
-
-    return app, mail, mail_username
 
 def load_fer():
     model = models.efficientnet_b0(weights=None)
@@ -50,7 +32,7 @@ def load_fer():
     )
     model.load_state_dict(
         torch.load(
-            "static/efficientnet.pth",
+            "app/static/efficientnet.pth",
             map_location=torch.device("cpu"),
         )
     )
@@ -79,41 +61,48 @@ def send_email(subject, body):
     server.login(sender_email, sender_password)
     server.sendmail(sender_email, receiver_email, message.as_string())
     server.quit()
+    
+# declarando o servidor
+def create_app(enviroment='prod'):
+    app = Flask(__name__)
+    app.secret_key = os.environ["SECRET_KEY"]
 
-# delete se estiver utilizando windows
-load_dotenv()
+    # configurando o serviço de email
+    app.config.update(
+        MAIL_SERVER="smtp.gmail.com",
+        MAIL_PORT=465,
+        MAIL_USE_SSL=True,
+        MAIL_USERNAME=os.environ["MAIL_NAME"],
+        MAIL_PASSWORD=os.environ["MAIL_PASSWORD"]
+    )
+    app.mail_username = app.config.get("MAIL_USERNAME")
+    app.mail = Mail(app)
 
-# conexão com a base
-mongo = MongoClient(os.environ["MONGO_URI"]).uxtracking
-fs = gridfs.GridFS(mongo)
+    # conexão com a base
+    if enviroment == 'prod':
+        app.db = MongoClient(os.environ["MONGO_URI"]).uxtracking
+    else:
+        app.db = MongoClient(os.environ["DEV_MONGO_URI"]).uxtracking
+    
+    app.fs = gridfs.GridFS(app.db)
 
-# facial expression model
-model = load_fer()
-
-app, mail, mail_username = create_app()
-model = load_fer()
-# autenticação google
-oauth = OAuth(app)
-
-if __name__ == "__main__":
     try:
-        mongo.command('ping')
+        app.db.command('ping')
         print("Conexão com o MongoDB foi bem-sucedida.")
     except Exception as e:
         print(f"Falha ao conectar ao MongoDB: {e}")
     
     # verifica se não há nenhum usuário no banco, então cria um usuário exemplo
-    if mongo.users.count_documents({}) == 0:
-        gen_example(mongo, fs)
+    if app.db.users.count_documents({}) == 0:
+        gen_example(app.db, app.fs)
 
-    # load blueprints
-    from webpage.blueprints import webpage_bps
-    from external.blueprints import external_bps
     for bp in webpage_bps:
         app.register_blueprint(bp, url_prefix="/")
 
     for bp in external_bps:
         app.register_blueprint(bp, url_prefix="/external")
+    
+    '''
     try:
         app.run(debug=False, host="0.0.0.0")
     except BaseException as e:
@@ -123,3 +112,15 @@ if __name__ == "__main__":
         error_context = unidecode(error_context)
         error_msg = f"The application failed to start in {dt}.\r The message of error is: {sys.exc_info()[0]}:{e} - {error_context}"
         send_email("UX-Tracking Initialization Failed.", error_msg)
+    '''
+
+    # facial expression model
+    app.model_fer = load_fer()
+
+    # autenticação google
+    app.oauth = OAuth(app)
+    return app
+
+if __name__ == "__main__":
+    app = create_app('dev')
+    app.run(debug=True)

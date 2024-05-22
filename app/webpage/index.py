@@ -1,10 +1,9 @@
 import io
 import zipfile
-from app import mongo, fs
-import gridfs
 from bson import ObjectId
-from utils.data import userdata2frame, userdata_summary
+from app.utils.data import userdata2frame, userdata_summary
 from flask import render_template, Blueprint, request, session, abort, send_file
+from flask import current_app as app
 
 index_bp = Blueprint(
     "index_bp", "__name__", template_folder="templates", static_folder="static"
@@ -16,7 +15,7 @@ index_bp = Blueprint(
 def index_post():
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         if not userfound:
             abort(404)
 
@@ -28,15 +27,15 @@ def index_post():
 
         # Criação de DataFrames para diferentes tipos de dados
         trace_df = userdata2frame(
-            mongo,
+            app.db,
             collection_name,
             dataid,
             ["eye", "mouse", "keyboard", "freeze", "click", "wheel", "move"],
         )
-        voice_df = userdata2frame(mongo, collection_name, dataid, "voice")
-        face_df = userdata2frame(mongo, collection_name, dataid, "face")
+        voice_df = userdata2frame(app.db, collection_name, dataid, "voice")
+        face_df = userdata2frame(app.db, collection_name, dataid, "face")
 
-        document = mongo[collection_name].find_one({"_id": ObjectId(dataid)})
+        document = app.db[collection_name].find_one({"_id": ObjectId(dataid)})
         image_ids = []
 
         # Checa se a chave 'data' existe e é uma lista
@@ -75,7 +74,7 @@ def index_post():
             for image_id in image_ids:
                 try:
                     # Recupera o arquivo de imagem do GridFS usando o ID
-                    grid_out = fs.get(image_id).read()
+                    grid_out = app.fs.get(image_id).read()
                     image_name = f'{str(image_id)}.png'
                     if image_name not in zipf.namelist():
                         zipf.writestr(image_name, grid_out)
@@ -102,9 +101,9 @@ def index_post():
 def index_get():
     if "username" in session:
         # faz a leitura da base de dados de coletas do usuário
-        userfound = mongo.users.find_one({"username": session["username"]})
+        userfound = app.db.users.find_one({"username": session["username"]})
         collection_name = f"data_{userfound['_id']}"
-        documents = mongo[collection_name].find({}) 
+        documents = app.db[collection_name].find({}) 
 
         data, date_counts = userdata_summary(documents)
         

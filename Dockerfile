@@ -1,7 +1,7 @@
 # Use a base image for Python
-FROM python:3.11.9-slim-bullseye
+FROM python:3.11
 
-# Set the working directory in the container
+# Define o diretório de trabalho
 WORKDIR /app
 
 # Install dependencies required for OpenCV
@@ -10,15 +10,16 @@ RUN apt-get update && \
     apt-get install -y libgl1-mesa-glx libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
     
-# Copy the dependencies file to the working directory
-COPY requirements.txt .
+# Copia o arquivo de requisitos para o diretório de trabalho
+COPY requirements.txt requirements.txt
 
-# Install any dependencies
-RUN pip install --upgrade pip setuptools wheel
+# Instala as dependências do Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container at /app
+# Copia o conteúdo da aplicação para o diretório de trabalho
 COPY . .
 
-# Command to run on container start
-CMD ["python", "app.py"]
+ENV PYTHONPATH=/app
+
+# Comando para rodar o servidor Gunicorn
+CMD ["gunicorn", "-c", "gunicorn_config.py", "app:create_app('prod')"]

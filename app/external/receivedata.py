@@ -4,11 +4,10 @@ import torch
 import base64
 from PIL import Image
 from bson import ObjectId
-from datetime import datetime
-from app import mongo, model, fs
 import torch.nn.functional as F
 from torchvision.transforms import v2 as T
 from flask import abort, Blueprint, request, jsonify
+from flask import current_app as app
 
 external_receivedata_bp = Blueprint(
     "external_receivedata_bp",
@@ -29,15 +28,15 @@ def receiver():
     if not metadata.get("userID"):
         abort(403, "No user ID provided")
 
-    userfound = mongo.users.find_one({"_id": ObjectId(metadata["userID"])})
+    userfound = app.db.users.find_one({"_id": ObjectId(metadata["userID"])})
     if not userfound:
         abort(403, "User not found")
 
     collection_name = f"data_{userfound['_id']}"
-    result = mongo[collection_name].find_one({"datetime": metadata["dateTime"]})
+    result = app.db[collection_name].find_one({"datetime": metadata["dateTime"]})
 
     # inserção no mongo gridFS (id retornado)
-    image_id = fs.put(
+    image_id = app.fs.put(
         base64.b64decode(re.sub("^data:image/\w+;base64,", "", metadata["image"]))
     )
 
@@ -74,7 +73,7 @@ def receiver():
                 "data.$[elem].images": {"$each": [image_id]},
             }
             array_filters = [{"elem.site": metadata["site"]}]
-            mongo[collection_name].update_one(
+            app.db[collection_name].update_one(
                 {"_id": result["_id"]}, update, array_filters=array_filters
             )
         else:
@@ -85,7 +84,7 @@ def receiver():
                 "interactions": interactions,
             }
             update["$push"] = {"data": new_site}
-            mongo[collection_name].update_one({"_id": result["_id"]}, update)
+            app.db[collection_name].update_one({"_id": result["_id"]}, update)
     else:
         # Insere um novo documento se não houver um existente para essa data
         new_document = {
@@ -99,7 +98,7 @@ def receiver():
                 }
             ],
         }
-        mongo[collection_name].insert_one(new_document)
+        app.db[collection_name].insert_one(new_document)
 
     return "Received"
 
@@ -127,7 +126,7 @@ def faceExpression():
 
     # Realiza a inferência
     with torch.no_grad():
-        outputs = model(image_transformed)
+        outputs = app.model_fer(image_transformed)
         outputs = F.softmax(outputs, dim=1)
     result = outputs.tolist()
 

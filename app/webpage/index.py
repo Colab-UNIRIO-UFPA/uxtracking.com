@@ -106,6 +106,10 @@ def index_get():
         documents = app.db[collection_name].find({}) 
 
         data, date_counts = userdata_summary(documents)
+
+        data = list(reversed(data))[:5]
+
+        print(data)
         
         # Separar as datas e suas contagens
         dates = list(date_counts.keys())

@@ -20,8 +20,29 @@ input[type="checkbox"]:hover+.btn {
     color: white;
 }
 
-.scrollbar {
-    overflow-y: scroll;
+.scrollbar{
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.scrollbar::-webkit-scrollbar{
+    width: 10px;
+    background-color:#6f6f6f;
+    border-radius: 5px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb{
+    background-color: #414040;
+    border-radius: 5px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover{
+    background: #353535;
+}
+
+
+.botoes-site:hover{
+    background: #343A40;
 }
 
 .adjust-side-menu {
@@ -31,6 +52,7 @@ input[type="checkbox"]:hover+.btn {
 .text-with-shadow {
     box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.9);  /* Sombra horizontal, vertical, blur, cor */
 }
+
 
 .custom-style { /* pilulas sites */
     border: 1px solid #fd7e14 !important;

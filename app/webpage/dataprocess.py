@@ -242,6 +242,7 @@ def datafilter_get(username, metadata):
 
         if metadata == "datetime":
             # Paginação das coletas
+            data = list(reversed(data))
             paginator = Paginator(data, 5)
             page_number = request.args.get("page_number", 1, type=int)
             page_obj = paginator.get_page(page_number)
@@ -352,6 +353,7 @@ def dataanalysis_get(username, model):
             )
         elif model in models:
             # Paginação das coletas
+            data = list(reversed(data))
             paginator = Paginator(data, 5)
             page_number = request.args.get("page_number", 1, type=int)
             page_obj = paginator.get_page(page_number)
@@ -455,6 +457,7 @@ def dataview_post(username, plot):
             results["trace"] = filtered_df_trace.to_json(orient="records")
             results["voice"] = filtered_df_voice.to_json(orient="records")
 
+            print("osasdncs");
             return results
 
         elif plot == "recording":
@@ -525,11 +528,18 @@ def dataview_get(username, plot):
             )
         elif plot in plots:
             data, _ = userdata_summary(documents)
+            data = list(reversed(data))
+            paginator = Paginator(data, 5)
+            page_number = request.args.get("page_number", 1, type=int)
+            page_obj = paginator.get_page(page_number)
+            page_coleta = paginator.page(page_number).object_list
+
             return render_template(
                 "data_view.html",
                 username=username,
                 plot=plot,
-                items=data,
+                items=page_coleta,
+                page_obj=page_obj,
                 title="Visualização",
             )
         else:

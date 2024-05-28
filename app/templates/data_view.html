@@ -72,7 +72,9 @@
 
   <!-- seleção do dado -->
   {% else %}
-  <div class="list-group flex-lg-column-reverse w-100">
+  <div class="list-group flex-lg-column w-100">
+    <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-white bg-body-tertiary w-100">Selecione a coleta que irá visualizar pelo método
+      {{ plot|capitalize }}</p>
     {% for data in items%}
       <a href="javascript:;" onclick="submitdata(this.getAttribute('data-value'), this.getAttribute('url_dataview'))"
         data-value="{{ data['id'] }}"  url_dataview="{{url_for('data_bp.dataview_post', username=username, plot=plot)}}"
@@ -105,6 +107,35 @@
         </div>
       </a>
     {% endfor %}
+    
+    <div class="mt-4 ml-4 mx-4">
+      {% if page_obj.has_other_pages() %}
+      <ul class="pagination">
+          {% if page_obj.number != 1%}
+            <li class="page-item">
+              <a class="page-link text-body-secondary" href="{{ url_for('data_bp.dataview_get', username=username, plot=plot, page_number=1)}}">Início</a>
+            </li>
+          {% else %}
+            <li class="page-link text-body-secondary disabled">Início</li>
+          {% endif %}
+
+        {% for i in page_obj.paginator.page_range %}
+          {% if i >= page_obj.number - 2 and i <= page_obj.number + 2 %}
+            <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+              <a class="page-link text-body-secondary" href="{{ url_for('data_bp.dataview_get', username=username, plot=plot, page_number=i) }}">{{ i }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.number != page_obj.paginator.num_pages%}
+          <li class="page-item">
+          <a class="page-link text-body-secondary" href="{{ url_for('data_bp.dataview_get', username=username, plot=plot, page_number=page_obj.paginator.num_pages)}}">Final</a></li>
+        {% else %}
+          <li class="page-link text-body-secondary disabled">Final</li>
+        {% endif %}
+      </ul>
+      {% endif %}
+    </div>
 
     {% if plot == "heatmap" %}
     <!-- popup de resultado -->
@@ -150,8 +181,8 @@
                 <h4 id="sites_heading">Sites</h4>
               </div>
               <!--Botões do site-->
-              <div class="w-100 scrollbar" style="height: 50%;">
-                <div class="list-group" id="dropdown-list">
+              <div class="scrollbar" style="height: 50%; width: 100%;">
+                <div class="list-group" id="dropdown-list" style="width: 98%;">
                 </div>
               </div>
             </div>
@@ -176,8 +207,6 @@
     {% endfor %}
     {% endif %}
     {% endwith %}
-    <p class="fs-3 fw-semibold my-0 py-2 ps-3 text-white bg-body-tertiary w-100">Selecione a coleta que irá visualizar pelo método
-      {{ plot|capitalize }}</p>
   </div>
   {% endif %}
   </div>

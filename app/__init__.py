@@ -11,12 +11,17 @@ from email.mime.multipart import MIMEMultipart
 from torchvision import models
 import torch.nn as nn
 import torch
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app.utils.example_user import gen_example
 
 # load blueprints
 from app.webpage.blueprints import webpage_bps
 from app.external.blueprints import external_bps
 
+app = Flask(__name__)
 
 def load_fer():
     model = models.efficientnet_b0(weights=None)
@@ -64,7 +69,6 @@ def send_email(subject, body):
     
 # declarando o servidor
 def create_app(enviroment='prod'):
-    app = Flask(__name__)
     app.secret_key = os.environ["SECRET_KEY"]
 
     # configurando o serviço de email
@@ -102,17 +106,17 @@ def create_app(enviroment='prod'):
     for bp in external_bps:
         app.register_blueprint(bp, url_prefix="/external")
     
-    '''
-    try:
-        app.run(debug=False, host="0.0.0.0")
-    except BaseException as e:
-        dt = datetime.datetime.today()
-        dt = f"{dt.day}/{dt.month}/{dt.year}"
-        error_context = sys.exc_info()[1].__context__.strerror
-        error_context = unidecode(error_context)
-        error_msg = f"The application failed to start in {dt}.\r The message of error is: {sys.exc_info()[0]}:{e} - {error_context}"
-        send_email("UX-Tracking Initialization Failed.", error_msg)
-    '''
+    # try:
+    #     app.run(debug=True, host="0.0.0.0")
+    # except BaseException as e:
+    #     dt = datetime.datetime.today()
+    #     dt = f"{dt.day}/{dt.month}/{dt.year}"
+    #     error_context = sys.exc_info()[1].__context__.strerror
+    #     error_context = unidecode(error_context)
+    #     error_msg = f"The application failed to start in {dt}.\r The message of error is: {sys.exc_info()[0]}:{e} - {error_context}"
+    #     send_email("UX-Tracking Initialization Failed.", error_msg)
+
+
 
     # facial expression model
     app.model_fer = load_fer()

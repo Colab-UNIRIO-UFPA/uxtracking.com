@@ -1,20 +1,20 @@
+var plot; //variavel global para descobrir o plot usado na funcao closePopupResult
+
 function submitdata(data, url_dataview) {
     $("#resultModal").modal('show');
 
     $.post(url_dataview, { dir: data }, function (result) {
-
+        plot = result.plot;
         if (result) {
-            var spinner = document.getElementById("spinner");
-            if (spinner) {
-                spinner.style.display = "none";
-            }
             if (result.plot === "heatmap") {
                 var images = JSON.parse(result.images);
                 var df_trace = JSON.parse(result.trace);
                 var df_voice = JSON.parse(result.voice);
 
+                document.getElementById("spinner").style.display = "none";
+
                 // Call the graph_heatmap function and handle it asynchronously
-                graph_heatmap(images, df_trace, df_voice)
+                graph_heatmap(images, df_trace, df_voice)                   
                     .catch((error) => {
                         console.error("Error generating heatmap:", error);
                     });
@@ -23,6 +23,7 @@ function submitdata(data, url_dataview) {
                 var icons = JSON.parse(result.icons);
                 var df_trace = JSON.parse(result.trace);
 
+                console.log(icons);
                 // Call the graph_heatmap function and handle it asynchronously
                 graph_recording(images, icons, df_trace)
                     .then(result => {
@@ -32,46 +33,56 @@ function submitdata(data, url_dataview) {
                         console.error("Error processing recording:", error);
                         $('#resultplot').html('Error processing recording');
                     });
+
+                 // aparece o plotly novamente após de ser ocultado
+                 document.getElementById("group").style.display = "block";
             } else {
+                document.getElementById("spinner").style.display = "none";
                 $('#resultplot').html('Invalid or not implemented plot');
             }
 
         } else {
+            document.getElementById("spinner").style.display = "none";
             $('#resultplot').html('No results returned');
         }
     });
 }
 
 function closePopupResult() {
-    //limpa os elementos da lista de botoes quando fecha o model
-    var nameSites = document.getElementById("dropdown-list");
-    nameSites.innerHTML = '';
+    if (plot === "recording"){
+        //limpa os elementos da lista de botoes quando fecha o model
+        var nameSites = document.getElementById("dropdown-list");
+        nameSites.innerHTML = '';
 
-    //verificando se o modelBody existe
-    var modalBody = document.getElementById("modalBody");
+        //verificando se o modelBody existe
+        var modalBody = document.getElementById("modalBody");
 
-    //oculta o conteúdo do gráfico e lista de botoes
-    document.getElementById("group").style.display = "none";
-    document.getElementById("sites").style.display = "none";
+        //oculta o conteúdo do gráfico e lista de botoes
+        document.getElementById("group").style.display = "none";
+        document.getElementById("sites").style.display = "none";
 
-    //se existir remove
-    if (modalBody !== null) {
-        modalBody.remove();
-    }
+        //se existir remove
+        if (modalBody !== null) {
+            modalBody.remove();
+        }
 
-    //criando novamente o modal-body do spinner
-    var modalBody = createModalBody();
-    var modalContent = document.querySelector('#modalContent');
-    modalContent.appendChild(modalBody);
+        //criando novamente o modal-body do spinner
+        var modalBody = createModalBody();
+        var modalContent = document.querySelector('#modalContent');
+        modalContent.appendChild(modalBody);
 
-    //limpando o plotly
-    $('#resultPlot').html('');
+        //limpando o plotly
+        $('#resultPlot').html('');
 
-    // Aqui, definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
-    setTimeout(function () {
-        document.getElementById("modalBody").remove();
-    }, 1000);
-
+        // Aqui, definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
+        setTimeout(function () {
+            document.getElementById("modalBody").remove();
+        }, 1000);
+    } else { // para heatmap e outras exceções 
+        var resultPlot = document.getElementById("resultPlot");
+        resultPlot.innerHTML = '';
+        document.getElementById("spinner").style.display = "block";
+    };
 };
 
 // Função para a lista de botões
@@ -83,7 +94,7 @@ function botaoSites(result) {
 
     for (const site of Object.keys(result)) {
         var link = document.createElement("a");
-        link.setAttribute("class", "list-group-item border border-0");
+        link.setAttribute("class", "list-group-item border border-0 botoes-site");
         link.setAttribute("href", "#");
         link.textContent = site;
         nameSites.appendChild(link);

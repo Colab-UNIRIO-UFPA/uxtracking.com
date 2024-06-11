@@ -23,7 +23,10 @@ function submitdata(data, url_dataview) {
                 var icons = JSON.parse(result.icons);
                 var df_trace = JSON.parse(result.trace);
 
-                console.log(icons);
+                // aparece o plotly novamente após de ser ocultado
+                document.getElementById("group").style.display = "block";
+                document.getElementById("sites_heading").style.display = "block";
+
                 // Call the graph_heatmap function and handle it asynchronously
                 graph_recording(images, icons, df_trace)
                     .then(result => {
@@ -34,8 +37,6 @@ function submitdata(data, url_dataview) {
                         $('#resultplot').html('Error processing recording');
                     });
 
-                 // aparece o plotly novamente após de ser ocultado
-                 document.getElementById("group").style.display = "block";
             } else {
                 document.getElementById("spinner").style.display = "none";
                 $('#resultplot').html('Invalid or not implemented plot');
@@ -57,9 +58,10 @@ function closePopupResult() {
         //verificando se o modelBody existe
         var modalBody = document.getElementById("modalBody");
 
-        //oculta o conteúdo do gráfico e lista de botoes
+        //oculta o conteúdo do gráfico, lista de botoes e o nome sites após o fechamento
         document.getElementById("group").style.display = "none";
         document.getElementById("sites").style.display = "none";
+        document.getElementById("sites_heading").style.display = "none";
 
         //se existir remove
         if (modalBody !== null) {
@@ -314,6 +316,7 @@ function gaussianFilter(matrix, sigma) {
     return transposed.map(row => convolve(row));
 }
 
+
 async function graph_heatmap(images, df_trace, df_voice) {
     const firstImageKey = Object.keys(images)[0];
     const firstImageBase64 = images[firstImageKey];
@@ -363,12 +366,14 @@ async function graph_heatmap(images, df_trace, df_voice) {
                 try {
                     const xBin = Math.floor((x[i] / width) * 250);
                     const yBin = Math.floor((y[i] / height) * 250);
-                    histogram[xBin][yBin]++;
+                    histogram[xBin][yBin]++; 
                 } catch (error) {
                     console.error("Erro ao criar o histograma:", error);
                     continue;
                 }
             }
+
+            console.log(histogram);
 
             const dataSmoothed = gaussianFilter(histogram, 24);
 

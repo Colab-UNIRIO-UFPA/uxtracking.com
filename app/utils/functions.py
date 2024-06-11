@@ -1,6 +1,7 @@
 import string
 import random
 import pandas as pd
+import pytz
 import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
@@ -36,6 +37,20 @@ def format_ISO(dates):
 
     return iso_format_dates
 
+def convert_utc_to_local(utc_dt):
+    # Definir o fuso horário UTC
+    utc = pytz.utc
+
+    # Converter a data e hora UTC para um objeto datetime com fuso horário
+    utc_dt = utc.localize(utc_dt)
+
+    # Fuso horário local (exemplo: America/Sao_Paulo para Brasília)
+    local_tz = pytz.timezone('America/Sao_Paulo')
+
+    # Converter para o fuso horário local
+    local_dt = utc_dt.astimezone(local_tz)
+
+    return local_dt
 
 def nlpBertimbau(df):
 

@@ -442,7 +442,7 @@ def dataview_post(username, plot):
             results_img = loop.run_until_complete(asyncio.gather(*tasks))
 
             for im_id, img_base64 in results_img:
-                full_base64[im_id] = img_base64
+                full_base64[im_id] = img_base64 #id com imagem em base 64
 
             # filtra os dfs para diminuir o tamanho do json enviado
             filtered_df_trace = df_trace[["time", "x", "y", "image", "scroll"]].copy()
@@ -457,7 +457,6 @@ def dataview_post(username, plot):
             results["trace"] = filtered_df_trace.to_json(orient="records")
             results["voice"] = filtered_df_voice.to_json(orient="records")
 
-            print("osasdncs");
             return results
 
         elif plot == "recording":

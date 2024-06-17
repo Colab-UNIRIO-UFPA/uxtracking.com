@@ -1,31 +1,49 @@
-var plot; //variavel global para descobrir o plot usado na funcao closePopupResult
+var plot; //variavel global para descobrir o plot usado no closePopupResult
+var currentRequestId = null; // Identificador único para cada coleta
 
 function submitdata(data, url_dataview) {
+    var requestId = Date.now(); // Cria um novo identificador único com a data/hora atual
+    currentRequestId = requestId; // Atualiza o identificador global com o novo identificador
+
     $("#resultModal").modal('show');
 
+    //criando um spinner geral
+    showSpinnerModal();
+
     $.post(url_dataview, { dir: data }, function (result) {
+
+        if (currentRequestId !== requestId) {
+            return; // Ignora a resposta se não for a mais recente
+        }
+
         plot = result.plot;
         if (result) {
             if (result.plot === "heatmap") {
                 var images = JSON.parse(result.images);
                 var df_trace = JSON.parse(result.trace);
                 var df_voice = JSON.parse(result.voice);
-
-                document.getElementById("spinner").style.display = "none";
+                
+                //removendo o spinner e aparecendo o gráfico
+                removeSpinnerModal();
+                document.getElementById("modal-heatmap").style.display = "block";
 
                 // Call the graph_heatmap function and handle it asynchronously
                 graph_heatmap(images, df_trace, df_voice)                   
                     .catch((error) => {
                         console.error("Error generating heatmap:", error);
+                        $('#resultplot').html('Erro ao processar o heatmap');
                     });
-            } else if (result.plot === "recording") {
+            } else if (result.plot === "recording") {               
                 var images = JSON.parse(result.images);
                 var icons = JSON.parse(result.icons);
                 var df_trace = JSON.parse(result.trace);
 
                 // aparece o plotly novamente após de ser ocultado
-                document.getElementById("group").style.display = "block";
-                document.getElementById("sites_heading").style.display = "block";
+                document.getElementById("plotGroup").style.display = "block";
+                document.getElementById("sitesHeading").style.display = "block";
+
+                //removendo o spinner
+                removeSpinnerModal();
 
                 // Call the graph_heatmap function and handle it asynchronously
                 graph_recording(images, icons, df_trace)
@@ -34,58 +52,75 @@ function submitdata(data, url_dataview) {
                     })
                     .catch(error => {
                         console.error("Error processing recording:", error);
-                        $('#resultplot').html('Error processing recording');
+                        $('#resultplot').html('Erro ao processar o recording');
                     });
 
             } else {
-                document.getElementById("spinner").style.display = "none";
+                removeSpinnerModal();
                 $('#resultplot').html('Invalid or not implemented plot');
             }
 
         } else {
-            document.getElementById("spinner").style.display = "none";
+            removeSpinnerModal();
             $('#resultplot').html('No results returned');
+        }
+    }).fail(function (jqXHR, textStatus, errorThrown) { 
+        // Trata erros de solicitação AJAX para coleta atual
+        if (currentRequestId === requestId) {
+            removeSpinnerModal();
+            console.error("Error submitting data:", errorThrown);
+            $('#resultPlot').html('Erro ao processar os dados');
         }
     });
 }
 
 function closePopupResult() {
+    // Atualiza o identificador único para cancelar a coleta atual
+    currentRequestId = null;
+
+    //verificando se o plot e recording ou heatmap para as devidas configuracoes de fechamento
     if (plot === "recording"){
-        //limpa os elementos da lista de botoes quando fecha o model
-        var nameSites = document.getElementById("dropdown-list");
-        nameSites.innerHTML = '';
+        clearRecordingElements();
+    } else if (plot === "heatmap"){
+        document.getElementById("modal-heatmap").style.display = "none";
+    }
 
-        //verificando se o modelBody existe
-        var modalBody = document.getElementById("modalBody");
+    //verificando a existencia de um modelBody para evitar duplicações
+    removeSpinnerModal();
 
-        //oculta o conteúdo do gráfico, lista de botoes e o nome sites após o fechamento
-        document.getElementById("group").style.display = "none";
-        document.getElementById("sites").style.display = "none";
-        document.getElementById("sites_heading").style.display = "none";
+    //criando novamente o modal-body do spinner para fechamento
+    showSpinnerModal();
 
-        //se existir remove
-        if (modalBody !== null) {
-            modalBody.remove();
-        }
+    //limpando o plotly
+    $('#resultPlot').html('');
 
-        //criando novamente o modal-body do spinner
-        var modalBody = createModalBody();
-        var modalContent = document.querySelector('#modalContent');
-        modalContent.appendChild(modalBody);
-
-        //limpando o plotly
-        $('#resultPlot').html('');
-
-        // Aqui, definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
-        setTimeout(function () {
-            document.getElementById("modalBody").remove();
-        }, 1000);
-    } else { // para heatmap e outras exceções 
-        var resultPlot = document.getElementById("resultPlot");
-        resultPlot.innerHTML = '';
-        document.getElementById("spinner").style.display = "block";
-    };
+    //definimos um atraso de 1000 milissegundos (1 segundo) antes de remover o modal-body do spinner
+    setTimeout(function () {
+        modalBody.remove();
+    }, 500);
 };
+
+function showSpinnerModal(){
+    var modalBody = createSpinnerModalBody();
+    var modalContent = document.querySelector('#modalContent');
+    modalContent.appendChild(modalBody);
+}
+
+function removeSpinnerModal() {
+    var modalBody = document.getElementById("modalBody");
+    if (modalBody) {
+        modalBody.remove();
+    }
+}
+
+function clearRecordingElements() {
+    var nameSites = document.getElementById("dropdown-list");
+    nameSites.innerHTML = '';
+
+    document.getElementById("plotGroup").style.display = "none";
+    document.getElementById("sitesContainer").style.display = "none";
+    document.getElementById("sitesHeading").style.display = "none";
+}
 
 // Função para a lista de botões
 function botaoSites(result) {
@@ -129,7 +164,7 @@ function botaoSites(result) {
 
 
 // cria o elemento modal-body do spinner
-function createModalBody() {
+function createSpinnerModalBody() {
     var modalBody = document.createElement('div');
     modalBody.className = 'modal-body h-100 d-flex align-items-center justify-content-center gap-3';
     modalBody.id = 'modalBody';
